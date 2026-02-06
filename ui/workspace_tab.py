@@ -2,15 +2,16 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTableWidget,
     QTableWidgetItem, QPushButton, QComboBox, QMessageBox,
     QHeaderView, QLineEdit, QLabel, QTextEdit, QSplitter,
-    QFileDialog, QAbstractItemView, QFrame, QCheckBox, QMenu, QRadioButton, QButtonGroup
+    QFileDialog, QAbstractItemView, QFrame, QCheckBox, QMenu,
+    QRadioButton, QButtonGroup, QDialog, QDialogButtonBox, QFormLayout
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QColor, QGuiApplication, QClipboard
-import json
 import os
 from pathlib import Path
-import re
+import uuid
 
+from core.rule_engine import RuleEngine
 from core.search_service import SearchService
 from utils.path_resolver import PathResolver, PathScope
 from utils.command_template import CommandTemplateManager
@@ -41,126 +42,180 @@ class NumericTableWidgetItem(QTableWidgetItem):
         return self.text() < other.text()
 
 
-class RuleEngine:
-    """规则扫描引擎"""
-    
-    def __init__(self):
-        self.rules = []
-        self._load_default_rules()
-    
-    def _load_default_rules(self):
-        """加载默认规则"""
-        self.rules = [
-            {
-                "id": "silverfox_rundll_obfuscation",
-                "family": "银狐",
-                "match": [
-                    {
-                        "field": "command_line",
-                        "type": "regex",
-                        "value": r'r""u""n""d""[IiI]{2}32'
-                    }
-                ],
-                "severity": "high",
-                "note": "仿冒 rundll32 的银狐变种"
-            },
-            {
-                "id": "silverfox_jnetpub",
-                "family": "银狐",
-                "match": [
-                    {
-                        "field": "image_path",
-                        "type": "contains",
-                        "value": "jnetpub"
-                    }
-                ],
-                "severity": "high",
-                "note": "银狐常见路径特征"
-            },
-            {
-                "id": "powershell_encoded",
-                "family": "PowerShell",
-                "match": [
-                    {
-                        "field": "command_line",
-                        "type": "contains",
-                        "value": "-enc "
-                    }
-                ],
-                "severity": "medium",
-                "note": "PowerShell 编码执行"
-            }
-        ]
-    
-    def load_rules_from_file(self, file_path):
-        """从文件加载规则"""
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                if file_path.endswith('.json'):
-                    self.rules = json.load(f)
-                elif file_path.endswith('.yaml') or file_path.endswith('.yml'):
-                    import yaml
-                    self.rules = yaml.safe_load(f)
-            return True, f"成功加载 {len(self.rules)} 条规则"
-        except Exception as e:
-            return False, f"加载规则失败: {str(e)}"
-    
-    def save_rules_to_file(self, file_path):
-        """保存规则到文件"""
-        try:
-            with open(file_path, 'w', encoding='utf-8') as f:
-                if file_path.endswith('.json'):
-                    json.dump(self.rules, f, ensure_ascii=False, indent=2)
-                elif file_path.endswith('.yaml') or file_path.endswith('.yml'):
-                    import yaml
-                    yaml.dump(self.rules, f, allow_unicode=True)
-            return True, f"成功保存 {len(self.rules)} 条规则"
-        except Exception as e:
-            return False, f"保存规则失败: {str(e)}"
-    
-    def scan_entry(self, entry):
-        """扫描单个条目，返回命中的规则列表"""
-        matched_rules = []
-        
-        for rule in self.rules:
-            if self._match_rule(rule, entry):
-                matched_rules.append(rule)
-        
-        return matched_rules
-    
-    def _match_rule(self, rule, entry):
-        """检查条目是否匹配规则"""
-        match_conditions = rule.get('match', [])
-        
-        for condition in match_conditions:
-            field = condition.get('field')
-            match_type = condition.get('type')
-            value = condition.get('value')
-            
-            field_value = entry.get(field, '')
-            if not field_value:
-                # 尝试从 detail_data 获取（例如 command_line）
-                detail = entry.get('detail_data')
-                if isinstance(detail, dict):
-                    field_value = detail.get(field, '')
-            # 兼容字段别名
-            if not field_value and field == 'command_line':
-                field_value = entry.get('launch_string', '')
-            
-            if match_type == 'contains':
-                if value.lower() not in str(field_value).lower():
-                    return False
-            elif match_type == 'regex':
-                try:
-                    if not re.search(value, str(field_value), re.IGNORECASE):
-                        return False
-                except re.error:
-                    return False
-            elif match_type == 'equals':
-                if str(field_value).lower() != value.lower():
-                    return False
-        
-        return True
+class RuleEditDialog(QDialog):
+    """规则添加对话框"""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("新增规则")
+        self._init_ui()
+
+    def _init_ui(self):
+        layout = QVBoxLayout(self)
+        form = QFormLayout()
+
+        self.edt_id = QLineEdit(f"rule_{uuid.uuid4().hex[:8]}")
+        self.edt_family = QLineEdit("custom")
+        self.cmb_field = QComboBox()
+        self.cmb_field.addItems([
+            "command_line", "image_path", "entry", "description",
+            "publisher", "company", "location", "category", "launch_string"
+        ])
+        self.cmb_type = QComboBox()
+        self.cmb_type.addItems(["contains", "regex", "equals"])
+        self.edt_value = QLineEdit()
+        self.cmb_severity = QComboBox()
+        self.cmb_severity.addItems(["critical", "high", "medium", "low"])
+        self.edt_note = QLineEdit()
+
+        form.addRow("规则ID", self.edt_id)
+        form.addRow("家族", self.edt_family)
+        form.addRow("字段", self.cmb_field)
+        form.addRow("匹配类型", self.cmb_type)
+        form.addRow("匹配值", self.edt_value)
+        form.addRow("严重级别", self.cmb_severity)
+        form.addRow("备注", self.edt_note)
+
+        layout.addLayout(form)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(self._on_accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+    def _on_accept(self):
+        if not self.edt_value.text().strip():
+            QMessageBox.warning(self, "提示", "匹配值不能为空")
+            return
+        self.accept()
+
+    def get_rule(self):
+        return {
+            "id": self.edt_id.text().strip() or f"rule_{uuid.uuid4().hex[:8]}",
+            "family": self.edt_family.text().strip() or "custom",
+            "match": [
+                {
+                    "field": self.cmb_field.currentText(),
+                    "type": self.cmb_type.currentText(),
+                    "value": self.edt_value.text().strip()
+                }
+            ],
+            "severity": self.cmb_severity.currentText(),
+            "note": self.edt_note.text().strip()
+        }
+
+
+class RuleManagerDialog(QDialog):
+    """规则管理对话框"""
+    def __init__(self, rule_engine: RuleEngine, parent=None):
+        super().__init__(parent)
+        self.rule_engine = rule_engine
+        self._rule_index_by_row = []
+        self.setWindowTitle("规则管理")
+        self.resize(900, 500)
+        self._init_ui()
+        self._load_rules()
+
+    def _init_ui(self):
+        layout = QVBoxLayout(self)
+
+        self.table = QTableWidget()
+        self.table.setColumnCount(7)
+        self.table.setHorizontalHeaderLabels(["ID", "Family", "Field", "Type", "Value", "Severity", "Note"])
+        self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table.horizontalHeader().setStretchLastSection(True)
+        layout.addWidget(self.table)
+
+        btn_layout = QHBoxLayout()
+        self.btn_add = QPushButton("新增")
+        self.btn_delete = QPushButton("删除")
+        self.btn_import = QPushButton("导入")
+        self.btn_export = QPushButton("导出")
+        self.btn_save = QPushButton("保存")
+        self.btn_close = QPushButton("关闭")
+
+        self.btn_add.clicked.connect(self._add_rule)
+        self.btn_delete.clicked.connect(self._delete_rule)
+        self.btn_import.clicked.connect(self._import_rules)
+        self.btn_export.clicked.connect(self._export_rules)
+        self.btn_save.clicked.connect(self._save_rules)
+        self.btn_close.clicked.connect(self.close)
+
+        btn_layout.addWidget(self.btn_add)
+        btn_layout.addWidget(self.btn_delete)
+        btn_layout.addStretch()
+        btn_layout.addWidget(self.btn_import)
+        btn_layout.addWidget(self.btn_export)
+        btn_layout.addWidget(self.btn_save)
+        btn_layout.addWidget(self.btn_close)
+        layout.addLayout(btn_layout)
+
+    def _load_rules(self):
+        rules = self.rule_engine.rules or []
+        self.table.setRowCount(0)
+        self._rule_index_by_row = []
+        for idx, rule in enumerate(rules):
+            self.table.insertRow(idx)
+            match_list = rule.get("match", [])
+            first_match = match_list[0] if match_list else {}
+            self.table.setItem(idx, 0, QTableWidgetItem(rule.get("id", "")))
+            self.table.setItem(idx, 1, QTableWidgetItem(rule.get("family", "")))
+            self.table.setItem(idx, 2, QTableWidgetItem(first_match.get("field", "")))
+            self.table.setItem(idx, 3, QTableWidgetItem(first_match.get("type", "")))
+            self.table.setItem(idx, 4, QTableWidgetItem(first_match.get("value", "")))
+            self.table.setItem(idx, 5, QTableWidgetItem(rule.get("severity", "")))
+            self.table.setItem(idx, 6, QTableWidgetItem(rule.get("note", "")))
+            self._rule_index_by_row.append(idx)
+        self.table.resizeColumnsToContents()
+
+    def _add_rule(self):
+        dialog = RuleEditDialog(self)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        self.rule_engine.rules.append(dialog.get_rule())
+        self._save_rules(show_msg=False)
+        self._load_rules()
+
+    def _delete_rule(self):
+        rows = sorted(set(item.row() for item in self.table.selectedItems()), reverse=True)
+        if not rows:
+            QMessageBox.warning(self, "提示", "请选择要删除的规则")
+            return
+        for row in rows:
+            if 0 <= row < len(self.rule_engine.rules):
+                self.rule_engine.rules.pop(row)
+        self._save_rules(show_msg=False)
+        self._load_rules()
+
+    def _import_rules(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "导入规则", "", "JSON 文件 (*.json)")
+        if not file_path:
+            return
+        ok, msg = self.rule_engine.load_rules_from_file(file_path)
+        if ok:
+            self._save_rules(show_msg=False)
+            self._load_rules()
+            QMessageBox.information(self, "成功", msg)
+        else:
+            QMessageBox.warning(self, "失败", msg)
+
+    def _export_rules(self):
+        file_path, _ = QFileDialog.getSaveFileName(self, "导出规则", "rules.json", "JSON 文件 (*.json)")
+        if not file_path:
+            return
+        ok, msg = self.rule_engine.save_rules_to_file(file_path)
+        if ok:
+            QMessageBox.information(self, "成功", msg)
+        else:
+            QMessageBox.warning(self, "失败", msg)
+
+    def _save_rules(self, show_msg=True):
+        ok, msg = self.rule_engine.save_rules_to_file(str(self.rule_engine.rules_path))
+        if show_msg:
+            if ok:
+                QMessageBox.information(self, "成功", msg)
+            else:
+                QMessageBox.warning(self, "失败", msg)
 
 
 class WorkspaceTab(QWidget):
@@ -354,9 +409,9 @@ class WorkspaceTab(QWidget):
         if mode == "autorun":
             headers = ["Category", "Entry", "Description", "Publisher", "Image Path"]
         elif mode == "ip":
-            headers = ["Type", "Matched", "Source", "PID", "进程名", "详细"]
+            headers = ["Type", "Matched", "Source", "PID", "进程名", "源IP:端口 -> 目的IP:端口", "路径"]
         else:
-            headers = ["Type", "Matched", "Source", "详细"]
+            headers = ["Type", "Matched", "Source", "Summary"]
         self.results_table.setColumnCount(len(headers))
         self.results_table.setHorizontalHeaderLabels(headers)
         self.results_table.horizontalHeader().setStretchLastSection(True)
@@ -510,11 +565,13 @@ class WorkspaceTab(QWidget):
                     pid_text = ""
                     proc_name = ""
                     flow_text = ""
+                    proc_path = ""
                     if isinstance(result.detail, dict) and result.detail.get('kind') == "network":
                         conn = result.detail.get('connection', {})
                         pid_value = conn.get('pid', '')
                         pid_text = str(pid_value) if pid_value is not None else ""
                         proc_name = str(conn.get('process_name', '') or '')
+                        proc_path = str(conn.get('process_path', '') or '')
                         local_addr = str(conn.get('local_address', '') or '')
                         remote_addr = str(conn.get('remote_address', '') or '')
                         local_port = conn.get('local_port', '')
@@ -528,6 +585,7 @@ class WorkspaceTab(QWidget):
                     self.results_table.setItem(idx, 3, pid_item)
                     self.results_table.setItem(idx, 4, QTableWidgetItem(proc_name))
                     self.results_table.setItem(idx, 5, QTableWidgetItem(flow_text))
+                    self.results_table.setItem(idx, 6, QTableWidgetItem(proc_path))
             else:
                 for idx, result in enumerate(self.matched_results):
                     self.results_table.insertRow(idx)
@@ -840,7 +898,8 @@ class WorkspaceTab(QWidget):
     def _manage_rules(self):
         """规则管理"""
         try:
-            QMessageBox.information(self, "提示", "规则管理功能待实现\n\n将支持导入/导出 JSON/YAML 规则")
+            dialog = RuleManagerDialog(self.rule_engine, self)
+            dialog.exec()
         except Exception as e:
             QMessageBox.warning(self, "错误", f"规则管理失败: {str(e)}")
     
@@ -867,9 +926,9 @@ class WorkspaceTab(QWidget):
             
             menu = QMenu(self)
             
-            # 在 Explorer 中打开
+            # 在资源管理器中打开
             if image_path and image_path.lower() != 'file not found':
-                action_open = menu.addAction("在 Explorer 中打开")
+                action_open = menu.addAction("在资源管理器中打开")
                 action_open.triggered.connect(lambda: self._open_in_explorer(image_path))
             
             # 复制路径
@@ -887,7 +946,7 @@ class WorkspaceTab(QWidget):
             QMessageBox.warning(self, "错误", f"显示右键菜单失败: {str(e)}")
     
     def _open_in_explorer(self, path):
-        """在 Explorer 中打开文件"""
+        """在资源管理器中打开文件"""
         try:
             import subprocess
             if os.path.exists(path):

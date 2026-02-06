@@ -1037,9 +1037,9 @@ class AutorunsTab(QWidget):
         
         menu.addSeparator()
         
-        # 在 Explorer 中打开
+        # 在资源管理器中打开
         if image_path and image_path.lower() != 'file not found':
-            action_open = menu.addAction("在 Explorer 中打开")
+            action_open = menu.addAction("在资源管理器中打开")
             action_open.triggered.connect(lambda: self._open_in_explorer(image_path))
         
         menu.addSeparator()
@@ -1410,7 +1410,7 @@ class AutorunsTab(QWidget):
                         break
     
     def _open_in_explorer(self, path):
-        """在 Explorer 中打开文件（安全方式：打开目录并选中文件）"""
+        """在资源管理器中打开文件（安全方式：打开目录并选中文件）"""
         try:
             import os
             if os.path.exists(path):
