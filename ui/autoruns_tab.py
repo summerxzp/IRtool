@@ -1432,6 +1432,27 @@ class AutorunsTab(QWidget):
         except Exception as e:
             QMessageBox.critical(self, "错误", f"搜索失败: {str(e)}")
 
+    def jump_to_entry(self, entry: dict):
+        """跳转到指定的 Autoruns 条目"""
+        try:
+            if not entry:
+                return
+            target_entry = entry.get('entry', '')
+            if not target_entry:
+                return
+
+            model = self.model
+            view = self.tree_view
+            for i in range(model.rowCount()):
+                index = model.index(i, 0)
+                node = index.internalPointer()
+                if node and node.data.get('entry') == target_entry:
+                    view.setCurrentIndex(index)
+                    view.scrollTo(index)
+                    return
+        except Exception as e:
+            QMessageBox.warning(self, "错误", f"跳转失败: {str(e)}")
+
 
     def _on_scan_error(self, error_msg):
         """扫描错误处理"""

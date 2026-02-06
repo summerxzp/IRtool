@@ -9,9 +9,9 @@ from PyQt6.QtGui import QColor, QGuiApplication, QClipboard
 import json
 import os
 from pathlib import Path
-import ipaddress
 import re
 
+from core.search_service import SearchService
 from utils.path_resolver import PathResolver, PathScope
 from utils.command_template import CommandTemplateManager
 from utils.safe_executor import SafeExecutor, CommandResult, CommandStatus
@@ -144,11 +144,12 @@ class WorkspaceTab(QWidget):
     """工作台标签页 - 聚合搜索、经验规则扫描与快速调查处置"""
     
     search_requested = pyqtSignal(str)  # 搜索请求信号
+    jump_to_autorun = pyqtSignal(dict)  # 跳转到 Autoruns 条目信号
     
-    def __init__(self, autoruns_tab=None, data_store=None):
+    def __init__(self, data_store=None, search_service=None):
         super().__init__()
-        self.autoruns_tab = autoruns_tab
         self.data_store = data_store
+        self.search_service = search_service or SearchService(self.data_store)
         self.rule_engine = RuleEngine()
         self.command_manager = CommandTemplateManager()
         self.executor = SafeExecutor(self)
@@ -157,6 +158,7 @@ class WorkspaceTab(QWidget):
         self.matched_results = []
         self.selected_entry = None
         self.selected_scope = PathScope.SELF
+        self.result_mode = "autorun"
         
         self._init_ui()
     
@@ -229,10 +231,7 @@ class WorkspaceTab(QWidget):
         
         # 结果表格
         self.results_table = QTableWidget()
-        self.results_table.setColumnCount(4)
-        self.results_table.setHorizontalHeaderLabels([
-            "Type", "Matched", "Source", "Summary"
-        ])
+        self._set_result_mode(self.result_mode)
         self.results_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.results_table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.results_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -324,6 +323,17 @@ class WorkspaceTab(QWidget):
         self.cmb_preset.addItem("选择命令模板...")
         for template in self.command_manager.get_all_templates():
             self.cmb_preset.addItem(template.name, template.template_id)
+
+    def _set_result_mode(self, mode: str):
+        """设置结果表格列"""
+        self.result_mode = mode
+        if mode == "autorun":
+            headers = ["Category", "Entry", "Description", "Publisher", "Image Path"]
+        else:
+            headers = ["Type", "Matched", "Source", "Summary"]
+        self.results_table.setColumnCount(len(headers))
+        self.results_table.setHorizontalHeaderLabels(headers)
+        self.results_table.horizontalHeader().setStretchLastSection(True)
     
     def _on_search_changed(self):
         """搜索文本变化"""
@@ -331,55 +341,6 @@ class WorkspaceTab(QWidget):
             pass
         except Exception as e:
             QMessageBox.warning(self, "错误", f"搜索文本变化处理失败: {str(e)}")
-    
-    def _is_ip_address(self, text: str) -> bool:
-        """判断文本是否为 IP 地址（IPv4/IPv6）"""
-        try:
-            ipaddress.ip_address(text)
-            return True
-        except ValueError:
-            return False
-    
-    def _extract_ip_candidates(self, text: str) -> list:
-        """从输入中提取 IP（支持 IPv4、IPv4:port、URL 中的 IPv4、[IPv6]）"""
-        candidates = []
-        if not text:
-            return candidates
-        
-        # 1) 提取所有 IPv4
-        ipv4_pattern = r'(?<!\d)(?:\d{1,3}\.){3}\d{1,3}(?!\d)'
-        for match in re.finditer(ipv4_pattern, text):
-            ip = match.group(0)
-            if self._is_ip_address(ip):
-                candidates.append(ip)
-        
-        # 2) 提取括号内 IPv6: [2001:db8::1]
-        ipv6_bracket_pattern = r'\[([0-9a-fA-F:]+)\]'
-        for match in re.finditer(ipv6_bracket_pattern, text):
-            ip = match.group(1)
-            if self._is_ip_address(ip):
-                candidates.append(ip)
-        
-        # 3) 输入本身可能是 IP 或 IP:port
-        cleaned = text.strip()
-        if cleaned:
-            # 处理 IPv4:port
-            if cleaned.count(':') == 1 and cleaned.rsplit(':', 1)[1].isdigit():
-                cleaned = cleaned.rsplit(':', 1)[0]
-            # 处理 IPv6:port（仅处理带 [] 的形式）
-            if cleaned.startswith('[') and ']' in cleaned:
-                cleaned = cleaned[1:cleaned.index(']')]
-            if self._is_ip_address(cleaned):
-                candidates.append(cleaned)
-        
-        # 去重保持顺序
-        seen = set()
-        unique = []
-        for ip in candidates:
-            if ip not in seen:
-                seen.add(ip)
-                unique.append(ip)
-        return unique
     
     def _get_entry_field_value(self, entry: dict, key: str):
         """从 entry 或 detail_data 中获取字段值"""
@@ -393,108 +354,32 @@ class WorkspaceTab(QWidget):
                 return value
         return ""
     
-    def _get_entry_search_fields(self, entry: dict) -> list:
-        """获取关键字搜索字段列表"""
-        fields = [
-            self._get_entry_field_value(entry, 'entry'),
-            self._get_entry_field_value(entry, 'description'),
-            self._get_entry_field_value(entry, 'publisher'),
-            self._get_entry_field_value(entry, 'image_path'),
-            self._get_entry_field_value(entry, 'launch_string'),
-            self._get_entry_field_value(entry, 'command_line')
-        ]
-        return [str(f) for f in fields if f is not None]
-    
-    def _get_entry_ip_fields(self, entry: dict) -> list:
-        """获取 IP 搜索字段列表"""
-        fields = [
-            ('command_line', self._get_entry_field_value(entry, 'launch_string')),
-            ('command_line', self._get_entry_field_value(entry, 'command_line')),
-            ('image_path', self._get_entry_field_value(entry, 'image_path'))
-        ]
-        # 去重同值
-        seen = set()
-        result = []
-        for name, value in fields:
-            value_str = str(value) if value is not None else ""
-            key = (name, value_str)
-            if value_str and key not in seen:
-                seen.add(key)
-                result.append((name, value_str))
-        return result
-    
-    def _search_by_ip(self, ip_candidates: list):
-        """按 IP 地址搜索（支持多个候选）"""
-        results = []
-        if not ip_candidates:
-            return results
-        
-        # 去重：同一条目同一 IP 只返回一次
-        seen = set()
-        for entry in self.current_data:
-            search_fields = self._get_entry_ip_fields(entry)
-            for ip_address in ip_candidates:
-                ip_lower = ip_address.lower()
-                for field_name, field_value in search_fields:
-                    if ip_lower in field_value.lower():
-                        entry_key = entry.get('entry', '')
-                        dedup_key = (entry_key, ip_address, field_name)
-                        if dedup_key in seen:
-                            continue
-                        seen.add(dedup_key)
-                        
-                        summary = f"Autorun 项 {entry.get('entry', 'Unknown')} 命中 IP"
-                        result = SearchResult(
-                            result_type=ResultType.IP_MATCH,
-                            summary=summary,
-                            source=field_name,
-                            detail={'entry': entry},
-                            matched_value=ip_address,
-                            related_entry=entry
-                        )
-                        results.append(result)
-        return results
-    
-    def _search_by_keyword(self, keyword: str):
-        """按关键字搜索"""
-        results = []
-        for entry in self.current_data:
-            search_fields = self._get_entry_search_fields(entry)
-            if any(keyword in field.lower() for field in search_fields):
-                summary = f"Autorun 项 {entry.get('entry', 'Unknown')} 命中关键字"
-                result = SearchResult(
-                    result_type=ResultType.AUTORUN,
-                    summary=summary,
-                    source='keyword',
-                    detail={'entry': entry},
-                    matched_value=keyword,
-                    related_entry=entry
-                )
-                results.append(result)
-        return results
-    
     def _perform_search(self):
         """执行搜索"""
         try:
-            if not self.autoruns_tab:
-                QMessageBox.warning(self, "警告", "未关联 Autoruns Tab")
+            if not self.search_service:
+                QMessageBox.warning(self, "警告", "搜索服务未初始化")
                 return
             
             search_text = self.search_box.text().strip()
             if not search_text:
                 QMessageBox.warning(self, "警告", "请输入搜索内容")
                 return
-            
-            # 获取 Autoruns Tab 的数据
-            self.current_data = self._get_autoruns_data()
-            
-            # 判断搜索类型并执行相应搜索
-            ip_candidates = self._extract_ip_candidates(search_text)
-            if ip_candidates:
-                self.matched_results = self._search_by_ip(ip_candidates)
+
+            results_bundle = self.search_service.search(search_text)
+
+            if results_bundle.mode == "keyword":
+                if not self.search_service.has_autoruns_data():
+                    QMessageBox.warning(self, "警告", "暂无持久化数据，请先在持久化检测中扫描")
+                    return
+                self._set_result_mode("autorun")
             else:
-                self.matched_results = self._search_by_keyword(search_text.lower())
-            
+                if not self.search_service.has_autoruns_data() and not self.search_service.has_network_data():
+                    QMessageBox.warning(self, "警告", "暂无可搜索的数据，请先扫描/刷新")
+                    return
+                self._set_result_mode("ip")
+
+            self.matched_results = results_bundle.results
             self._update_results_table()
         except Exception as e:
             QMessageBox.warning(self, "错误", f"搜索失败: {str(e)}")
@@ -502,12 +387,15 @@ class WorkspaceTab(QWidget):
     def _scan_rules(self):
         """执行规则扫描"""
         try:
-            if not self.autoruns_tab:
-                QMessageBox.warning(self, "警告", "未关联 Autoruns Tab")
+            if not self.search_service:
+                QMessageBox.warning(self, "警告", "搜索服务未初始化")
                 return
-            
-            # 获取 Autoruns Tab 的数据
-            self.current_data = self._get_autoruns_data()
+
+            # 获取 Autoruns 数据
+            self.current_data = self.search_service.get_autoruns_entries()
+            if not self.current_data:
+                QMessageBox.warning(self, "警告", "暂无持久化数据，请先在持久化检测中扫描")
+                return
             
             # 扫描规则
             self.matched_results = []
@@ -535,76 +423,73 @@ class WorkspaceTab(QWidget):
                         related_entry=entry
                     )
                     self.matched_results.append(result)
-            
+
+            self._set_result_mode("rule")
             self._update_results_table()
         except Exception as e:
             QMessageBox.warning(self, "错误", f"规则扫描失败: {str(e)}")
-    
-    def _get_autoruns_data(self):
-        """从 Autoruns Tab 获取数据"""
-        if self.data_store:
-            data = self.data_store.get_autoruns_entries()
-            if data:
-                return data
-        if not self.autoruns_tab:
-            return []
-        
-        # 从模型获取数据
-        model = self.autoruns_tab.model
-        data = []
-        
-        def collect_nodes(nodes):
-            for node in nodes:
-                if node and hasattr(node, 'data'):
-                    data.append(node.data)
-                if node and hasattr(node, 'children') and node.children:
-                    collect_nodes(node.children)
-        
-        collect_nodes(model.root_nodes)
-        
-        return data
     
     def _update_results_table(self):
         """更新结果表格"""
         try:
             self.results_table.setRowCount(0)
-            
-            for idx, result in enumerate(self.matched_results):
-                self.results_table.insertRow(idx)
-                
-                # Type
-                type_text = "IP" if result.result_type == ResultType.IP_MATCH else "Autorun"
-                type_item = QTableWidgetItem(type_text)
-                if result.result_type == ResultType.IP_MATCH:
-                    type_item.setBackground(QColor(200, 220, 255))
-                self.results_table.setItem(idx, 0, type_item)
-                
-                # Matched
-                self.results_table.setItem(idx, 1, QTableWidgetItem(result.matched_value))
-                
-                # Source
-                source_text = result.source
-                if result.source == 'command_line':
-                    source_text = 'Command Line'
-                elif result.source == 'image_path':
-                    source_text = 'Image Path'
-                elif result.source == 'rule_scan':
-                    source_text = 'Rule Scan'
-                self.results_table.setItem(idx, 2, QTableWidgetItem(source_text))
-                
-                # Summary
-                summary_item = QTableWidgetItem(result.summary)
-                
-                # 如果是规则扫描结果，显示严重级别颜色
-                if result.source == 'rule_scan' and result.detail.get('severity'):
-                    severity = result.detail.get('severity')
-                    if severity == 'high':
-                        summary_item.setBackground(QColor(255, 200, 200))
-                    elif severity == 'medium':
-                        summary_item.setBackground(QColor(255, 255, 200))
-                
-                self.results_table.setItem(idx, 3, summary_item)
-            
+            if self.result_mode == "autorun":
+                for idx, result in enumerate(self.matched_results):
+                    entry = result.related_entry or result.detail.get('entry', {})
+                    self.results_table.insertRow(idx)
+
+                    self.results_table.setItem(idx, 0, QTableWidgetItem(entry.get('category', '')))
+                    self.results_table.setItem(idx, 1, QTableWidgetItem(entry.get('entry', '')))
+                    self.results_table.setItem(idx, 2, QTableWidgetItem(entry.get('description', '')))
+                    self.results_table.setItem(idx, 3, QTableWidgetItem(entry.get('publisher', '')))
+                    self.results_table.setItem(idx, 4, QTableWidgetItem(entry.get('image_path', '')))
+            else:
+                for idx, result in enumerate(self.matched_results):
+                    self.results_table.insertRow(idx)
+
+                    # Type
+                    detail_kind = result.detail.get('kind') if isinstance(result.detail, dict) else None
+                    if detail_kind == "network":
+                        type_text = "Network"
+                    elif detail_kind == "autorun":
+                        type_text = "Autorun"
+                    else:
+                        type_text = "IP" if result.result_type == ResultType.IP_MATCH else "Autorun"
+                    type_item = QTableWidgetItem(type_text)
+                    if result.result_type == ResultType.IP_MATCH:
+                        type_item.setBackground(QColor(200, 220, 255))
+                    self.results_table.setItem(idx, 0, type_item)
+
+                    # Matched
+                    self.results_table.setItem(idx, 1, QTableWidgetItem(result.matched_value))
+
+                    # Source
+                    source_text = result.source
+                    if result.source == 'command_line':
+                        source_text = 'Command Line'
+                    elif result.source == 'image_path':
+                        source_text = 'Image Path'
+                    elif result.source == 'rule_scan':
+                        source_text = 'Rule Scan'
+                    elif result.source == 'local_address':
+                        source_text = 'Local Address'
+                    elif result.source == 'remote_address':
+                        source_text = 'Remote Address'
+                    self.results_table.setItem(idx, 2, QTableWidgetItem(source_text))
+
+                    # Summary
+                    summary_item = QTableWidgetItem(result.summary)
+
+                    # 如果是规则扫描结果，显示严重级别颜色
+                    if result.source == 'rule_scan' and result.detail.get('severity'):
+                        severity = result.detail.get('severity')
+                        if severity == 'high':
+                            summary_item.setBackground(QColor(255, 200, 200))
+                        elif severity == 'medium':
+                            summary_item.setBackground(QColor(255, 255, 200))
+
+                    self.results_table.setItem(idx, 3, summary_item)
+
             # 调整列宽
             self.results_table.resizeColumnsToContents()
         except Exception as e:
@@ -626,6 +511,10 @@ class WorkspaceTab(QWidget):
                 if result.related_entry:
                     self.selected_entry = result.related_entry
                     self._update_command_preview()
+                else:
+                    self.selected_entry = None
+                    self.cmd_preview.clear()
+                    self.btn_execute.setEnabled(False)
         except Exception as e:
             QMessageBox.warning(self, "错误", f"结果选中处理失败: {str(e)}")
     
@@ -635,29 +524,10 @@ class WorkspaceTab(QWidget):
             row = item.row()
             if row < len(self.matched_results):
                 result = self.matched_results[row]
-                if result.related_entry and self.autoruns_tab:
-                    self._jump_to_autorun_entry(result.related_entry)
+                if result.related_entry:
+                    self.jump_to_autorun.emit(result.related_entry)
         except Exception as e:
             QMessageBox.warning(self, "错误", f"跳转失败: {str(e)}")
-    
-    def _jump_to_autorun_entry(self, entry):
-        """跳转到 Autoruns 条目"""
-        try:
-            if not self.autoruns_tab:
-                return
-            
-            model = self.autoruns_tab.model
-            view = self.autoruns_tab.tree_view
-            
-            for i in range(model.rowCount()):
-                index = model.index(i, 0)
-                node = index.internalPointer()
-                if node.data.get('entry') == entry.get('entry'):
-                    view.setCurrentIndex(index)
-                    view.scrollTo(index)
-                    return
-        except Exception as e:
-            QMessageBox.warning(self, "错误", f"跳转到 Autoruns 条目失败: {str(e)}")
     
     def _on_scope_changed(self, scope_id):
         """Target Scope 变化时触发"""
@@ -883,6 +753,7 @@ class WorkspaceTab(QWidget):
         try:
             self.matched_results = []
             self.results_table.setRowCount(0)
+            self._set_result_mode("autorun")
             self.cmd_preview.clear()
             self.btn_execute.setEnabled(False)
             self.selected_entry = None

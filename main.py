@@ -14,6 +14,7 @@ import ctypes
 from core.network_monitor import NetworkMonitor
 from core.autoruns_parser import AutorunsParser
 from core.data_store import DataStore
+from core.search_service import SearchService
 
 from ui.network_tab import NetworkTab
 from ui.autoruns_tab import AutorunsTab
@@ -72,6 +73,7 @@ class MainWindow(QMainWindow):
         """初始化核心模块"""
         self.network_monitor = NetworkMonitor()
         self.data_store = DataStore()
+        self.search_service = SearchService(self.data_store)
         
         try:
             self.autoruns_parser = AutorunsParser()
@@ -94,11 +96,13 @@ class MainWindow(QMainWindow):
             tabs.addTab(self.autoruns_tab, "持久化检测")
             
             # 工作台标签
-            self.workspace_tab = WorkspaceTab(self.autoruns_tab, self.data_store)
+            self.workspace_tab = WorkspaceTab(self.data_store, self.search_service)
             tabs.addTab(self.workspace_tab, "工作台")
             
             # 连接信号：Autoruns -> Workspace
             self.autoruns_tab.search_in_workspace.connect(self._on_search_in_workspace)
+            # 连接信号：Workspace -> Autoruns
+            self.workspace_tab.jump_to_autorun.connect(self._on_workspace_jump_to_autorun)
     
     def _on_search_in_workspace(self, search_text):
         """处理来自 Autoruns Tab 的搜索请求"""
@@ -115,6 +119,12 @@ class MainWindow(QMainWindow):
         
         # 执行搜索
         self.workspace_tab.search(search_text)
+
+    def _on_workspace_jump_to_autorun(self, entry):
+        """处理来自 Workspace 的跳转请求"""
+        if not hasattr(self, 'autoruns_tab') or not self.autoruns_tab:
+            return
+        self.autoruns_tab.jump_to_entry(entry)
     
     def closeEvent(self, event):
         """应用程序关闭事件处理"""
