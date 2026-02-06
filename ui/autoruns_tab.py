@@ -1441,14 +1441,18 @@ class AutorunsTab(QWidget):
             if not target_entry:
                 return
 
-            model = self.model
+            source_model = self.model
+            proxy_model = self.proxy_model
             view = self.tree_view
-            for i in range(model.rowCount()):
-                index = model.index(i, 0)
+            for i in range(source_model.rowCount()):
+                index = source_model.index(i, 0)
                 node = index.internalPointer()
                 if node and node.data.get('entry') == target_entry:
-                    view.setCurrentIndex(index)
-                    view.scrollTo(index)
+                    proxy_index = proxy_model.mapFromSource(index)
+                    if not proxy_index.isValid():
+                        return
+                    view.setCurrentIndex(proxy_index)
+                    view.scrollTo(proxy_index)
                     return
         except Exception as e:
             QMessageBox.warning(self, "错误", f"跳转失败: {str(e)}")

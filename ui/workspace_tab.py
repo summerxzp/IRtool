@@ -18,6 +18,29 @@ from utils.safe_executor import SafeExecutor, CommandResult, CommandStatus
 from utils.search_result import SearchResult, ResultType
 
 
+class NumericTableWidgetItem(QTableWidgetItem):
+    """支持数值排序的 TableWidgetItem"""
+    def __init__(self, text, sort_value=None):
+        super().__init__(text)
+        self.sort_value = sort_value if sort_value is not None else self._extract_numeric_value(text)
+    
+    def _extract_numeric_value(self, text):
+        if text is None or text == "":
+            return float("-inf")
+        try:
+            return int(text)
+        except ValueError:
+            try:
+                return float(text)
+            except ValueError:
+                return float("-inf")
+    
+    def __lt__(self, other):
+        if isinstance(other, NumericTableWidgetItem):
+            return self.sort_value < other.sort_value
+        return self.text() < other.text()
+
+
 class RuleEngine:
     """规则扫描引擎"""
     
@@ -236,6 +259,7 @@ class WorkspaceTab(QWidget):
         self.results_table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.results_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.results_table.horizontalHeader().setStretchLastSection(True)
+        self.results_table.setSortingEnabled(True)
         self.results_table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.results_table.customContextMenuRequested.connect(self._show_context_menu)
         self.results_table.itemSelectionChanged.connect(self._on_result_selected)
@@ -329,6 +353,8 @@ class WorkspaceTab(QWidget):
         self.result_mode = mode
         if mode == "autorun":
             headers = ["Category", "Entry", "Description", "Publisher", "Image Path"]
+        elif mode == "ip":
+            headers = ["Type", "Matched", "Source", "PID", "进程名", "源IP:端口 -> 目的IP:端口"]
         else:
             headers = ["Type", "Matched", "Source", "Summary"]
         self.results_table.setColumnCount(len(headers))
@@ -432,6 +458,9 @@ class WorkspaceTab(QWidget):
     def _update_results_table(self):
         """更新结果表格"""
         try:
+            sorting_enabled = self.results_table.isSortingEnabled()
+            if sorting_enabled:
+                self.results_table.setSortingEnabled(False)
             self.results_table.setRowCount(0)
             if self.result_mode == "autorun":
                 for idx, result in enumerate(self.matched_results):
@@ -443,7 +472,7 @@ class WorkspaceTab(QWidget):
                     self.results_table.setItem(idx, 2, QTableWidgetItem(entry.get('description', '')))
                     self.results_table.setItem(idx, 3, QTableWidgetItem(entry.get('publisher', '')))
                     self.results_table.setItem(idx, 4, QTableWidgetItem(entry.get('image_path', '')))
-            else:
+            elif self.result_mode == "ip":
                 for idx, result in enumerate(self.matched_results):
                     self.results_table.insertRow(idx)
 
@@ -477,6 +506,52 @@ class WorkspaceTab(QWidget):
                         source_text = 'Remote Address'
                     self.results_table.setItem(idx, 2, QTableWidgetItem(source_text))
 
+                    # PID / 进程名 / 流向
+                    pid_text = ""
+                    proc_name = ""
+                    flow_text = ""
+                    if isinstance(result.detail, dict) and result.detail.get('kind') == "network":
+                        conn = result.detail.get('connection', {})
+                        pid_value = conn.get('pid', '')
+                        pid_text = str(pid_value) if pid_value is not None else ""
+                        proc_name = str(conn.get('process_name', '') or '')
+                        local_addr = str(conn.get('local_address', '') or '')
+                        remote_addr = str(conn.get('remote_address', '') or '')
+                        local_port = conn.get('local_port', '')
+                        remote_port = conn.get('remote_port', '')
+                        local_display = f"{local_addr}:{local_port}" if local_addr else ""
+                        remote_display = f"{remote_addr}:{remote_port}" if remote_addr else ""
+                        if local_display or remote_display:
+                            flow_text = f"{local_display} -> {remote_display}"
+
+                    pid_item = NumericTableWidgetItem(pid_text, int(pid_text) if pid_text.isdigit() else None)
+                    self.results_table.setItem(idx, 3, pid_item)
+                    self.results_table.setItem(idx, 4, QTableWidgetItem(proc_name))
+                    self.results_table.setItem(idx, 5, QTableWidgetItem(flow_text))
+            else:
+                for idx, result in enumerate(self.matched_results):
+                    self.results_table.insertRow(idx)
+
+                    # Type
+                    type_text = "IP" if result.result_type == ResultType.IP_MATCH else "Autorun"
+                    type_item = QTableWidgetItem(type_text)
+                    if result.result_type == ResultType.IP_MATCH:
+                        type_item.setBackground(QColor(200, 220, 255))
+                    self.results_table.setItem(idx, 0, type_item)
+
+                    # Matched
+                    self.results_table.setItem(idx, 1, QTableWidgetItem(result.matched_value))
+
+                    # Source
+                    source_text = result.source
+                    if result.source == 'command_line':
+                        source_text = 'Command Line'
+                    elif result.source == 'image_path':
+                        source_text = 'Image Path'
+                    elif result.source == 'rule_scan':
+                        source_text = 'Rule Scan'
+                    self.results_table.setItem(idx, 2, QTableWidgetItem(source_text))
+
                     # Summary
                     summary_item = QTableWidgetItem(result.summary)
 
@@ -492,6 +567,8 @@ class WorkspaceTab(QWidget):
 
             # 调整列宽
             self.results_table.resizeColumnsToContents()
+            if sorting_enabled:
+                self.results_table.setSortingEnabled(True)
         except Exception as e:
             QMessageBox.warning(self, "错误", f"更新结果表格失败: {str(e)}")
     
