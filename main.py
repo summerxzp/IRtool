@@ -124,6 +124,14 @@ class MainWindow(QMainWindow):
         """处理来自 Workspace 的跳转请求"""
         if not hasattr(self, 'autoruns_tab') or not self.autoruns_tab:
             return
+        
+        # 切换到持久化检测 Tab
+        tabs = self.centralWidget()
+        if isinstance(tabs, QTabWidget):
+            for i in range(tabs.count()):
+                if tabs.tabText(i) == "持久化检测":
+                    tabs.setCurrentIndex(i)
+                    break
         self.autoruns_tab.jump_to_entry(entry)
     
     def closeEvent(self, event):

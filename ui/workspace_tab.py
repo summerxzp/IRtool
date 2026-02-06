@@ -354,9 +354,9 @@ class WorkspaceTab(QWidget):
         if mode == "autorun":
             headers = ["Category", "Entry", "Description", "Publisher", "Image Path"]
         elif mode == "ip":
-            headers = ["Type", "Matched", "Source", "PID", "进程名", "源IP:端口 -> 目的IP:端口"]
+            headers = ["Type", "Matched", "Source", "PID", "进程名", "详细"]
         else:
-            headers = ["Type", "Matched", "Source", "Summary"]
+            headers = ["Type", "Matched", "Source", "详细"]
         self.results_table.setColumnCount(len(headers))
         self.results_table.setHorizontalHeaderLabels(headers)
         self.results_table.horizontalHeader().setStretchLastSection(True)

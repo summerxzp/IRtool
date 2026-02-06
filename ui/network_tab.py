@@ -3,10 +3,12 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTableWidget,
     QTableWidgetItem, QPushButton, QComboBox, QCheckBox,
     QMessageBox, QHeaderView, QFileDialog, QLineEdit, QLabel,
-    QAbstractItemView, QFrame, QGridLayout
+    QAbstractItemView, QFrame, QGridLayout, QMenu
 )
-from PyQt6.QtCore import QTimer, QThread, pyqtSignal
+from PyQt6.QtCore import QTimer, QThread, pyqtSignal, Qt
 from PyQt6.QtGui import QColor
+import os
+import subprocess
 from utils.exporter import DataExporter
 from datetime import datetime, timedelta
 
@@ -165,6 +167,9 @@ class NetworkTab(QWidget):
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         # 禁用表格编辑
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        # 右键菜单
+        self.table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.table.customContextMenuRequested.connect(self._show_context_menu)
         # 设置行高以确保内容完整显示
         self.table.verticalHeader().setDefaultSectionSize(25)  # 设置默认行高
         
@@ -355,6 +360,98 @@ class NetworkTab(QWidget):
         
         # 【修复点】：数据更新完成后恢复排序状态
         self.table.setSortingEnabled(sorting_enabled)
+
+    def _show_context_menu(self, pos):
+        """显示右键菜单"""
+        items = self.table.selectedItems()
+        if not items:
+            return
+
+        menu = QMenu(self)
+        action_open = menu.addAction("在资源管理器中打开")
+        action_kill = menu.addAction("终止进程")
+        action_close = menu.addAction("关闭连接")
+
+        action = menu.exec(self.table.viewport().mapToGlobal(pos))
+        if action == action_open:
+            self._open_selected_in_explorer()
+        elif action == action_kill:
+            self._kill_selected()
+        elif action == action_close:
+            self._close_selected_connections()
+
+    def _open_selected_in_explorer(self):
+        """在资源管理器中打开进程路径"""
+        rows = sorted(set(item.row() for item in self.table.selectedItems()))
+        if not rows:
+            QMessageBox.warning(self, "提示", "请先选择一条连接")
+            return
+        row = rows[0]
+        path_item = self.table.item(row, 9)
+        if not path_item:
+            QMessageBox.warning(self, "提示", "无法获取进程路径")
+            return
+        path = path_item.text().strip()
+        if not path or path.startswith("["):
+            QMessageBox.warning(self, "提示", "进程路径不可用")
+            return
+        if os.path.isdir(path):
+            subprocess.run(["explorer", path], check=False)
+            return
+        if os.path.isfile(path):
+            subprocess.run(["explorer", "/select,", path], check=False)
+            return
+        QMessageBox.warning(self, "提示", f"路径不存在: {path}")
+
+    def _close_selected_connections(self):
+        """关闭选中的连接（仅 TCP / IPv4）"""
+        rows = sorted(set(item.row() for item in self.table.selectedItems()))
+        if not rows:
+            QMessageBox.warning(self, "提示", "请先选择要关闭的连接")
+            return
+
+        failed = []
+        for row in rows:
+            local_addr_item = self.table.item(row, 3)
+            local_port_item = self.table.item(row, 4)
+            remote_addr_item = self.table.item(row, 5)
+            remote_port_item = self.table.item(row, 6)
+            proto_item = self.table.item(row, 8)
+
+            if not all([local_addr_item, local_port_item, remote_addr_item, remote_port_item, proto_item]):
+                failed.append("获取连接信息失败")
+                continue
+
+            proto = proto_item.text().strip().upper()
+            if proto != "TCP":
+                failed.append("仅支持 TCP 连接")
+                continue
+
+            local_addr = local_addr_item.text().strip()
+            remote_addr = remote_addr_item.text().strip()
+            local_port_text = local_port_item.text().strip()
+            remote_port_text = remote_port_item.text().strip()
+
+            if not local_addr or local_addr == "*" or not remote_addr or remote_addr == "*":
+                failed.append("缺少有效地址")
+                continue
+            if not local_port_text.isdigit() or not remote_port_text.isdigit():
+                failed.append("缺少有效端口")
+                continue
+
+            success, msg = self.monitor.close_connection(
+                local_addr,
+                int(local_port_text),
+                remote_addr,
+                int(remote_port_text),
+                protocol=proto
+            )
+            if not success:
+                failed.append(msg)
+
+        if failed:
+            QMessageBox.warning(self, "关闭失败", "\n".join(failed[:5]))
+        self.refresh_data()
     
     def _format_address_for_display(self, addr: str) -> str:
         """格式化地址用于显示，只对空字符串等特殊情况转换为*，保留0.0.0.0等原始值"""
