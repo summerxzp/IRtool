@@ -1,0 +1,17 @@
+# 核心依赖
+PyQt6==6.6.1
+psutil==5.9.7
+pyzipper==0.3.6
+
+# 数据处理
+# (SQLite3是Python内置的)
+
+# 网络请求（微步API用）
+requests==2.31.0
+
+# 打包工具（开发依赖）
+pyinstaller==6.3.0
+
+# 测试框架
+pytest==7.4.3
+pytest-qt==4.2.0

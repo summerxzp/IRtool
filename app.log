@@ -1,0 +1,478 @@
+2026-01-28 17:18:37,934 - INFO - Traceback (most recent call last):
+2026-01-28 17:18:37,934 - INFO -   File "D:\project\sectool\main.py", line 123, in <module>
+2026-01-28 17:18:37,936 - INFO - main()
+2026-01-28 17:18:37,936 - INFO -   File "D:\project\sectool\main.py", line 117, in main
+2026-01-28 17:18:37,936 - INFO - window = MainWindow()
+2026-01-28 17:18:37,936 - INFO - ^
+2026-01-28 17:18:37,936 - INFO - ^
+2026-01-28 17:18:37,937 - INFO - ^
+2026-01-28 17:18:37,937 - INFO - ^
+2026-01-28 17:18:37,937 - INFO - ^
+2026-01-28 17:18:37,937 - INFO - ^
+2026-01-28 17:18:37,937 - INFO - ^
+2026-01-28 17:18:37,937 - INFO - ^
+2026-01-28 17:18:37,937 - INFO - ^
+2026-01-28 17:18:37,937 - INFO - ^
+2026-01-28 17:18:37,937 - INFO - ^
+2026-01-28 17:18:37,939 - INFO - ^
+2026-01-28 17:18:37,939 - INFO -   File "D:\project\sectool\main.py", line 67, in __init__
+2026-01-28 17:18:37,940 - INFO - self._init_ui()
+2026-01-28 17:18:37,940 - INFO -   File "D:\project\sectool\main.py", line 90, in _init_ui
+2026-01-28 17:18:37,940 - INFO - self.autoruns_tab = AutorunsTab(self.autoruns_parser)
+2026-01-28 17:18:37,940 - INFO - ^
+2026-01-28 17:18:37,940 - INFO - ^
+2026-01-28 17:18:37,940 - INFO - ^
+2026-01-28 17:18:37,940 - INFO - ^
+2026-01-28 17:18:37,940 - INFO - ^
+2026-01-28 17:18:37,940 - INFO - ^
+2026-01-28 17:18:37,942 - INFO - ^
+2026-01-28 17:18:37,942 - INFO - ^
+2026-01-28 17:18:37,942 - INFO - ^
+2026-01-28 17:18:37,942 - INFO - ^
+2026-01-28 17:18:37,942 - INFO - ^
+2026-01-28 17:18:37,942 - INFO - ^
+2026-01-28 17:18:37,942 - INFO - ^
+2026-01-28 17:18:37,943 - INFO - ^
+2026-01-28 17:18:37,943 - INFO - ^
+2026-01-28 17:18:37,946 - INFO - ^
+2026-01-28 17:18:37,948 - INFO - ^
+2026-01-28 17:18:37,948 - INFO - ^
+2026-01-28 17:18:37,948 - INFO - ^
+2026-01-28 17:18:37,948 - INFO - ^
+2026-01-28 17:18:37,950 - INFO - ^
+2026-01-28 17:18:37,950 - INFO - ^
+2026-01-28 17:18:37,950 - INFO - ^
+2026-01-28 17:18:37,950 - INFO - ^
+2026-01-28 17:18:37,951 - INFO - ^
+2026-01-28 17:18:37,951 - INFO - ^
+2026-01-28 17:18:37,951 - INFO - ^
+2026-01-28 17:18:37,951 - INFO - ^
+2026-01-28 17:18:37,951 - INFO - ^
+2026-01-28 17:18:37,951 - INFO - ^
+2026-01-28 17:18:37,952 - INFO - ^
+2026-01-28 17:18:37,952 - INFO - ^
+2026-01-28 17:18:37,952 - INFO - ^
+2026-01-28 17:18:37,952 - INFO -   File "D:\project\sectool\ui\autoruns_tab.py", line 489, in __init__
+2026-01-28 17:18:37,954 - INFO - self._init_ui()
+2026-01-28 17:18:37,954 - INFO -   File "D:\project\sectool\ui\autoruns_tab.py", line 583, in _init_ui
+2026-01-28 17:18:37,954 - INFO - palette.setColor(QPalette.ColorRole.Highlight, QColor(0, 120, 212))
+2026-01-28 17:18:37,955 - INFO - ^
+2026-01-28 17:18:37,955 - INFO - ^
+2026-01-28 17:18:37,956 - INFO - ^
+2026-01-28 17:18:37,956 - INFO - ^
+2026-01-28 17:18:37,956 - INFO - ^
+2026-01-28 17:18:37,956 - INFO - ^
+2026-01-28 17:18:37,956 - INFO - ^
+2026-01-28 17:18:37,957 - INFO - ^
+2026-01-28 17:18:37,957 - INFO - NameError
+2026-01-28 17:18:37,957 - INFO - :
+2026-01-28 17:18:37,957 - INFO - name 'QPalette' is not defined
+2026-01-28 17:18:37,957 - INFO - . Did you mean: '
+2026-01-28 17:18:37,957 - INFO - palette
+2026-01-28 17:18:37,957 - INFO - '?
+2026-01-28 17:28:24,778 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-01-28 17:29:37,999 - INFO - [ScanThread] 扫描完成，共 1714 个条目
+2026-01-28 17:29:38,000 - INFO - [ScanThread] 转换为字典格式
+2026-01-28 17:29:38,053 - INFO - [ScanThread] 发送 finished 信号
+2026-01-28 17:29:38,147 - INFO - [AutorunsTab] 扫描完成，收到 1714 个条目
+2026-01-28 17:29:38,150 - INFO - [AutorunsTab] 开始填充树形视图
+2026-01-28 17:29:38,150 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1714
+2026-01-28 17:29:38,150 - INFO - [AutorunsTab] 清空模型
+2026-01-28 17:29:38,150 - INFO - [AutorunsTab] 添加条目到模型
+2026-01-28 17:29:38,150 - INFO - [Model] 开始添加 1714 个条目
+2026-01-28 17:29:40,296 - INFO - [Model] 添加条目完成，共 1714 个条目
+2026-01-28 17:29:40,298 - INFO - [AutorunsTab] _populate_tree 完成
+2026-01-28 17:29:40,298 - INFO - [AutorunsTab] 树形视图填充完成
+2026-01-28 17:38:57,195 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-01-28 17:40:22,726 - INFO - [ScanThread] 扫描完成，共 1714 个条目
+2026-01-28 17:40:22,727 - INFO - [ScanThread] 转换为字典格式
+2026-01-28 17:40:22,796 - INFO - [ScanThread] 发送 finished 信号
+2026-01-28 17:40:22,887 - INFO - [AutorunsTab] 扫描完成，收到 1714 个条目
+2026-01-28 17:40:22,890 - INFO - [AutorunsTab] 开始填充树形视图
+2026-01-28 17:40:22,890 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1714
+2026-01-28 17:40:22,890 - INFO - [AutorunsTab] 清空模型
+2026-01-28 17:40:22,892 - INFO - [AutorunsTab] 添加条目到模型
+2026-01-28 17:40:22,892 - INFO - [Model] 开始添加 1714 个条目
+2026-01-28 17:40:24,993 - INFO - [Model] 添加条目完成，共 1714 个条目
+2026-01-28 17:40:24,994 - INFO - [AutorunsTab] _populate_tree 完成
+2026-01-28 17:40:24,994 - INFO - [AutorunsTab] 树形视图填充完成
+2026-01-28 18:08:12,738 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-01-28 18:08:58,201 - INFO - [ScanThread] 扫描完成，共 1714 个条目
+2026-01-28 18:08:58,201 - INFO - [ScanThread] 转换为字典格式
+2026-01-28 18:08:58,227 - INFO - [ScanThread] 发送 finished 信号
+2026-01-28 18:08:58,270 - INFO - [AutorunsTab] 扫描完成，收到 1714 个条目
+2026-01-28 18:08:58,271 - INFO - [AutorunsTab] 开始填充树形视图
+2026-01-28 18:08:58,271 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1714
+2026-01-28 18:08:58,271 - INFO - [AutorunsTab] 清空模型
+2026-01-28 18:08:58,271 - INFO - [AutorunsTab] 添加条目到模型
+2026-01-28 18:08:58,271 - INFO - [Model] 开始添加 1714 个条目
+2026-01-28 18:08:58,791 - INFO - [Model] 添加条目完成，共 1714 个条目
+2026-01-28 18:08:58,791 - INFO - [AutorunsTab] _populate_tree 完成
+2026-01-28 18:08:58,792 - INFO - [AutorunsTab] 树形视图填充完成
+2026-01-28 18:15:18,477 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-01-28 18:16:08,322 - INFO - [ScanThread] 扫描完成，共 1714 个条目
+2026-01-28 18:16:08,322 - INFO - [ScanThread] 转换为字典格式
+2026-01-28 18:16:08,348 - INFO - [ScanThread] 发送 finished 信号
+2026-01-28 18:16:08,395 - INFO - [AutorunsTab] 扫描完成，收到 1714 个条目
+2026-01-28 18:16:08,397 - INFO - [AutorunsTab] 开始填充树形视图
+2026-01-28 18:16:08,397 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1714
+2026-01-28 18:16:08,398 - INFO - [AutorunsTab] 清空模型
+2026-01-28 18:16:08,398 - INFO - [AutorunsTab] 添加条目到模型
+2026-01-28 18:16:08,398 - INFO - [Model] 开始添加 1714 个条目
+2026-01-28 18:16:09,168 - INFO - [Model] 添加条目完成，共 1714 个条目
+2026-01-28 18:16:09,170 - INFO - [AutorunsTab] _populate_tree 完成
+2026-01-28 18:16:09,170 - INFO - [AutorunsTab] 树形视图填充完成
+2026-01-28 18:19:02,647 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-01-28 18:20:26,495 - INFO - [ScanThread] 扫描完成，共 1714 个条目
+2026-01-28 18:20:26,495 - INFO - [ScanThread] 转换为字典格式
+2026-01-28 18:20:26,547 - INFO - [ScanThread] 发送 finished 信号
+2026-01-28 18:20:26,627 - INFO - [AutorunsTab] 扫描完成，收到 1714 个条目
+2026-01-28 18:20:26,629 - INFO - [AutorunsTab] 开始填充树形视图
+2026-01-28 18:20:26,630 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1714
+2026-01-28 18:20:26,630 - INFO - [AutorunsTab] 清空模型
+2026-01-28 18:20:26,630 - INFO - [AutorunsTab] 添加条目到模型
+2026-01-28 18:20:26,631 - INFO - [Model] 开始添加 1714 个条目
+2026-01-28 18:20:28,753 - INFO - [Model] 添加条目完成，共 1714 个条目
+2026-01-28 18:20:28,753 - INFO - [AutorunsTab] _populate_tree 完成
+2026-01-28 18:20:28,754 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-03 10:32:49,390 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-03 10:34:22,542 - INFO - [ScanThread] 扫描完成，共 1723 个条目
+2026-02-03 10:34:22,542 - INFO - [ScanThread] 转换为字典格式
+2026-02-03 10:34:22,586 - INFO - [ScanThread] 发送 finished 信号
+2026-02-03 10:34:22,638 - INFO - [AutorunsTab] 扫描完成，收到 1723 个条目
+2026-02-03 10:34:22,640 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-03 10:34:22,641 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1723
+2026-02-03 10:34:22,641 - INFO - [AutorunsTab] 清空模型
+2026-02-03 10:34:22,641 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-03 10:34:22,641 - INFO - [Model] 开始添加 1723 个条目
+2026-02-03 10:34:23,795 - INFO - [Model] 添加条目完成，共 1723 个条目
+2026-02-03 10:34:23,795 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-03 10:34:23,795 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-03 11:14:33,935 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-03 11:15:24,355 - INFO - [ScanThread] 扫描完成，共 1723 个条目
+2026-02-03 11:15:24,355 - INFO - [ScanThread] 转换为字典格式
+2026-02-03 11:15:24,382 - INFO - [ScanThread] 发送 finished 信号
+2026-02-03 11:15:24,427 - INFO - [AutorunsTab] 扫描完成，收到 1723 个条目
+2026-02-03 11:15:24,429 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-03 11:15:24,429 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1723
+2026-02-03 11:15:24,430 - INFO - [AutorunsTab] 清空模型
+2026-02-03 11:15:24,430 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-03 11:15:24,430 - INFO - [Model] 开始添加 1723 个条目
+2026-02-03 11:15:25,151 - INFO - [Model] 添加条目完成，共 1723 个条目
+2026-02-03 11:15:25,151 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-03 11:15:25,153 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-03 11:30:56,283 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-03 11:31:57,034 - INFO - [ScanThread] 扫描完成，共 1723 个条目
+2026-02-03 11:31:57,035 - INFO - [ScanThread] 转换为字典格式
+2026-02-03 11:31:57,063 - INFO - [ScanThread] 发送 finished 信号
+2026-02-03 11:31:57,111 - INFO - [AutorunsTab] 扫描完成，收到 1723 个条目
+2026-02-03 11:31:57,113 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-03 11:31:57,113 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1723
+2026-02-03 11:31:57,113 - INFO - [AutorunsTab] 清空模型
+2026-02-03 11:31:57,115 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-03 11:31:57,115 - INFO - [Model] 开始添加 1723 个条目
+2026-02-03 11:31:58,054 - INFO - [Model] 添加条目完成，共 1723 个条目
+2026-02-03 11:31:58,054 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-03 11:31:58,056 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-03 13:34:53,793 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-03 13:35:39,555 - INFO - [ScanThread] 扫描完成，共 1723 个条目
+2026-02-03 13:35:39,557 - INFO - [ScanThread] 转换为字典格式
+2026-02-03 13:35:39,585 - INFO - [ScanThread] 发送 finished 信号
+2026-02-03 13:35:39,631 - INFO - [AutorunsTab] 扫描完成，收到 1723 个条目
+2026-02-03 13:35:39,632 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-03 13:35:39,633 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1723
+2026-02-03 13:35:39,634 - INFO - [AutorunsTab] 清空模型
+2026-02-03 13:35:39,634 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-03 13:35:39,634 - INFO - [Model] 开始添加 1723 个条目
+2026-02-03 13:35:40,547 - INFO - [Model] 添加条目完成，共 1723 个条目
+2026-02-03 13:35:40,548 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-03 13:35:40,549 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-03 13:45:02,787 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-03 13:45:51,964 - INFO - [ScanThread] 扫描完成，共 1724 个条目
+2026-02-03 13:45:51,964 - INFO - [ScanThread] 转换为字典格式
+2026-02-03 13:45:51,991 - INFO - [ScanThread] 发送 finished 信号
+2026-02-03 13:45:52,036 - INFO - [AutorunsTab] 扫描完成，收到 1724 个条目
+2026-02-03 13:45:52,040 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-03 13:45:52,040 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1724
+2026-02-03 13:45:52,040 - INFO - [AutorunsTab] 清空模型
+2026-02-03 13:45:52,043 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-03 13:45:52,043 - INFO - [Model] 开始添加 1724 个条目
+2026-02-03 13:45:52,060 - INFO - [Model] 添加条目完成，共 1724 个条目
+2026-02-03 13:45:52,060 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-03 13:45:52,060 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-03 14:29:31,674 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-03 14:30:20,996 - INFO - [ScanThread] 扫描完成，共 1724 个条目
+2026-02-03 14:30:20,996 - INFO - [ScanThread] 转换为字典格式
+2026-02-03 14:30:21,032 - INFO - [ScanThread] 发送 finished 信号
+2026-02-03 14:30:21,093 - INFO - [AutorunsTab] 扫描完成，收到 1724 个条目
+2026-02-03 14:30:21,094 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-03 14:30:21,094 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1724
+2026-02-03 14:30:21,096 - INFO - [AutorunsTab] 清空模型
+2026-02-03 14:30:21,096 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-03 14:30:21,096 - INFO - [Model] 开始添加 1724 个条目
+2026-02-03 14:30:22,210 - INFO - [Model] 添加条目完成，共 1724 个条目
+2026-02-03 14:30:22,210 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-03 14:30:22,211 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-03 14:32:57,920 - INFO - [DeleteEntry] 开始删除条目
+2026-02-03 14:32:57,920 - INFO - [DeleteEntry] 条目信息:
+2026-02-03 14:32:57,922 - INFO -   - entry_name: TestAutorunsSvc
+2026-02-03 14:32:57,922 - INFO -   - category: Services
+2026-02-03 14:32:57,922 - INFO -   - launch_string: D:\505628905_157902\Desktop\test\testsvc.exe /c ping 223.5.5.5 -t
+2026-02-03 14:32:57,922 - INFO -   - image_path: d:\505628905_157902\desktop\test\testsvc.exe
+2026-02-03 14:32:57,922 - INFO -   - service_name: TestAutorunsSvc
+2026-02-03 14:33:00,223 - INFO - [DeleteEntry] 创建 AutorunEntry 对象
+2026-02-03 14:33:00,224 - INFO - [DeleteEntry] AutorunEntry 对象创建完成
+2026-02-03 14:33:00,224 - INFO - [DeleteEntry] 调用 parser.delete_entry
+2026-02-03 14:33:00,224 - INFO - [Parser] delete_entry 开始
+2026-02-03 14:33:00,224 - INFO - [Parser] entry.location:
+2026-02-03 14:33:00,224 - INFO - [Parser] entry.entry: TestAutorunsSvc
+2026-02-03 14:33:00,224 - INFO - [Parser] entry.launch_string: D:\505628905_157902\Desktop\test\testsvc.exe /c ping 223.5.5.5 -t
+2026-02-03 14:33:00,224 - INFO - [Parser] entry.service_name: TestAutorunsSvc
+2026-02-03 14:33:00,225 - INFO - [Parser] entry.category: Services
+2026-02-03 14:33:00,225 - INFO - [Parser] 识别为服务类型（通过 service_name）
+2026-02-03 14:33:00,225 - INFO - [Parser] _delete_service 开始
+2026-02-03 14:33:00,225 - INFO - [Parser] entry.service_name: TestAutorunsSvc
+2026-02-03 14:33:00,225 - INFO - [Parser] 执行命令: sc delete TestAutorunsSvc
+2026-02-03 14:33:00,278 - INFO - [Parser] 命令返回码: 0
+2026-02-03 14:33:00,278 - INFO - [Parser] 命令输出: [SC] DeleteService 成功
+2026-02-03 14:33:00,278 - INFO - [Parser] 命令错误:
+2026-02-03 14:33:00,279 - INFO - [DeleteEntry] 删除结果: success=True, message=已删除服务: TestAutorunsSvc
+2026-02-03 14:33:01,369 - INFO - [DeleteEntry] 从模型中移除条目
+2026-02-03 14:33:01,369 - INFO - [DeleteEntry] 找到条目，索引: 262
+2026-02-03 14:33:01,375 - INFO - [DeleteEntry] 条目已从模型中移除
+2026-02-03 14:33:01,375 - INFO - [DeleteEntry] 清空 Detail Pane
+2026-02-03 16:41:42,642 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-03 16:42:46,067 - INFO - [ScanThread] 扫描完成，共 1725 个条目
+2026-02-03 16:42:46,068 - INFO - [ScanThread] 转换为字典格式
+2026-02-03 16:42:46,117 - INFO - [ScanThread] 发送 finished 信号
+2026-02-03 16:42:46,169 - INFO - [AutorunsTab] 扫描完成，收到 1725 个条目
+2026-02-03 16:42:46,171 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-03 16:42:46,179 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1725
+2026-02-03 16:42:46,179 - INFO - [AutorunsTab] 清空模型
+2026-02-03 16:42:46,180 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-03 16:42:46,180 - INFO - [Model] 开始添加 1725 个条目
+2026-02-03 16:42:47,344 - INFO - [Model] 添加条目完成，共 1725 个条目
+2026-02-03 16:42:47,344 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-03 16:42:47,345 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-03 17:17:06,309 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-03 17:17:53,397 - INFO - [ScanThread] 扫描完成，共 1725 个条目
+2026-02-03 17:17:53,397 - INFO - [ScanThread] 转换为字典格式
+2026-02-03 17:17:53,424 - INFO - [ScanThread] 发送 finished 信号
+2026-02-03 17:17:53,468 - INFO - [AutorunsTab] 扫描完成，收到 1725 个条目
+2026-02-03 17:17:53,470 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-03 17:17:53,470 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1725
+2026-02-03 17:17:53,470 - INFO - [AutorunsTab] 清空模型
+2026-02-03 17:17:53,471 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-03 17:17:53,471 - INFO - [Model] 开始添加 1725 个条目
+2026-02-03 17:17:54,350 - INFO - [Model] 添加条目完成，共 1725 个条目
+2026-02-03 17:17:54,350 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-03 17:17:54,351 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-04 10:19:57,610 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-04 10:20:48,639 - INFO - [ScanThread] 扫描完成，共 1725 个条目
+2026-02-04 10:20:48,639 - INFO - [ScanThread] 转换为字典格式
+2026-02-04 10:20:48,674 - INFO - [ScanThread] 发送 finished 信号
+2026-02-04 10:20:48,723 - INFO - [AutorunsTab] 扫描完成，收到 1725 个条目
+2026-02-04 10:20:48,725 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-04 10:20:48,727 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1725
+2026-02-04 10:20:48,727 - INFO - [AutorunsTab] 清空模型
+2026-02-04 10:20:48,728 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-04 10:20:48,728 - INFO - [Model] 开始添加 1725 个条目
+2026-02-04 10:20:49,827 - INFO - [Model] 添加条目完成，共 1725 个条目
+2026-02-04 10:20:49,828 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-04 10:20:49,828 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-04 10:53:59,414 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-04 10:54:59,169 - INFO - [ScanThread] 扫描完成，共 1725 个条目
+2026-02-04 10:54:59,169 - INFO - [ScanThread] 转换为字典格式
+2026-02-04 10:54:59,199 - INFO - [ScanThread] 发送 finished 信号
+2026-02-04 10:54:59,249 - INFO - [AutorunsTab] 扫描完成，收到 1725 个条目
+2026-02-04 10:54:59,250 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-04 10:54:59,250 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1725
+2026-02-04 10:54:59,251 - INFO - [AutorunsTab] 清空模型
+2026-02-04 10:54:59,251 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-04 10:54:59,251 - INFO - [Model] 开始添加 1725 个条目
+2026-02-04 10:55:00,280 - INFO - [Model] 添加条目完成，共 1725 个条目
+2026-02-04 10:55:00,280 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-04 10:55:00,281 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-04 11:27:46,136 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-04 11:28:43,396 - INFO - [ScanThread] 扫描完成，共 1725 个条目
+2026-02-04 11:28:43,397 - INFO - [ScanThread] 转换为字典格式
+2026-02-04 11:28:43,427 - INFO - [ScanThread] 发送 finished 信号
+2026-02-04 11:28:43,474 - INFO - [AutorunsTab] 扫描完成，收到 1725 个条目
+2026-02-04 11:28:43,475 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-04 11:28:43,475 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1725
+2026-02-04 11:28:43,476 - INFO - [AutorunsTab] 清空模型
+2026-02-04 11:28:43,476 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-04 11:28:43,476 - INFO - [Model] 开始添加 1725 个条目
+2026-02-04 11:28:44,597 - INFO - [Model] 添加条目完成，共 1725 个条目
+2026-02-04 11:28:44,597 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-04 11:28:44,598 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-04 12:47:27,200 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-04 12:48:15,296 - INFO - [ScanThread] 扫描完成，共 1725 个条目
+2026-02-04 12:48:15,298 - INFO - [ScanThread] 转换为字典格式
+2026-02-04 12:48:15,327 - INFO - [ScanThread] 发送 finished 信号
+2026-02-04 12:48:15,375 - INFO - [AutorunsTab] 扫描完成，收到 1725 个条目
+2026-02-04 12:48:15,377 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-04 12:48:15,377 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1725
+2026-02-04 12:48:15,377 - INFO - [AutorunsTab] 清空模型
+2026-02-04 12:48:15,377 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-04 12:48:15,377 - INFO - [Model] 开始添加 1725 个条目
+2026-02-04 12:48:16,489 - INFO - [Model] 添加条目完成，共 1725 个条目
+2026-02-04 12:48:16,489 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-04 12:48:16,490 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-04 13:43:48,995 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-04 13:44:40,281 - INFO - [ScanThread] 扫描完成，共 1725 个条目
+2026-02-04 13:44:40,281 - INFO - [ScanThread] 转换为字典格式
+2026-02-04 13:44:40,309 - INFO - [ScanThread] 发送 finished 信号
+2026-02-04 13:44:40,351 - INFO - [AutorunsTab] 扫描完成，收到 1725 个条目
+2026-02-04 13:44:40,353 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-04 13:44:40,353 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1725
+2026-02-04 13:44:40,353 - INFO - [AutorunsTab] 清空模型
+2026-02-04 13:44:40,353 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-04 13:44:40,353 - INFO - [Model] 开始添加 1725 个条目
+2026-02-04 13:44:41,434 - INFO - [Model] 添加条目完成，共 1725 个条目
+2026-02-04 13:44:41,434 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-04 13:44:41,434 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-04 14:50:36,179 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-04 14:51:58,771 - INFO - [ScanThread] 扫描完成，共 1725 个条目
+2026-02-04 14:51:58,772 - INFO - [ScanThread] 转换为字典格式
+2026-02-04 14:51:58,823 - INFO - [ScanThread] 发送 finished 信号
+2026-02-04 14:51:58,902 - INFO - [AutorunsTab] 扫描完成，收到 1725 个条目
+2026-02-04 14:51:58,903 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-04 14:51:58,903 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1725
+2026-02-04 14:51:58,903 - INFO - [AutorunsTab] 清空模型
+2026-02-04 14:51:58,905 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-04 14:51:58,905 - INFO - [Model] 开始添加 1725 个条目
+2026-02-04 14:52:00,834 - INFO - [Model] 添加条目完成，共 1725 个条目
+2026-02-04 14:52:00,834 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-04 14:52:00,834 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-04 16:01:29,026 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-04 16:02:18,070 - INFO - [ScanThread] 扫描完成，共 1725 个条目
+2026-02-04 16:02:18,070 - INFO - [ScanThread] 转换为字典格式
+2026-02-04 16:02:18,094 - INFO - [ScanThread] 发送 finished 信号
+2026-02-04 16:02:18,138 - INFO - [AutorunsTab] 扫描完成，收到 1725 个条目
+2026-02-04 16:02:18,139 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-04 16:02:18,139 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1725
+2026-02-04 16:02:18,141 - INFO - [AutorunsTab] 清空模型
+2026-02-04 16:02:18,141 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-04 16:02:18,141 - INFO - [Model] 开始添加 1725 个条目
+2026-02-04 16:02:19,286 - INFO - [Model] 添加条目完成，共 1725 个条目
+2026-02-04 16:02:19,286 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-04 16:02:19,286 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-04 17:48:37,069 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-04 17:49:26,318 - INFO - [ScanThread] 扫描完成，共 1725 个条目
+2026-02-04 17:49:26,318 - INFO - [ScanThread] 转换为字典格式
+2026-02-04 17:49:26,346 - INFO - [ScanThread] 发送 finished 信号
+2026-02-04 17:49:26,390 - INFO - [AutorunsTab] 扫描完成，收到 1725 个条目
+2026-02-04 17:49:26,391 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-04 17:49:26,391 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1725
+2026-02-04 17:49:26,393 - INFO - [AutorunsTab] 清空模型
+2026-02-04 17:49:26,393 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-04 17:49:26,393 - INFO - [Model] 开始添加 1725 个条目
+2026-02-04 17:49:27,508 - INFO - [Model] 添加条目完成，共 1725 个条目
+2026-02-04 17:49:27,508 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-04 17:49:27,509 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-04 18:10:01,890 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-04 18:10:49,622 - INFO - [ScanThread] 扫描完成，共 1725 个条目
+2026-02-04 18:10:49,622 - INFO - [ScanThread] 转换为字典格式
+2026-02-04 18:10:49,654 - INFO - [ScanThread] 发送 finished 信号
+2026-02-04 18:10:49,709 - INFO - [AutorunsTab] 扫描完成，收到 1725 个条目
+2026-02-04 18:10:49,711 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-04 18:10:49,711 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1725
+2026-02-04 18:10:49,712 - INFO - [AutorunsTab] 清空模型
+2026-02-04 18:10:49,712 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-04 18:10:49,712 - INFO - [Model] 开始添加 1725 个条目
+2026-02-04 18:10:50,635 - INFO - [Model] 添加条目完成，共 1725 个条目
+2026-02-04 18:10:50,636 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-04 18:10:50,636 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-04 18:22:11,594 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-04 18:22:54,065 - INFO - [ScanThread] 扫描完成，共 1725 个条目
+2026-02-04 18:22:54,066 - INFO - [ScanThread] 转换为字典格式
+2026-02-04 18:22:54,097 - INFO - [ScanThread] 发送 finished 信号
+2026-02-04 18:22:54,147 - INFO - [AutorunsTab] 扫描完成，收到 1725 个条目
+2026-02-04 18:22:54,148 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-04 18:22:54,149 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1725
+2026-02-04 18:22:54,150 - INFO - [AutorunsTab] 清空模型
+2026-02-04 18:22:54,150 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-04 18:22:54,150 - INFO - [Model] 开始添加 1725 个条目
+2026-02-04 18:22:54,953 - INFO - [Model] 添加条目完成，共 1725 个条目
+2026-02-04 18:22:54,953 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-04 18:22:54,953 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-04 18:23:22,795 - INFO - [Workspace] 准备执行命令: 7z a -tzip -p1 -mem=AES256 -mx=9 -y "D:/505628905_157902/Desktop/everything.zip" "c:\program files\everything"
+2026-02-04 18:23:24,148 - INFO - [SafeExecutor] 开始执行命令: 7z a -tzip -p1 -mem=AES256 -mx=9 -y "D:/505628905_157902/Desktop/everything.zip" "c:\program files\everything"
+2026-02-04 18:23:24,213 - INFO - [SafeExecutor] 命令执行完成，返回码: 1
+2026-02-04 18:23:24,213 - INFO - [SafeExecutor] 标准输出:
+2026-02-04 18:23:24,219 - INFO - [SafeExecutor] 标准错误: '7z' �����ڲ����ⲿ���Ҳ���ǿ����еĳ���
+���������ļ���
+2026-02-04 18:24:35,516 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-04 18:25:23,344 - INFO - [ScanThread] 扫描完成，共 1725 个条目
+2026-02-04 18:25:23,344 - INFO - [ScanThread] 转换为字典格式
+2026-02-04 18:25:23,370 - INFO - [ScanThread] 发送 finished 信号
+2026-02-04 18:25:23,413 - INFO - [AutorunsTab] 扫描完成，收到 1725 个条目
+2026-02-04 18:25:23,414 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-04 18:25:23,414 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1725
+2026-02-04 18:25:23,416 - INFO - [AutorunsTab] 清空模型
+2026-02-04 18:25:23,416 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-04 18:25:23,416 - INFO - [Model] 开始添加 1725 个条目
+2026-02-04 18:25:24,176 - INFO - [Model] 添加条目完成，共 1725 个条目
+2026-02-04 18:25:24,177 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-04 18:25:24,177 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-04 18:25:47,408 - INFO - [Workspace] 准备执行命令: 7z a -tzip -p1 -mem=AES256 -mx=9 -y "D:/505628905_157902/Desktop/everything.zip" "c:\program files\everything\everything.exe"
+2026-02-04 18:25:48,736 - INFO - [SafeExecutor] 开始执行命令: 7z a -tzip -p1 -mem=AES256 -mx=9 -y "D:/505628905_157902/Desktop/everything.zip" "c:\program files\everything\everything.exe"
+2026-02-04 18:25:48,801 - INFO - [SafeExecutor] 命令执行完成，返回码: 1
+2026-02-04 18:25:48,801 - INFO - [SafeExecutor] 标准输出:
+2026-02-04 18:25:48,802 - INFO - [SafeExecutor] 标准错误: '7z' �����ڲ����ⲿ���Ҳ���ǿ����еĳ���
+���������ļ���
+2026-02-04 18:31:54,891 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-04 18:32:45,949 - INFO - [ScanThread] 扫描完成，共 1725 个条目
+2026-02-04 18:32:45,949 - INFO - [ScanThread] 转换为字典格式
+2026-02-04 18:32:45,988 - INFO - [ScanThread] 发送 finished 信号
+2026-02-04 18:32:46,071 - INFO - [AutorunsTab] 扫描完成，收到 1725 个条目
+2026-02-04 18:32:46,072 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-04 18:32:46,072 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1725
+2026-02-04 18:32:46,073 - INFO - [AutorunsTab] 清空模型
+2026-02-04 18:32:46,073 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-04 18:32:46,073 - INFO - [Model] 开始添加 1725 个条目
+2026-02-04 18:32:47,276 - INFO - [Model] 添加条目完成，共 1725 个条目
+2026-02-04 18:32:47,276 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-04 18:32:47,276 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-04 19:03:39,378 - INFO - [Workspace] 使用 pyzipper 压缩: c:\program files\everything -> D:/505628905_157902/Desktop/everything.zip
+2026-02-04 19:03:39,587 - INFO - [Workspace] 压缩完成
+2026-02-05 18:07:16,442 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-05 18:08:17,527 - INFO - [ScanThread] 扫描完成，共 1727 个条目
+2026-02-05 18:08:17,528 - INFO - [ScanThread] 转换为字典格式
+2026-02-05 18:08:17,579 - INFO - [ScanThread] 发送 finished 信号
+2026-02-05 18:08:17,633 - INFO - [AutorunsTab] 扫描完成，收到 1727 个条目
+2026-02-05 18:08:17,637 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-05 18:08:17,645 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1727
+2026-02-05 18:08:17,648 - INFO - [AutorunsTab] 清空模型
+2026-02-05 18:08:17,648 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-05 18:08:17,648 - INFO - [Model] 开始添加 1727 个条目
+2026-02-05 18:08:19,066 - INFO - [Model] 添加条目完成，共 1727 个条目
+2026-02-05 18:08:19,067 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-05 18:08:19,067 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-05 18:46:38,822 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-05 18:47:52,289 - INFO - [ScanThread] 扫描完成，共 1727 个条目
+2026-02-05 18:47:52,289 - INFO - [ScanThread] 转换为字典格式
+2026-02-05 18:47:52,352 - INFO - [ScanThread] 发送 finished 信号
+2026-02-05 18:47:52,451 - INFO - [AutorunsTab] 扫描完成，收到 1727 个条目
+2026-02-05 18:47:52,452 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-05 18:47:52,453 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1727
+2026-02-05 18:47:52,453 - INFO - [AutorunsTab] 清空模型
+2026-02-05 18:47:52,453 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-05 18:47:52,453 - INFO - [Model] 开始添加 1727 个条目
+2026-02-05 18:47:54,214 - INFO - [Model] 添加条目完成，共 1727 个条目
+2026-02-05 18:47:54,215 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-05 18:47:54,216 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-06 09:39:57,281 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-06 09:41:01,268 - INFO - [ScanThread] 扫描完成，共 1729 个条目
+2026-02-06 09:41:01,268 - INFO - [ScanThread] 转换为字典格式
+2026-02-06 09:41:01,296 - INFO - [ScanThread] 发送 finished 信号
+2026-02-06 09:41:01,350 - INFO - [AutorunsTab] 扫描完成，收到 1729 个条目
+2026-02-06 09:41:01,351 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-06 09:41:01,351 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1729
+2026-02-06 09:41:01,353 - INFO - [AutorunsTab] 清空模型
+2026-02-06 09:41:01,353 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-06 09:41:01,353 - INFO - [Model] 开始添加 1729 个条目
+2026-02-06 09:41:02,568 - INFO - [Model] 添加条目完成，共 1729 个条目
+2026-02-06 09:41:02,568 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-06 09:41:02,568 - INFO - [AutorunsTab] 树形视图填充完成
