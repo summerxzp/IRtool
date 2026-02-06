@@ -10,6 +10,7 @@ from PyQt6.QtGui import QColor, QGuiApplication, QClipboard
 import os
 from pathlib import Path
 import uuid
+import copy
 
 from core.rule_engine import RuleEngine
 from core.search_service import SearchService
@@ -62,10 +63,11 @@ class RuleEditDialog(QDialog):
             "ip", "hash", "sha256", "md5"
         ])
         self.cmb_type = QComboBox()
-        self.cmb_type.addItems(["contains", "regex", "equals"])
+        self.cmb_type.addItems(["包含", "正则", "等于"])
         self.edt_value = QLineEdit()
         self.cmb_severity = QComboBox()
         self.cmb_severity.addItems(["critical", "high", "medium", "low"])
+        self.edt_date = QLineEdit()
         self.edt_note = QLineEdit()
 
         form.addRow("规则ID", self.edt_id)
@@ -74,6 +76,7 @@ class RuleEditDialog(QDialog):
         form.addRow("匹配类型", self.cmb_type)
         form.addRow("匹配值", self.edt_value)
         form.addRow("严重级别", self.cmb_severity)
+        form.addRow("发现日期", self.edt_date)
         form.addRow("备注", self.edt_note)
 
         layout.addLayout(form)
@@ -96,13 +99,25 @@ class RuleEditDialog(QDialog):
             "match": [
                 {
                     "field": self.cmb_field.currentText(),
-                    "type": self.cmb_type.currentText(),
+                    "type": self._normalize_match_type(self.cmb_type.currentText()),
                     "value": self.edt_value.text().strip()
                 }
             ],
             "severity": self.cmb_severity.currentText(),
+            "date": self.edt_date.text().strip(),
             "note": self.edt_note.text().strip()
         }
+
+    def _normalize_match_type(self, text: str) -> str:
+        mapping = {
+            "包含": "contains",
+            "正则": "regex",
+            "等于": "equals",
+            "contains": "contains",
+            "regex": "regex",
+            "equals": "equals",
+        }
+        return mapping.get((text or "").strip(), "contains")
 
 
 class RuleManagerDialog(QDialog):
@@ -111,6 +126,9 @@ class RuleManagerDialog(QDialog):
         super().__init__(parent)
         self.rule_engine = rule_engine
         self._rule_index_by_row = []
+        self._loading = False
+        self._dirty = False
+        self._original_rules = copy.deepcopy(self.rule_engine.rules)
         self.setWindowTitle("规则管理")
         self.resize(900, 500)
         self._init_ui()
@@ -120,11 +138,12 @@ class RuleManagerDialog(QDialog):
         layout = QVBoxLayout(self)
 
         self.table = QTableWidget()
-        self.table.setColumnCount(7)
-        self.table.setHorizontalHeaderLabels(["ID", "Family", "Field", "Type", "Value", "Severity", "Note"])
+        self.table.setColumnCount(8)
+        self.table.setHorizontalHeaderLabels(["ID", "Family", "Field", "Type", "Value", "Severity", "Date", "Note"])
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.DoubleClicked | QAbstractItemView.EditTrigger.EditKeyPressed)
         self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.itemChanged.connect(self._on_item_changed)
         layout.addWidget(self.table)
 
         btn_layout = QHBoxLayout()
@@ -141,7 +160,7 @@ class RuleManagerDialog(QDialog):
         self.btn_import.clicked.connect(self._import_rules)
         self.btn_import_ioc.clicked.connect(self._import_ioc)
         self.btn_export.clicked.connect(self._export_rules)
-        self.btn_save.clicked.connect(self._save_rules)
+        self.btn_save.clicked.connect(self._save_rules_with_confirm)
         self.btn_close.clicked.connect(self.close)
 
         btn_layout.addWidget(self.btn_add)
@@ -156,29 +175,35 @@ class RuleManagerDialog(QDialog):
 
     def _load_rules(self):
         rules = self.rule_engine.rules or []
+        self._loading = True
         self.table.setRowCount(0)
         self._rule_index_by_row = []
         for idx, rule in enumerate(rules):
             self.table.insertRow(idx)
             match_list = rule.get("match", [])
             first_match = match_list[0] if match_list else {}
+            display_type = self._display_match_type(first_match.get("type", ""))
             self.table.setItem(idx, 0, QTableWidgetItem(rule.get("id", "")))
             self.table.setItem(idx, 1, QTableWidgetItem(rule.get("family", "")))
             self.table.setItem(idx, 2, QTableWidgetItem(first_match.get("field", "")))
-            self.table.setItem(idx, 3, QTableWidgetItem(first_match.get("type", "")))
+            self.table.setItem(idx, 3, QTableWidgetItem(display_type))
             self.table.setItem(idx, 4, QTableWidgetItem(first_match.get("value", "")))
             self.table.setItem(idx, 5, QTableWidgetItem(rule.get("severity", "")))
-            self.table.setItem(idx, 6, QTableWidgetItem(rule.get("note", "")))
+            self.table.setItem(idx, 6, QTableWidgetItem(rule.get("date", "")))
+            self.table.setItem(idx, 7, QTableWidgetItem(rule.get("note", "")))
             self._rule_index_by_row.append(idx)
         self.table.resizeColumnsToContents()
+        self.table.setColumnHidden(0, True)
+        self._loading = False
+        self._dirty = False
 
     def _add_rule(self):
         dialog = RuleEditDialog(self)
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return
         self.rule_engine.rules.append(dialog.get_rule())
-        self._save_rules(show_msg=False)
         self._load_rules()
+        self._dirty = True
 
     def _delete_rule(self):
         rows = sorted(set(item.row() for item in self.table.selectedItems()), reverse=True)
@@ -188,8 +213,8 @@ class RuleManagerDialog(QDialog):
         for row in rows:
             if 0 <= row < len(self.rule_engine.rules):
                 self.rule_engine.rules.pop(row)
-        self._save_rules(show_msg=False)
         self._load_rules()
+        self._dirty = True
 
     def _import_rules(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "导入规则", "", "JSON 文件 (*.json)")
@@ -197,9 +222,9 @@ class RuleManagerDialog(QDialog):
             return
         ok, msg = self.rule_engine.load_rules_from_file(file_path)
         if ok:
-            self._save_rules(show_msg=False)
             self._load_rules()
-            QMessageBox.information(self, "成功", msg)
+            self._dirty = True
+            QMessageBox.information(self, "成功", f"{msg}\n请点击“保存”以写入规则文件")
         else:
             QMessageBox.warning(self, "失败", msg)
 
@@ -223,9 +248,9 @@ class RuleManagerDialog(QDialog):
             self.rule_engine.rules.append(rule)
             added += 1
 
-        self._save_rules(show_msg=False)
         self._load_rules()
-        QMessageBox.information(self, "导入完成", f"新增 {added} 条，跳过 {skipped} 条")
+        self._dirty = True
+        QMessageBox.information(self, "导入完成", f"新增 {added} 条，跳过 {skipped} 条\n请点击“保存”以写入规则文件")
 
     def _export_rules(self):
         file_path, _ = QFileDialog.getSaveFileName(self, "导出规则", "rules.json", "JSON 文件 (*.json)")
@@ -238,12 +263,113 @@ class RuleManagerDialog(QDialog):
             QMessageBox.warning(self, "失败", msg)
 
     def _save_rules(self, show_msg=True):
+        self._apply_table_to_rules()
         ok, msg = self.rule_engine.save_rules_to_file(str(self.rule_engine.rules_path))
         if show_msg:
             if ok:
                 QMessageBox.information(self, "成功", msg)
             else:
                 QMessageBox.warning(self, "失败", msg)
+        if ok:
+            self._dirty = False
+
+    def _save_rules_with_confirm(self):
+        if not self._dirty:
+            QMessageBox.information(self, "提示", "没有需要保存的变更")
+            return
+        reply = QMessageBox.question(
+            self,
+            "确认保存",
+            "是否保存规则变更？",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.Yes
+        )
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+        self._save_rules(show_msg=True)
+
+    def _on_item_changed(self, item):
+        if self._loading:
+            return
+        self._dirty = True
+
+    def closeEvent(self, event):
+        if not self._dirty:
+            event.accept()
+            return
+        reply = QMessageBox.question(
+            self,
+            "保存变更",
+            "规则已修改，是否保存变更？",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Cancel,
+            QMessageBox.StandardButton.Yes
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            self._save_rules(show_msg=True)
+            event.accept()
+        elif reply == QMessageBox.StandardButton.No:
+            self.rule_engine.rules = copy.deepcopy(self._original_rules)
+            event.accept()
+        else:
+            event.ignore()
+
+    def _apply_table_to_rules(self):
+        rules = []
+        for row in range(self.table.rowCount()):
+            field_item = self.table.item(row, 2)
+            type_item = self.table.item(row, 3)
+            value_item = self.table.item(row, 4)
+            family_item = self.table.item(row, 1)
+            severity_item = self.table.item(row, 5)
+            date_item = self.table.item(row, 6)
+            note_item = self.table.item(row, 7)
+            id_item = self.table.item(row, 0)
+
+            field = field_item.text().strip() if field_item else ""
+            match_type = self._normalize_match_type(type_item.text() if type_item else "")
+            value = value_item.text().strip() if value_item else ""
+            family = family_item.text().strip() if family_item else ""
+            severity = severity_item.text().strip() if severity_item else ""
+            date = date_item.text().strip() if date_item else ""
+            note = note_item.text().strip() if note_item else ""
+            rule_id = id_item.text().strip() if id_item else f"rule_{uuid.uuid4().hex[:8]}"
+
+            if not field or not match_type or not value:
+                continue
+            rule = {
+                "id": rule_id,
+                "family": family or "custom",
+                "match": [
+                    {"field": field, "type": match_type, "value": value}
+                ],
+                "severity": severity or "medium",
+                "date": date,
+                "note": note
+            }
+            rules.append(rule)
+        self.rule_engine.rules = rules
+
+    def _display_match_type(self, value: str) -> str:
+        mapping = {
+            "contains": "包含",
+            "regex": "正则",
+            "equals": "等于",
+            "包含": "包含",
+            "正则": "正则",
+            "等于": "等于",
+        }
+        return mapping.get((value or "").strip(), value)
+
+    def _normalize_match_type(self, value: str) -> str:
+        mapping = {
+            "包含": "contains",
+            "正则": "regex",
+            "等于": "equals",
+            "contains": "contains",
+            "regex": "regex",
+            "equals": "equals",
+        }
+        return mapping.get((value or "").strip(), "contains")
 
     def _parse_ioc_rules(self, content: str):
         rules = []
@@ -271,8 +397,10 @@ class RuleManagerDialog(QDialog):
 
         start_index = 0
         header = split_line(lines[0])
-        if header and header[0].lower() in ("ioc", "indicator"):
-            start_index = 1
+        if header:
+            header_first = header[0].lower()
+            if "ioc" in header_first or "indicator" in header_first or "指标" in header_first:
+                start_index = 1
 
         for line in lines[start_index:]:
             cols = split_line(line)
@@ -282,14 +410,12 @@ class RuleManagerDialog(QDialog):
             if not ioc:
                 continue
             ioc_type = cols[1].strip() if len(cols) > 1 else ""
-            platform = cols[2].strip() if len(cols) > 2 else ""
-            action = cols[3].strip() if len(cols) > 3 else ""
             threat = cols[4].strip() if len(cols) > 4 else ""
             date = cols[5].strip() if len(cols) > 5 else ""
             note = cols[6].strip() if len(cols) > 6 else ""
 
-            field, match_type = self._map_ioc_type(ioc_type)
-            rule_note = self._compose_ioc_note(platform, action, threat, date, note)
+            field, match_type = self._map_ioc_type(ioc_type, ioc)
+            rule_note = self._compose_ioc_note(note)
 
             rule = {
                 "id": f"ioc_{uuid.uuid4().hex[:8]}",
@@ -302,38 +428,68 @@ class RuleManagerDialog(QDialog):
                     }
                 ],
                 "severity": "medium",
+                "date": date,
                 "note": rule_note
             }
             rules.append(rule)
         return rules
 
-    def _map_ioc_type(self, ioc_type: str):
+    def _map_ioc_type(self, ioc_type: str, ioc_value: str):
         text = (ioc_type or "").lower()
-        if "ip" in text:
+        value = (ioc_value or "").strip()
+        if "ip" in text or "ip地址" in text:
             return "ip", "equals"
         if "sha256" in text or "sha-256" in text:
             return "sha256", "equals"
         if "md5" in text:
             return "md5", "equals"
         if "hash" in text or "哈希" in text:
-            return "hash", "equals"
+            return self._guess_hash_field(value), "equals"
         if "域名" in text or "domain" in text:
             return "command_line", "contains"
+        if "url" in text or "链接" in text:
+            return "command_line", "contains"
+        # auto detect
+        if self._looks_like_ip(value):
+            return "ip", "equals"
+        if self._looks_like_hash(value):
+            return self._guess_hash_field(value), "equals"
         return "command_line", "contains"
 
-    def _compose_ioc_note(self, platform: str, action: str, threat: str, date: str, note: str):
-        parts = []
-        if platform:
-            parts.append(f"平台:{platform}")
-        if action:
-            parts.append(f"处置:{action}")
-        if threat:
-            parts.append(f"威胁:{threat}")
-        if date:
-            parts.append(f"发现:{date}")
-        if note:
-            parts.append(f"备注:{note}")
-        return "; ".join(parts)
+    def _compose_ioc_note(self, note: str):
+        return (note or "").strip()
+
+    def _looks_like_hash(self, value: str) -> bool:
+        if not value:
+            return False
+        v = value.lower().strip()
+        if len(v) in (32, 64):
+            return all(c in "0123456789abcdef" for c in v)
+        return False
+
+    def _guess_hash_field(self, value: str) -> str:
+        v = (value or "").strip()
+        if len(v) == 64:
+            return "sha256"
+        if len(v) == 32:
+            return "md5"
+        return "sha256"
+
+    def _looks_like_ip(self, value: str) -> bool:
+        if not value:
+            return False
+        if ":" in value:
+            return True
+        parts = value.split(".")
+        if len(parts) != 4:
+            return False
+        for part in parts:
+            if not part.isdigit():
+                return False
+            num = int(part)
+            if num < 0 or num > 255:
+                return False
+        return True
 
     def _is_duplicate_rule(self, rule):
         match_list = rule.get("match", [])
