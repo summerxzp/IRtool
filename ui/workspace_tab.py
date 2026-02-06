@@ -58,7 +58,8 @@ class RuleEditDialog(QDialog):
         self.cmb_field = QComboBox()
         self.cmb_field.addItems([
             "command_line", "image_path", "entry", "description",
-            "publisher", "company", "location", "category", "launch_string"
+            "publisher", "company", "location", "category", "launch_string",
+            "ip", "hash", "sha256", "md5"
         ])
         self.cmb_type = QComboBox()
         self.cmb_type.addItems(["contains", "regex", "equals"])
@@ -130,6 +131,7 @@ class RuleManagerDialog(QDialog):
         self.btn_add = QPushButton("新增")
         self.btn_delete = QPushButton("删除")
         self.btn_import = QPushButton("导入")
+        self.btn_import_ioc = QPushButton("导入IOC")
         self.btn_export = QPushButton("导出")
         self.btn_save = QPushButton("保存")
         self.btn_close = QPushButton("关闭")
@@ -137,6 +139,7 @@ class RuleManagerDialog(QDialog):
         self.btn_add.clicked.connect(self._add_rule)
         self.btn_delete.clicked.connect(self._delete_rule)
         self.btn_import.clicked.connect(self._import_rules)
+        self.btn_import_ioc.clicked.connect(self._import_ioc)
         self.btn_export.clicked.connect(self._export_rules)
         self.btn_save.clicked.connect(self._save_rules)
         self.btn_close.clicked.connect(self.close)
@@ -145,6 +148,7 @@ class RuleManagerDialog(QDialog):
         btn_layout.addWidget(self.btn_delete)
         btn_layout.addStretch()
         btn_layout.addWidget(self.btn_import)
+        btn_layout.addWidget(self.btn_import_ioc)
         btn_layout.addWidget(self.btn_export)
         btn_layout.addWidget(self.btn_save)
         btn_layout.addWidget(self.btn_close)
@@ -199,6 +203,30 @@ class RuleManagerDialog(QDialog):
         else:
             QMessageBox.warning(self, "失败", msg)
 
+    def _import_ioc(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "导入IOC", "", "文本/CSV/TSV (*.txt *.csv *.tsv);;所有文件 (*)")
+        if not file_path:
+            return
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+        except Exception as e:
+            QMessageBox.warning(self, "失败", f"读取失败: {str(e)}")
+            return
+
+        added = 0
+        skipped = 0
+        for rule in self._parse_ioc_rules(content):
+            if self._is_duplicate_rule(rule):
+                skipped += 1
+                continue
+            self.rule_engine.rules.append(rule)
+            added += 1
+
+        self._save_rules(show_msg=False)
+        self._load_rules()
+        QMessageBox.information(self, "导入完成", f"新增 {added} 条，跳过 {skipped} 条")
+
     def _export_rules(self):
         file_path, _ = QFileDialog.getSaveFileName(self, "导出规则", "rules.json", "JSON 文件 (*.json)")
         if not file_path:
@@ -216,6 +244,113 @@ class RuleManagerDialog(QDialog):
                 QMessageBox.information(self, "成功", msg)
             else:
                 QMessageBox.warning(self, "失败", msg)
+
+    def _parse_ioc_rules(self, content: str):
+        rules = []
+        if not content:
+            return rules
+
+        lines = [line.strip() for line in content.splitlines() if line.strip()]
+        if not lines:
+            return rules
+
+        delimiter = "\t"
+        sample = lines[0]
+        if "\t" in sample:
+            delimiter = "\t"
+        elif "｜" in sample:
+            delimiter = "｜"
+        elif "|" in sample:
+            delimiter = "|"
+        elif "," in sample:
+            delimiter = ","
+
+        def split_line(line):
+            parts = [p.strip() for p in line.split(delimiter)]
+            return parts
+
+        start_index = 0
+        header = split_line(lines[0])
+        if header and header[0].lower() in ("ioc", "indicator"):
+            start_index = 1
+
+        for line in lines[start_index:]:
+            cols = split_line(line)
+            if not cols:
+                continue
+            ioc = cols[0].strip()
+            if not ioc:
+                continue
+            ioc_type = cols[1].strip() if len(cols) > 1 else ""
+            platform = cols[2].strip() if len(cols) > 2 else ""
+            action = cols[3].strip() if len(cols) > 3 else ""
+            threat = cols[4].strip() if len(cols) > 4 else ""
+            date = cols[5].strip() if len(cols) > 5 else ""
+            note = cols[6].strip() if len(cols) > 6 else ""
+
+            field, match_type = self._map_ioc_type(ioc_type)
+            rule_note = self._compose_ioc_note(platform, action, threat, date, note)
+
+            rule = {
+                "id": f"ioc_{uuid.uuid4().hex[:8]}",
+                "family": threat or "IOC",
+                "match": [
+                    {
+                        "field": field,
+                        "type": match_type,
+                        "value": ioc
+                    }
+                ],
+                "severity": "medium",
+                "note": rule_note
+            }
+            rules.append(rule)
+        return rules
+
+    def _map_ioc_type(self, ioc_type: str):
+        text = (ioc_type or "").lower()
+        if "ip" in text:
+            return "ip", "equals"
+        if "sha256" in text or "sha-256" in text:
+            return "sha256", "equals"
+        if "md5" in text:
+            return "md5", "equals"
+        if "hash" in text or "哈希" in text:
+            return "hash", "equals"
+        if "域名" in text or "domain" in text:
+            return "command_line", "contains"
+        return "command_line", "contains"
+
+    def _compose_ioc_note(self, platform: str, action: str, threat: str, date: str, note: str):
+        parts = []
+        if platform:
+            parts.append(f"平台:{platform}")
+        if action:
+            parts.append(f"处置:{action}")
+        if threat:
+            parts.append(f"威胁:{threat}")
+        if date:
+            parts.append(f"发现:{date}")
+        if note:
+            parts.append(f"备注:{note}")
+        return "; ".join(parts)
+
+    def _is_duplicate_rule(self, rule):
+        match_list = rule.get("match", [])
+        if not match_list:
+            return False
+        target = match_list[0]
+        field = target.get("field")
+        match_type = target.get("type")
+        value = target.get("value")
+        for existing in self.rule_engine.rules:
+            ex_list = existing.get("match", [])
+            if not ex_list:
+                continue
+            ex = ex_list[0]
+            if ex.get("field") == field and ex.get("type") == match_type and str(ex.get("value")).lower() == str(value).lower():
+                return True
+        return False
 
 
 class WorkspaceTab(QWidget):
@@ -298,6 +433,28 @@ class WorkspaceTab(QWidget):
         search_layout.addWidget(self.btn_manage_rules)
         
         layout.addLayout(search_layout)
+
+        # 规则类型筛选
+        rule_layout = QHBoxLayout()
+        rule_label = QLabel("规则类型:")
+        self.chk_rule_command = QCheckBox("命令行")
+        self.chk_rule_path = QCheckBox("路径")
+        self.chk_rule_ip = QCheckBox("IP")
+        self.chk_rule_hash = QCheckBox("Hash")
+        self.chk_rule_other = QCheckBox("其他")
+
+        for chk in [self.chk_rule_command, self.chk_rule_path, self.chk_rule_ip, self.chk_rule_hash, self.chk_rule_other]:
+            chk.setChecked(True)
+
+        rule_layout.addWidget(rule_label)
+        rule_layout.addWidget(self.chk_rule_command)
+        rule_layout.addWidget(self.chk_rule_path)
+        rule_layout.addWidget(self.chk_rule_ip)
+        rule_layout.addWidget(self.chk_rule_hash)
+        rule_layout.addWidget(self.chk_rule_other)
+        rule_layout.addStretch()
+
+        layout.addLayout(rule_layout)
         
         return widget
     
@@ -477,11 +634,24 @@ class WorkspaceTab(QWidget):
             if not self.current_data:
                 QMessageBox.warning(self, "警告", "暂无持久化数据，请先在持久化检测中扫描")
                 return
+
+            allowed_types = self._get_selected_rule_types()
+            if not allowed_types:
+                QMessageBox.warning(self, "提示", "请至少选择一种规则类型")
+                return
+
+            if "hash" in allowed_types and self._has_hash_rules(allowed_types) and self._hash_missing_all(self.current_data):
+                QMessageBox.information(
+                    self,
+                    "提示",
+                    "检测到 Hash 规则，但当前条目未计算 Hash。\n\n"
+                    "建议在持久化检测中勾选“计算Hash”后重新扫描。"
+                )
             
             # 扫描规则
             self.matched_results = []
             for entry in self.current_data:
-                matched_rules = self.rule_engine.scan_entry(entry)
+                matched_rules = self.rule_engine.scan_entry(entry, allowed_types)
                 if matched_rules:
                     # 获取最高严重级别
                     severity_order = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
@@ -509,6 +679,42 @@ class WorkspaceTab(QWidget):
             self._update_results_table()
         except Exception as e:
             QMessageBox.warning(self, "错误", f"规则扫描失败: {str(e)}")
+
+    def _get_selected_rule_types(self):
+        types = set()
+        if self.chk_rule_command.isChecked():
+            types.add("command")
+        if self.chk_rule_path.isChecked():
+            types.add("path")
+        if self.chk_rule_ip.isChecked():
+            types.add("ip")
+        if self.chk_rule_hash.isChecked():
+            types.add("hash")
+        if self.chk_rule_other.isChecked():
+            types.add("other")
+        return types
+
+    def _has_hash_rules(self, allowed_types=None) -> bool:
+        if allowed_types and "hash" not in allowed_types:
+            return False
+        for rule in self.rule_engine.rules:
+            match_list = rule.get("match", [])
+            for cond in match_list:
+                if cond.get("field") in ("hash", "sha256", "md5"):
+                    return True
+        return False
+
+    def _hash_missing_all(self, entries):
+        for entry in entries:
+            sha256 = entry.get("sha256", "")
+            md5 = entry.get("md5", "")
+            detail = entry.get("detail_data")
+            detail_hash = ""
+            if isinstance(detail, dict):
+                detail_hash = detail.get("hash", "") or detail.get("sha256", "") or detail.get("md5", "")
+            if sha256 or md5 or detail_hash:
+                return False
+        return True
     
     def _update_results_table(self):
         """更新结果表格"""

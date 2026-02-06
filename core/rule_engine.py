@@ -1,5 +1,6 @@
 import json
 import re
+import ipaddress
 from pathlib import Path
 
 
@@ -149,10 +150,14 @@ class RuleEngine:
         except Exception as e:
             return False, f"保存规则失败: {str(e)}"
 
-    def scan_entry(self, entry):
+    def scan_entry(self, entry, allowed_types=None):
         """扫描单个条目，返回命中的规则列表"""
         matched_rules = []
         for rule in self.rules:
+            if allowed_types:
+                rule_types = self._rule_types(rule)
+                if not rule_types.intersection(allowed_types):
+                    continue
             if self._match_rule(rule, entry):
                 matched_rules.append(rule)
         return matched_rules
@@ -165,13 +170,12 @@ class RuleEngine:
             match_type = condition.get("type")
             value = condition.get("value")
 
-            field_value = entry.get(field, "")
-            if not field_value:
-                detail = entry.get("detail_data")
-                if isinstance(detail, dict):
-                    field_value = detail.get(field, "")
-            if not field_value and field == "command_line":
-                field_value = entry.get("launch_string", "")
+            field_value = self._get_field_value(entry, field)
+
+            if field == "ip":
+                if not self._match_ip_rule(match_type, value, entry):
+                    return False
+                continue
 
             if match_type == "contains":
                 if str(value).lower() not in str(field_value).lower():
@@ -186,3 +190,102 @@ class RuleEngine:
                 if str(field_value).lower() != str(value).lower():
                     return False
         return True
+
+    def _rule_types(self, rule):
+        types = set()
+        match_conditions = rule.get("match", [])
+        for condition in match_conditions:
+            field = condition.get("field", "")
+            if field in ("hash", "sha256", "md5"):
+                types.add("hash")
+            elif field == "ip":
+                types.add("ip")
+            elif field in ("image_path",):
+                types.add("path")
+            elif field in ("command_line", "launch_string"):
+                types.add("command")
+            else:
+                types.add("other")
+        if not types:
+            types.add("other")
+        return types
+
+    def _get_field_value(self, entry, field):
+        if not field:
+            return ""
+        if field in ("hash", "sha256", "md5"):
+            return self._get_hash_value(entry, field)
+        value = entry.get(field, "")
+        if not value:
+            detail = entry.get("detail_data")
+            if isinstance(detail, dict):
+                value = detail.get(field, "")
+        if not value and field == "command_line":
+            value = entry.get("launch_string", "")
+        return value or ""
+
+    def _get_hash_value(self, entry, field):
+        if field == "md5":
+            value = entry.get("md5", "")
+        elif field == "sha256":
+            value = entry.get("sha256", "")
+        else:
+            value = entry.get("sha256", "")
+        if not value:
+            detail = entry.get("detail_data")
+            if isinstance(detail, dict):
+                if field == "md5":
+                    value = detail.get("md5", "")
+                elif field == "sha256":
+                    value = detail.get("sha256", "")
+                else:
+                    value = detail.get("hash", "")
+        return value or ""
+
+    def _match_ip_rule(self, match_type, value, entry):
+        text = self._get_ip_search_text(entry)
+        if not text:
+            return False
+        value_text = str(value).strip()
+        if not value_text:
+            return False
+        if match_type == "equals":
+            ips = self._extract_ips(text)
+            return value_text in ips
+        if match_type == "regex":
+            try:
+                return re.search(str(value_text), text, re.IGNORECASE) is not None
+            except re.error:
+                return False
+        return value_text.lower() in text.lower()
+
+    def _get_ip_search_text(self, entry):
+        parts = [
+            self._get_field_value(entry, "command_line"),
+            self._get_field_value(entry, "launch_string"),
+            self._get_field_value(entry, "image_path"),
+        ]
+        return " ".join([p for p in parts if p])
+
+    def _extract_ips(self, text):
+        candidates = []
+        if not text:
+            return candidates
+        ipv4_pattern = r"(?<!\\d)(?:\\d{1,3}\\.){3}\\d{1,3}(?!\\d)"
+        for match in re.finditer(ipv4_pattern, text):
+            ip = match.group(0)
+            if self._is_ip_address(ip):
+                candidates.append(ip)
+        ipv6_bracket_pattern = r"\\[([0-9a-fA-F:]+)\\]"
+        for match in re.finditer(ipv6_bracket_pattern, text):
+            ip = match.group(1)
+            if self._is_ip_address(ip):
+                candidates.append(ip)
+        return list(dict.fromkeys(candidates))
+
+    def _is_ip_address(self, text):
+        try:
+            ipaddress.ip_address(text)
+            return True
+        except ValueError:
+            return False

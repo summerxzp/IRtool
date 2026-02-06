@@ -370,15 +370,12 @@ class NetworkTab(QWidget):
         menu = QMenu(self)
         action_open = menu.addAction("在资源管理器中打开")
         action_kill = menu.addAction("终止进程")
-        action_close = menu.addAction("关闭连接")
 
         action = menu.exec(self.table.viewport().mapToGlobal(pos))
         if action == action_open:
             self._open_selected_in_explorer()
         elif action == action_kill:
             self._kill_selected()
-        elif action == action_close:
-            self._close_selected_connections()
 
     def _open_selected_in_explorer(self):
         """在资源管理器中打开进程路径"""
@@ -403,55 +400,6 @@ class NetworkTab(QWidget):
             return
         QMessageBox.warning(self, "提示", f"路径不存在: {path}")
 
-    def _close_selected_connections(self):
-        """关闭选中的连接（仅 TCP / IPv4）"""
-        rows = sorted(set(item.row() for item in self.table.selectedItems()))
-        if not rows:
-            QMessageBox.warning(self, "提示", "请先选择要关闭的连接")
-            return
-
-        failed = []
-        for row in rows:
-            local_addr_item = self.table.item(row, 3)
-            local_port_item = self.table.item(row, 4)
-            remote_addr_item = self.table.item(row, 5)
-            remote_port_item = self.table.item(row, 6)
-            proto_item = self.table.item(row, 8)
-
-            if not all([local_addr_item, local_port_item, remote_addr_item, remote_port_item, proto_item]):
-                failed.append("获取连接信息失败")
-                continue
-
-            proto = proto_item.text().strip().upper()
-            if proto != "TCP":
-                failed.append("仅支持 TCP 连接")
-                continue
-
-            local_addr = local_addr_item.text().strip()
-            remote_addr = remote_addr_item.text().strip()
-            local_port_text = local_port_item.text().strip()
-            remote_port_text = remote_port_item.text().strip()
-
-            if not local_addr or local_addr == "*" or not remote_addr or remote_addr == "*":
-                failed.append("缺少有效地址")
-                continue
-            if not local_port_text.isdigit() or not remote_port_text.isdigit():
-                failed.append("缺少有效端口")
-                continue
-
-            success, msg = self.monitor.close_connection(
-                local_addr,
-                int(local_port_text),
-                remote_addr,
-                int(remote_port_text),
-                protocol=proto
-            )
-            if not success:
-                failed.append(msg)
-
-        if failed:
-            QMessageBox.warning(self, "关闭失败", "\n".join(failed[:5]))
-        self.refresh_data()
     
     def _format_address_for_display(self, addr: str) -> str:
         """格式化地址用于显示，只对空字符串等特殊情况转换为*，保留0.0.0.0等原始值"""

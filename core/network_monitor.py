@@ -5,8 +5,6 @@ from typing import List, Optional
 from datetime import datetime
 import json
 import socket
-import platform
-import struct
 
 
 @dataclass
@@ -142,51 +140,6 @@ class NetworkMonitor:
     def clear_cache(self):
         """清理进程缓存"""
         self._process_cache.clear()
-
-    def close_connection(self, local_address: str, local_port: int, remote_address: str, remote_port: int, protocol: str = "TCP") -> tuple:
-        """关闭指定连接（仅支持 Windows TCP/IPv4）"""
-        if protocol.upper() != "TCP":
-            return False, "仅支持 TCP 连接"
-        if not local_address or not remote_address:
-            return False, "缺少地址信息"
-        if platform.system().lower() != "windows":
-            return False, "仅支持 Windows"
-        try:
-            local_port = int(local_port)
-            remote_port = int(remote_port)
-        except (TypeError, ValueError):
-            return False, "端口无效"
-        if local_port <= 0 or remote_port <= 0:
-            return False, "端口无效"
-
-        try:
-            import ctypes
-            class MIB_TCPROW(ctypes.Structure):
-                _fields_ = [
-                    ("dwState", ctypes.c_ulong),
-                    ("dwLocalAddr", ctypes.c_ulong),
-                    ("dwLocalPort", ctypes.c_ulong),
-                    ("dwRemoteAddr", ctypes.c_ulong),
-                    ("dwRemotePort", ctypes.c_ulong),
-                ]
-
-            MIB_TCP_STATE_DELETE_TCB = 12
-
-            row = MIB_TCPROW()
-            row.dwState = MIB_TCP_STATE_DELETE_TCB
-            row.dwLocalAddr = struct.unpack("!I", socket.inet_aton(local_address))[0]
-            row.dwRemoteAddr = struct.unpack("!I", socket.inet_aton(remote_address))[0]
-            row.dwLocalPort = socket.htons(local_port)
-            row.dwRemotePort = socket.htons(remote_port)
-
-            result = ctypes.windll.iphlpapi.SetTcpEntry(ctypes.byref(row))
-            if result != 0:
-                return False, f"关闭失败: {result}"
-            return True, "连接已关闭"
-        except OSError as e:
-            return False, f"关闭失败: {e}"
-        except Exception as e:
-            return False, f"关闭失败: {e}"
     
     def stop_monitoring(self):
         """停止监控 - 网络监控无需特殊停止逻辑，只需清理缓存"""
