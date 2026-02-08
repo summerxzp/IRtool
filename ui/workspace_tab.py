@@ -18,6 +18,7 @@ from utils.path_resolver import PathResolver, PathScope
 from utils.command_template import CommandTemplateManager
 from utils.safe_executor import SafeExecutor, CommandResult, CommandStatus
 from utils.search_result import SearchResult, ResultType
+from ui.ui_style import apply_flat_style
 
 
 class NumericTableWidgetItem(QTableWidgetItem):
@@ -47,6 +48,7 @@ class RuleEditDialog(QDialog):
     """规则添加对话框"""
     def __init__(self, parent=None):
         super().__init__(parent)
+        apply_flat_style(self)
         self.setWindowTitle("新增规则")
         self._init_ui()
 
@@ -124,6 +126,7 @@ class RuleManagerDialog(QDialog):
     """规则管理对话框"""
     def __init__(self, rule_engine: RuleEngine, parent=None):
         super().__init__(parent)
+        apply_flat_style(self)
         self.rule_engine = rule_engine
         self._rule_index_by_row = []
         self._loading = False
@@ -517,6 +520,7 @@ class WorkspaceTab(QWidget):
     
     def __init__(self, data_store=None, search_service=None):
         super().__init__()
+        apply_flat_style(self)
         self.data_store = data_store
         self.search_service = search_service or SearchService(self.data_store)
         self.rule_engine = RuleEngine()
@@ -561,6 +565,7 @@ class WorkspaceTab(QWidget):
         """创建搜索区域"""
         widget = QFrame()
         widget.setFrameStyle(QFrame.Shape.StyledPanel)
+        widget.setObjectName("panel")
         layout = QVBoxLayout(widget)
         
         # 搜索框
@@ -618,6 +623,7 @@ class WorkspaceTab(QWidget):
         """创建结果列表区域"""
         widget = QFrame()
         widget.setFrameStyle(QFrame.Shape.StyledPanel)
+        widget.setObjectName("panel")
         layout = QVBoxLayout(widget)
         
         # 结果表格
@@ -641,6 +647,7 @@ class WorkspaceTab(QWidget):
         """创建操作区域"""
         widget = QFrame()
         widget.setFrameStyle(QFrame.Shape.StyledPanel)
+        widget.setObjectName("panel")
         layout = QVBoxLayout(widget)
         
         # Target Scope 选择

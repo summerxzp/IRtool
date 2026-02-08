@@ -15,6 +15,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, QThread, pyqtSignal, QSortFilterProxyModel, QObject
 from PyQt6.QtGui import QFont, QColor, QPalette
 from core.autoruns_parser import AutorunsParser
+from ui.ui_style import apply_flat_style
 
 
 
@@ -524,6 +525,7 @@ class AutorunsTab(QWidget):
     
     def __init__(self, autoruns_parser, data_store=None):
         super().__init__()
+        apply_flat_style(self)
         self.parser = autoruns_parser
         self.data_store = data_store
         self.current_data = []
@@ -618,8 +620,10 @@ class AutorunsTab(QWidget):
         # 设置样式：显示行分隔线（不覆盖 Model 的 BackgroundRole）
         self.tree_view.setStyleSheet("""
             QTreeView {
-                border: 1px solid #ccc;
-                gridline-color: #ccc;
+                border: 1px solid #d6dbe1;
+                gridline-color: #e3e8ef;
+                background-color: #ffffff;
+                alternate-background-color: #f7f9fb;
             }
         """)
         
@@ -655,8 +659,8 @@ class AutorunsTab(QWidget):
         scroll_area.setFrameShape(QFrame.Shape.NoFrame)
         scroll_area.setStyleSheet("""
             QScrollArea {
-                border: 1px solid #ccc;
-                background-color: #f9f9f9;
+                border: 1px solid #d6dbe1;
+                background-color: #ffffff;
             }
         """)
         
@@ -702,6 +706,7 @@ class AutorunsTab(QWidget):
         # 创建状态框架
         self.status_frame = QFrame()
         self.status_frame.setFrameShape(QFrame.Shape.Box)
+        self.status_frame.setObjectName("panel")
         # 设置较小的高度，只比字体高一点点
         font_metrics = self.fontMetrics()
         text_height = font_metrics.height()

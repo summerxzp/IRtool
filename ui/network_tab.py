@@ -11,6 +11,7 @@ import os
 import subprocess
 from utils.exporter import DataExporter
 from datetime import datetime, timedelta
+from ui.ui_style import apply_flat_style
 
 class NumericTableWidgetItem(QTableWidgetItem):
     """自定义数值排序的TableWidgetItem，用于端口和PID的数值排序"""
@@ -66,6 +67,7 @@ class NetworkTab(QWidget):
     
     def __init__(self, network_monitor, data_store=None):
         super().__init__()
+        apply_flat_style(self)
         self.monitor = network_monitor
         self.data_store = data_store
         self.current_data = []
@@ -181,6 +183,7 @@ class NetworkTab(QWidget):
         # 创建统计标签
         self.stats_frame = QFrame()
         self.stats_frame.setFrameShape(QFrame.Shape.Box)
+        self.stats_frame.setObjectName("panel")
         # 设置较小的高度，只比字体高一点点
         font_metrics = self.fontMetrics()
         text_height = font_metrics.height()
