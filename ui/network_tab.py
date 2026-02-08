@@ -64,6 +64,7 @@ class NetworkTab(QWidget):
         'TIME_WAIT': QColor(255, 255, 224),     # 浅黄
         'CLOSE_WAIT': QColor(255, 182, 193),    # 浅红
     }
+    HISTORY_COLOR = QColor(220, 220, 220)      # 历史记录背景灰色
     
     def __init__(self, network_monitor, data_store=None):
         super().__init__()
@@ -71,6 +72,7 @@ class NetworkTab(QWidget):
         self.monitor = network_monitor
         self.data_store = data_store
         self.current_data = []
+        self.all_data = []
         self.filtered_data = []  # 添加过滤后的数据
         self.auto_refresh = True  # 默认开启自动刷新
         self.current_worker = None  # 当前正在运行的工作线程
@@ -79,6 +81,7 @@ class NetworkTab(QWidget):
         self._last_search_text = ""  # 保存上次搜索文本
         self.refresh_interval = 1000  # 默认刷新间隔为1秒
         self._has_auto_resized = False  # 标记是否已经自动调整过列宽
+        self._connection_cache = {}  # 连接历史缓存（仅UI层）
         
         self._init_ui()
         self._init_timer()
@@ -195,6 +198,7 @@ class NetworkTab(QWidget):
         self.lbl_listening = QLabel("Listening: 0")
         self.lbl_time_wait = QLabel("Time Wait: 0")
         self.lbl_close_wait = QLabel("Close Wait: 0")
+        self.lbl_history = QLabel("History: 0")
         
         # 修改布局为单行显示
         stats_inner_layout.addWidget(self.lbl_endpoints, 0, 0)
@@ -202,6 +206,7 @@ class NetworkTab(QWidget):
         stats_inner_layout.addWidget(self.lbl_listening, 0, 2)
         stats_inner_layout.addWidget(self.lbl_time_wait, 0, 3)
         stats_inner_layout.addWidget(self.lbl_close_wait, 0, 4)
+        stats_inner_layout.addWidget(self.lbl_history, 0, 5)
         
         self.stats_frame.setLayout(stats_inner_layout)
         stats_layout.addWidget(self.stats_frame)
@@ -252,17 +257,29 @@ class NetworkTab(QWidget):
         now = datetime.now()
 
         # Process current connections
+        current_keys = set()
         current_connections = []
         for conn in data:
             conn = conn.copy() 
             conn['is_current'] = True 
-            current_connections.append(conn) 
+            key = self._generate_connection_key(conn)
+            current_keys.add(key)
+            if key in self._connection_cache:
+                cached = self._connection_cache[key]
+                cached.update(conn)
+                current_connections.append(cached)
+            else:
+                self._connection_cache[key] = conn
+                current_connections.append(conn)
+
+        for key, cached in self._connection_cache.items():
+            if key not in current_keys:
+                cached['is_current'] = False
 
         self.current_data = current_connections 
+        self.all_data = list(self._connection_cache.values())
         if self.data_store:
             self.data_store.set_network_connections(self.current_data)
-
-        # No history saving functionality anymore
 
         # ========== 5. 搜索 / 状态过滤 ========== 
         self._apply_filters_and_update()
@@ -270,7 +287,7 @@ class NetworkTab(QWidget):
     def _apply_filters_and_update(self):
         text = self.search_box.text().strip().lower()
 
-        data = self.current_data
+        data = self.all_data
 
         if text: 
             data = [ 
@@ -317,6 +334,7 @@ class NetworkTab(QWidget):
         
         self.table.setRowCount(len(data))
         for row, conn in enumerate(data):
+            is_current = conn.get('is_current', True)
             # 在UI层进行格式化显示
             formatted_local_addr = self._format_address_for_display(conn['local_address'])
             formatted_remote_addr = self._format_address_for_display(conn['remote_address'])
@@ -345,7 +363,9 @@ class NetworkTab(QWidget):
                     item.setForeground(QColor(128, 128, 128))  # 灰色文字
                     item.setToolTip("此进程已结束，显示的是历史连接信息")
                 
-                if col == 7 and conn['status'] in self.STATUS_COLORS: 
+                if not is_current:
+                    item.setBackground(self.HISTORY_COLOR)
+                elif col == 7 and conn['status'] in self.STATUS_COLORS: 
                     item.setBackground(self.STATUS_COLORS[conn['status']])
                 self.table.setItem(row, col, item)
         
@@ -418,12 +438,14 @@ class NetworkTab(QWidget):
         listening_count = sum(1 for conn in data if conn['status'] == 'LISTEN')
         time_wait_count = sum(1 for conn in data if conn['status'] == 'TIME_WAIT')
         close_wait_count = sum(1 for conn in data if conn['status'] == 'CLOSE_WAIT')
+        history_count = sum(1 for conn in data if not conn.get('is_current', True))
         
         self.lbl_endpoints.setText(f"Endpoints: {total_endpoints}")
         self.lbl_established.setText(f"Established: {established_count}")
         self.lbl_listening.setText(f"Listening: {listening_count}")
         self.lbl_time_wait.setText(f"Time Wait: {time_wait_count}")
         self.lbl_close_wait.setText(f"Close Wait: {close_wait_count}")
+        self.lbl_history.setText(f"History: {history_count}")
     
     def _kill_selected(self):
         """终止选中的进程"""
@@ -454,7 +476,8 @@ class NetworkTab(QWidget):
     
     def _export_csv(self):
         """导出CSV"""
-        if not self.current_data:
+        data_to_export = self.all_data if self.all_data else self.current_data
+        if not data_to_export:
             QMessageBox.warning(self, "提示", "没有数据可导出")
             return
         
@@ -468,7 +491,7 @@ class NetworkTab(QWidget):
                 "local_address", "local_port", "remote_address",
                 "remote_port", "status", "family"
             ]
-            success, msg = DataExporter.export_csv(self.current_data, file_path, columns)
+            success, msg = DataExporter.export_csv(data_to_export, file_path, columns)
             
             if success:
                 QMessageBox.information(self, "成功", msg)

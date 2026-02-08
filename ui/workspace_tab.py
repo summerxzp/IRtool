@@ -840,6 +840,8 @@ class WorkspaceTab(QWidget):
 
             self._set_result_mode("rule")
             self._update_results_table()
+            if not self.matched_results:
+                QMessageBox.information(self, "扫描完成", "规则扫描完成，未发现命中项。")
         except Exception as e:
             QMessageBox.warning(self, "错误", f"规则扫描失败: {str(e)}")
 
