@@ -7,6 +7,7 @@ $ErrorActionPreference = 'Stop'
 
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $here
+$appDir = Join-Path $here 'app'
 
 # Create venv for build isolation
 $venv = Join-Path $here '.venv'
@@ -31,10 +32,10 @@ $args = @(
     '--distpath', (Join-Path $here 'dist'),
     '--workpath', (Join-Path $here 'build'),
     '--specpath', (Join-Path $here 'build'),
-    '--paths', 'app',
-    '--add-data', 'app\\data\\rules.json;data',
-    '--add-data', 'app\\tools\\autorunsc64.exe;tools',
-    '--add-data', 'app\\tools\\sigcheck64.exe;tools'
+    '--paths', $appDir,
+    '--add-data', "$(Join-Path $appDir 'data\rules.json');data",
+    '--add-data', "$(Join-Path $appDir 'tools\autorunsc64.exe');tools",
+    '--add-data', "$(Join-Path $appDir 'tools\sigcheck64.exe');tools"
 )
 
 if ($Mode -eq 'onefile') {
