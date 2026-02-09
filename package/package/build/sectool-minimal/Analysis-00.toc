@@ -1,0 +1,2709 @@
+(['E:\\Code\\sectool_codex - 副本\\package\\app\\main.py'],
+ ['E:\\Code\\sectool_codex - 副本\\package\\app',
+  'E:\\Code\\sectool_codex - 副本\\package\\app'],
+ ['PyQt6.sip', 'PyQt6.QtCore', 'PyQt6.QtGui', 'PyQt6.QtWidgets'],
+ ['E:\\Code\\sectool_codex - '
+  '副本\\package\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks',
+  'E:\\Code\\sectool_codex - '
+  '副本\\package\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib'],
+ {},
+ ['matplotlib',
+  'numpy',
+  'pandas',
+  'scipy',
+  'PIL',
+  'Pillow',
+  'unittest',
+  'pydoc',
+  'pdb',
+  'doctest',
+  'lib2to3',
+  'tkinter',
+  'email.mime',
+  'http.server',
+  'xmlrpc',
+  'html',
+  '_pytest',
+  'pytest',
+  'pytestqt',
+  'PyQt6.Qt3DAnimation',
+  'PyQt6.Qt3DCore',
+  'PyQt6.Qt3DExtras',
+  'PyQt6.Qt3DInput',
+  'PyQt6.Qt3DLogic',
+  'PyQt6.Qt3DRender',
+  'PyQt6.QtBluetooth',
+  'PyQt6.QtCharts',
+  'PyQt6.QtConcurrent',
+  'PyQt6.QtDataVisualization',
+  'PyQt6.QtDesigner',
+  'PyQt6.QtHelp',
+  'PyQt6.QtLocation',
+  'PyQt6.QtMultimedia',
+  'PyQt6.QtMultimediaWidgets',
+  'PyQt6.QtNetworkAuth',
+  'PyQt6.QtNfc',
+  'PyQt6.QtOpenGL',
+  'PyQt6.QtOpenGLWidgets',
+  'PyQt6.QtPdf',
+  'PyQt6.QtPdfWidgets',
+  'PyQt6.QtPositioning',
+  'PyQt6.QtPrintSupport',
+  'PyQt6.QtQml',
+  'PyQt6.QtQuick',
+  'PyQt6.QtQuick3D',
+  'PyQt6.QtQuickWidgets',
+  'PyQt6.QtRemoteObjects',
+  'PyQt6.QtScxml',
+  'PyQt6.QtSensors',
+  'PyQt6.QtSerialPort',
+  'PyQt6.QtSpatialAudio',
+  'PyQt6.QtSql',
+  'PyQt6.QtStateMachine',
+  'PyQt6.QtSvg',
+  'PyQt6.QtSvgWidgets',
+  'PyQt6.QtTest',
+  'PyQt6.QtTextToSpeech',
+  'PyQt6.QtWebChannel',
+  'PyQt6.QtWebEngineCore',
+  'PyQt6.QtWebEngineWidgets',
+  'PyQt6.QtWebSockets',
+  'PyQt6.QtXml',
+  'PyQt6.QtXmlPatterns',
+  '__main__'],
+ [],
+ False,
+ {},
+ [('PyQt6\\Qt6\\bin\\Qt6Bluetooth.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Bluetooth.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Concurrent.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Concurrent.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Core.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Core.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6DBus.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6DBus.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Designer.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Designer.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Gui.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Gui.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Help.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Help.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Multimedia.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Multimedia.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6MultimediaQuick.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6MultimediaQuick.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6MultimediaWidgets.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6MultimediaWidgets.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Network.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Network.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Nfc.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Nfc.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6OpenGL.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6OpenGL.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6OpenGLWidgets.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6OpenGLWidgets.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Pdf.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Pdf.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6PdfQuick.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6PdfQuick.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6PdfWidgets.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6PdfWidgets.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Positioning.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Positioning.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6PositioningQuick.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6PositioningQuick.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6PrintSupport.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6PrintSupport.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Qml.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Qml.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QmlModels.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QmlModels.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QmlWorkerScript.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QmlWorkerScript.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick3D.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick3D.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick3DAssetImport.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick3DAssetImport.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick3DAssetUtils.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick3DAssetUtils.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick3DEffects.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick3DEffects.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick3DHelpers.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick3DHelpers.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick3DIblBaker.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick3DIblBaker.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick3DParticles.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick3DParticles.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick3DRuntimeRender.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick3DRuntimeRender.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick3DUtils.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick3DUtils.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickControls2.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickControls2.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickControls2Impl.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickControls2Impl.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickDialogs2.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickDialogs2.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickDialogs2QuickImpl.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickDialogs2QuickImpl.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickDialogs2Utils.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickDialogs2Utils.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickLayouts.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickLayouts.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickParticles.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickParticles.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickShapes.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickShapes.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickTemplates2.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickTemplates2.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickTest.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickTest.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickTimeline.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickTimeline.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickWidgets.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickWidgets.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6RemoteObjects.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6RemoteObjects.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6RemoteObjectsQml.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6RemoteObjectsQml.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Sensors.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Sensors.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6SensorsQuick.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6SensorsQuick.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6SerialPort.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6SerialPort.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6ShaderTools.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6ShaderTools.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Sql.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Sql.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Svg.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Svg.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6SvgWidgets.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6SvgWidgets.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Test.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Test.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6TextToSpeech.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6TextToSpeech.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6WebChannel.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6WebChannel.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6WebSockets.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6WebSockets.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Widgets.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Widgets.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Xml.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Xml.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\concrt140.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\concrt140.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\d3dcompiler_47.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\d3dcompiler_47.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\msvcp140.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\msvcp140.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\msvcp140_1.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\msvcp140_1.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\msvcp140_2.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\msvcp140_2.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\opengl32sw.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\opengl32sw.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\vcruntime140.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\vcruntime140.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\vcruntime140_1.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\vcruntime140_1.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\assetimporters\\assimp.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\assetimporters\\assimp.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\generic\\qtuiotouchplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\generic\\qtuiotouchplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\geometryloaders\\defaultgeometryloader.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\geometryloaders\\defaultgeometryloader.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\geometryloaders\\gltfgeometryloader.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\geometryloaders\\gltfgeometryloader.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\iconengines\\qsvgicon.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\iconengines\\qsvgicon.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qgif.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qgif.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qicns.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qicns.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qico.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qico.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qjpeg.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qjpeg.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qpdf.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qpdf.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qsvg.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qsvg.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qtga.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qtga.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qtiff.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qtiff.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qwbmp.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qwbmp.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qwebp.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qwebp.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\multimedia\\windowsmediaplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\multimedia\\windowsmediaplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\networkinformation\\qnetworklistmanager.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\networkinformation\\qnetworklistmanager.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\platforms\\qminimal.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\platforms\\qminimal.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\platforms\\qoffscreen.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\platforms\\qoffscreen.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\platforms\\qwindows.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\platforms\\qwindows.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\position\\qtposition_nmea.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\position\\qtposition_nmea.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\position\\qtposition_positionpoll.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\position\\qtposition_positionpoll.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\position\\qtposition_winrt.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\position\\qtposition_winrt.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\qmllint\\quicklintplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\qmllint\\quicklintplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\renderers\\openglrenderer.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\renderers\\openglrenderer.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\renderers\\rhirenderer.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\renderers\\rhirenderer.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\sceneparsers\\assimpsceneimport.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\sceneparsers\\assimpsceneimport.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\sceneparsers\\gltfsceneexport.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\sceneparsers\\gltfsceneexport.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\sceneparsers\\gltfsceneimport.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\sceneparsers\\gltfsceneimport.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\sensors\\qtsensors_dummy.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\sensors\\qtsensors_dummy.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\sensors\\qtsensors_generic.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\sensors\\qtsensors_generic.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\sensors\\qtsensors_winrt.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\sensors\\qtsensors_winrt.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\sqldrivers\\qsqlite.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\sqldrivers\\qsqlite.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\sqldrivers\\qsqlodbc.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\sqldrivers\\qsqlodbc.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\sqldrivers\\qsqlpsql.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\sqldrivers\\qsqlpsql.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\styles\\qwindowsvistastyle.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\styles\\qwindowsvistastyle.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\texttospeech\\qtexttospeech_mock.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\texttospeech\\qtexttospeech_mock.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\texttospeech\\qtexttospeech_sapi.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\texttospeech\\qtexttospeech_sapi.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\texttospeech\\qtexttospeech_winrt.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\texttospeech\\qtexttospeech_winrt.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\tls\\qcertonlybackend.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\tls\\qcertonlybackend.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\tls\\qopensslbackend.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\tls\\qopensslbackend.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\tls\\qschannelbackend.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\tls\\qschannelbackend.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\webview\\qtwebview_webengine.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\webview\\qtwebview_webengine.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtMultimedia\\quickmultimediaplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtMultimedia\\quickmultimediaplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtPositioning\\positioningquickplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtPositioning\\positioningquickplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQml\\Models\\modelsplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQml\\Models\\modelsplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQml\\WorkerScript\\workerscriptplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQml\\WorkerScript\\workerscriptplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQml\\XmlListModel\\qmlxmllistmodelplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQml\\XmlListModel\\qmlxmllistmodelplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQml\\qmlplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQml\\qmlplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick3D\\AssetUtils\\qtquick3dassetutilsplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick3D\\AssetUtils\\qtquick3dassetutilsplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick3D\\Effects\\qtquick3deffectplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick3D\\Effects\\qtquick3deffectplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick3D\\Helpers\\qtquick3dhelpersplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick3D\\Helpers\\qtquick3dhelpersplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick3D\\ParticleEffects\\qtquick3dparticleeffectsplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick3D\\ParticleEffects\\qtquick3dparticleeffectsplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick3D\\Particles3D\\qtquick3dparticles3dplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick3D\\Particles3D\\qtquick3dparticles3dplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick3D\\Physics\\Helpers\\qtquick3dphysicshelpersplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick3D\\Physics\\Helpers\\qtquick3dphysicshelpersplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick3D\\Physics\\qquick3dphysicsplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick3D\\Physics\\qquick3dphysicsplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick3D\\SpatialAudio\\quick3dspatialaudioplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick3D\\SpatialAudio\\quick3dspatialaudioplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick3D\\qquick3dplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick3D\\qquick3dplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Basic\\impl\\qtquickcontrols2basicstyleimplplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Basic\\impl\\qtquickcontrols2basicstyleimplplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Basic\\qtquickcontrols2basicstyleplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Basic\\qtquickcontrols2basicstyleplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Fusion\\impl\\qtquickcontrols2fusionstyleimplplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Fusion\\impl\\qtquickcontrols2fusionstyleimplplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Fusion\\qtquickcontrols2fusionstyleplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Fusion\\qtquickcontrols2fusionstyleplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Imagine\\impl\\qtquickcontrols2imaginestyleimplplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Imagine\\impl\\qtquickcontrols2imaginestyleimplplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Imagine\\qtquickcontrols2imaginestyleplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Imagine\\qtquickcontrols2imaginestyleplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Material\\impl\\qtquickcontrols2materialstyleimplplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Material\\impl\\qtquickcontrols2materialstyleimplplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Material\\qtquickcontrols2materialstyleplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Material\\qtquickcontrols2materialstyleplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Universal\\impl\\qtquickcontrols2universalstyleimplplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Universal\\impl\\qtquickcontrols2universalstyleimplplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Universal\\qtquickcontrols2universalstyleplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Universal\\qtquickcontrols2universalstyleplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Windows\\qtquickcontrols2windowsstyleplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Windows\\qtquickcontrols2windowsstyleplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\impl\\qtquickcontrols2implplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\impl\\qtquickcontrols2implplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\qtquickcontrols2plugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\qtquickcontrols2plugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Dialogs\\qtquickdialogsplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Dialogs\\qtquickdialogsplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Dialogs\\quickimpl\\qtquickdialogs2quickimplplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Dialogs\\quickimpl\\qtquickdialogs2quickimplplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Layouts\\qquicklayoutsplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Layouts\\qquicklayoutsplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\LocalStorage\\qmllocalstorageplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\LocalStorage\\qmllocalstorageplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\NativeStyle\\qtquickcontrols2nativestyleplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\NativeStyle\\qtquickcontrols2nativestyleplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Particles\\particlesplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Particles\\particlesplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Pdf\\pdfquickplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Pdf\\pdfquickplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Scene2D\\qtquickscene2dplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Scene2D\\qtquickscene2dplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Scene3D\\qtquickscene3dplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Scene3D\\qtquickscene3dplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Shapes\\qmlshapesplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Shapes\\qmlshapesplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Templates\\qtquicktemplates2plugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Templates\\qtquicktemplates2plugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Timeline\\qtquicktimelineplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Timeline\\qtquicktimelineplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Window\\quickwindowplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Window\\quickwindowplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\qtquick2plugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\qtquick2plugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\tooling\\quicktoolingplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\tooling\\quicktoolingplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtRemoteObjects\\declarative_remoteobjectsplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtRemoteObjects\\declarative_remoteobjectsplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtSensors\\sensorsquickplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtSensors\\sensorsquickplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtTest\\quicktestplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtTest\\quicktestplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtTextToSpeech\\texttospeechqmlplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtTextToSpeech\\texttospeechqmlplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtWebChannel\\webchannelplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtWebChannel\\webchannelplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtWebSockets\\qmlwebsocketsplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtWebSockets\\qmlwebsocketsplugin.dll',
+   'BINARY')],
+ [('data\\rules.json',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\data\\rules.json',
+   'DATA'),
+  ('tools\\autorunsc64.exe',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\tools\\autorunsc64.exe',
+   'DATA'),
+  ('tools\\sigcheck64.exe',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\tools\\sigcheck64.exe',
+   'DATA')],
+ '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit '
+ '(AMD64)]',
+ [('pyi_rth_pyqt6',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pyqt6.py',
+   'PYSOURCE'),
+  ('pyi_rth_pkgutil',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgutil.py',
+   'PYSOURCE'),
+  ('pyi_rth_inspect',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_inspect.py',
+   'PYSOURCE'),
+  ('pyi_rth_multiprocessing',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_multiprocessing.py',
+   'PYSOURCE'),
+  ('main', 'E:\\Code\\sectool_codex - 副本\\package\\app\\main.py', 'PYSOURCE')],
+ [('multiprocessing.popen_forkserver',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\popen_forkserver.py',
+   'PYMODULE'),
+  ('multiprocessing.connection',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\connection.py',
+   'PYMODULE'),
+  ('multiprocessing.resource_sharer',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\resource_sharer.py',
+   'PYMODULE'),
+  ('multiprocessing.process',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\process.py',
+   'PYMODULE'),
+  ('signal', 'D:\\Sofware\\python3.11.9\\Lib\\signal.py', 'PYMODULE'),
+  ('selectors', 'D:\\Sofware\\python3.11.9\\Lib\\selectors.py', 'PYMODULE'),
+  ('hmac', 'D:\\Sofware\\python3.11.9\\Lib\\hmac.py', 'PYMODULE'),
+  ('hashlib', 'D:\\Sofware\\python3.11.9\\Lib\\hashlib.py', 'PYMODULE'),
+  ('tempfile', 'D:\\Sofware\\python3.11.9\\Lib\\tempfile.py', 'PYMODULE'),
+  ('random', 'D:\\Sofware\\python3.11.9\\Lib\\random.py', 'PYMODULE'),
+  ('statistics', 'D:\\Sofware\\python3.11.9\\Lib\\statistics.py', 'PYMODULE'),
+  ('decimal', 'D:\\Sofware\\python3.11.9\\Lib\\decimal.py', 'PYMODULE'),
+  ('_pydecimal', 'D:\\Sofware\\python3.11.9\\Lib\\_pydecimal.py', 'PYMODULE'),
+  ('contextvars', 'D:\\Sofware\\python3.11.9\\Lib\\contextvars.py', 'PYMODULE'),
+  ('fractions', 'D:\\Sofware\\python3.11.9\\Lib\\fractions.py', 'PYMODULE'),
+  ('numbers', 'D:\\Sofware\\python3.11.9\\Lib\\numbers.py', 'PYMODULE'),
+  ('bisect', 'D:\\Sofware\\python3.11.9\\Lib\\bisect.py', 'PYMODULE'),
+  ('shutil', 'D:\\Sofware\\python3.11.9\\Lib\\shutil.py', 'PYMODULE'),
+  ('zipfile', 'D:\\Sofware\\python3.11.9\\Lib\\zipfile.py', 'PYMODULE'),
+  ('argparse', 'D:\\Sofware\\python3.11.9\\Lib\\argparse.py', 'PYMODULE'),
+  ('textwrap', 'D:\\Sofware\\python3.11.9\\Lib\\textwrap.py', 'PYMODULE'),
+  ('copy', 'D:\\Sofware\\python3.11.9\\Lib\\copy.py', 'PYMODULE'),
+  ('gettext', 'D:\\Sofware\\python3.11.9\\Lib\\gettext.py', 'PYMODULE'),
+  ('py_compile', 'D:\\Sofware\\python3.11.9\\Lib\\py_compile.py', 'PYMODULE'),
+  ('importlib.machinery',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\machinery.py',
+   'PYMODULE'),
+  ('importlib',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\__init__.py',
+   'PYMODULE'),
+  ('importlib._bootstrap',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\_bootstrap.py',
+   'PYMODULE'),
+  ('importlib._bootstrap_external',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\_bootstrap_external.py',
+   'PYMODULE'),
+  ('importlib.metadata',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\metadata\\__init__.py',
+   'PYMODULE'),
+  ('typing', 'D:\\Sofware\\python3.11.9\\Lib\\typing.py', 'PYMODULE'),
+  ('importlib.abc',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\abc.py',
+   'PYMODULE'),
+  ('importlib.resources.abc',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\resources\\abc.py',
+   'PYMODULE'),
+  ('importlib.resources',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\resources\\__init__.py',
+   'PYMODULE'),
+  ('importlib.resources._legacy',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\resources\\_legacy.py',
+   'PYMODULE'),
+  ('importlib.resources._common',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\resources\\_common.py',
+   'PYMODULE'),
+  ('importlib.resources._adapters',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\resources\\_adapters.py',
+   'PYMODULE'),
+  ('importlib._abc',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\_abc.py',
+   'PYMODULE'),
+  ('importlib.metadata._itertools',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\metadata\\_itertools.py',
+   'PYMODULE'),
+  ('importlib.metadata._functools',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\metadata\\_functools.py',
+   'PYMODULE'),
+  ('importlib.metadata._collections',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\metadata\\_collections.py',
+   'PYMODULE'),
+  ('importlib.metadata._meta',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\metadata\\_meta.py',
+   'PYMODULE'),
+  ('importlib.metadata._adapters',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\metadata\\_adapters.py',
+   'PYMODULE'),
+  ('importlib.metadata._text',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\metadata\\_text.py',
+   'PYMODULE'),
+  ('email.message',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\message.py',
+   'PYMODULE'),
+  ('email.policy',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\policy.py',
+   'PYMODULE'),
+  ('email.contentmanager',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\contentmanager.py',
+   'PYMODULE'),
+  ('email.quoprimime',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\quoprimime.py',
+   'PYMODULE'),
+  ('string', 'D:\\Sofware\\python3.11.9\\Lib\\string.py', 'PYMODULE'),
+  ('email.headerregistry',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\headerregistry.py',
+   'PYMODULE'),
+  ('email._header_value_parser',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\_header_value_parser.py',
+   'PYMODULE'),
+  ('urllib', 'D:\\Sofware\\python3.11.9\\Lib\\urllib\\__init__.py', 'PYMODULE'),
+  ('email.iterators',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\iterators.py',
+   'PYMODULE'),
+  ('email.generator',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\generator.py',
+   'PYMODULE'),
+  ('email._encoded_words',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\_encoded_words.py',
+   'PYMODULE'),
+  ('base64', 'D:\\Sofware\\python3.11.9\\Lib\\base64.py', 'PYMODULE'),
+  ('getopt', 'D:\\Sofware\\python3.11.9\\Lib\\getopt.py', 'PYMODULE'),
+  ('email.charset',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\charset.py',
+   'PYMODULE'),
+  ('email.encoders',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\encoders.py',
+   'PYMODULE'),
+  ('email.base64mime',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\base64mime.py',
+   'PYMODULE'),
+  ('email._policybase',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\_policybase.py',
+   'PYMODULE'),
+  ('email.header',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\header.py',
+   'PYMODULE'),
+  ('email.errors',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\errors.py',
+   'PYMODULE'),
+  ('email.utils',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\utils.py',
+   'PYMODULE'),
+  ('email._parseaddr',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\_parseaddr.py',
+   'PYMODULE'),
+  ('calendar', 'D:\\Sofware\\python3.11.9\\Lib\\calendar.py', 'PYMODULE'),
+  ('urllib.parse',
+   'D:\\Sofware\\python3.11.9\\Lib\\urllib\\parse.py',
+   'PYMODULE'),
+  ('ipaddress', 'D:\\Sofware\\python3.11.9\\Lib\\ipaddress.py', 'PYMODULE'),
+  ('quopri', 'D:\\Sofware\\python3.11.9\\Lib\\quopri.py', 'PYMODULE'),
+  ('email', 'D:\\Sofware\\python3.11.9\\Lib\\email\\__init__.py', 'PYMODULE'),
+  ('email.parser',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\parser.py',
+   'PYMODULE'),
+  ('email.feedparser',
+   'D:\\Sofware\\python3.11.9\\Lib\\email\\feedparser.py',
+   'PYMODULE'),
+  ('csv', 'D:\\Sofware\\python3.11.9\\Lib\\csv.py', 'PYMODULE'),
+  ('importlib.readers',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\readers.py',
+   'PYMODULE'),
+  ('importlib.resources.readers',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\resources\\readers.py',
+   'PYMODULE'),
+  ('importlib.resources._itertools',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\resources\\_itertools.py',
+   'PYMODULE'),
+  ('tokenize', 'D:\\Sofware\\python3.11.9\\Lib\\tokenize.py', 'PYMODULE'),
+  ('token', 'D:\\Sofware\\python3.11.9\\Lib\\token.py', 'PYMODULE'),
+  ('contextlib', 'D:\\Sofware\\python3.11.9\\Lib\\contextlib.py', 'PYMODULE'),
+  ('importlib.util',
+   'D:\\Sofware\\python3.11.9\\Lib\\importlib\\util.py',
+   'PYMODULE'),
+  ('tarfile', 'D:\\Sofware\\python3.11.9\\Lib\\tarfile.py', 'PYMODULE'),
+  ('gzip', 'D:\\Sofware\\python3.11.9\\Lib\\gzip.py', 'PYMODULE'),
+  ('_compression',
+   'D:\\Sofware\\python3.11.9\\Lib\\_compression.py',
+   'PYMODULE'),
+  ('lzma', 'D:\\Sofware\\python3.11.9\\Lib\\lzma.py', 'PYMODULE'),
+  ('bz2', 'D:\\Sofware\\python3.11.9\\Lib\\bz2.py', 'PYMODULE'),
+  ('fnmatch', 'D:\\Sofware\\python3.11.9\\Lib\\fnmatch.py', 'PYMODULE'),
+  ('_strptime', 'D:\\Sofware\\python3.11.9\\Lib\\_strptime.py', 'PYMODULE'),
+  ('struct', 'D:\\Sofware\\python3.11.9\\Lib\\struct.py', 'PYMODULE'),
+  ('socket', 'D:\\Sofware\\python3.11.9\\Lib\\socket.py', 'PYMODULE'),
+  ('multiprocessing.util',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\util.py',
+   'PYMODULE'),
+  ('multiprocessing.resource_tracker',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\resource_tracker.py',
+   'PYMODULE'),
+  ('multiprocessing.popen_fork',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\popen_fork.py',
+   'PYMODULE'),
+  ('multiprocessing.forkserver',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\forkserver.py',
+   'PYMODULE'),
+  ('multiprocessing.context',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\context.py',
+   'PYMODULE'),
+  ('multiprocessing.sharedctypes',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\sharedctypes.py',
+   'PYMODULE'),
+  ('multiprocessing.heap',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\heap.py',
+   'PYMODULE'),
+  ('multiprocessing.pool',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\pool.py',
+   'PYMODULE'),
+  ('multiprocessing.dummy',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\dummy\\__init__.py',
+   'PYMODULE'),
+  ('multiprocessing.dummy.connection',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\dummy\\connection.py',
+   'PYMODULE'),
+  ('queue', 'D:\\Sofware\\python3.11.9\\Lib\\queue.py', 'PYMODULE'),
+  ('multiprocessing.queues',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\queues.py',
+   'PYMODULE'),
+  ('multiprocessing.synchronize',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\synchronize.py',
+   'PYMODULE'),
+  ('multiprocessing.managers',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\managers.py',
+   'PYMODULE'),
+  ('multiprocessing.shared_memory',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\shared_memory.py',
+   'PYMODULE'),
+  ('secrets', 'D:\\Sofware\\python3.11.9\\Lib\\secrets.py', 'PYMODULE'),
+  ('multiprocessing.reduction',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\reduction.py',
+   'PYMODULE'),
+  ('pickle', 'D:\\Sofware\\python3.11.9\\Lib\\pickle.py', 'PYMODULE'),
+  ('pprint', 'D:\\Sofware\\python3.11.9\\Lib\\pprint.py', 'PYMODULE'),
+  ('dataclasses', 'D:\\Sofware\\python3.11.9\\Lib\\dataclasses.py', 'PYMODULE'),
+  ('inspect', 'D:\\Sofware\\python3.11.9\\Lib\\inspect.py', 'PYMODULE'),
+  ('dis', 'D:\\Sofware\\python3.11.9\\Lib\\dis.py', 'PYMODULE'),
+  ('opcode', 'D:\\Sofware\\python3.11.9\\Lib\\opcode.py', 'PYMODULE'),
+  ('ast', 'D:\\Sofware\\python3.11.9\\Lib\\ast.py', 'PYMODULE'),
+  ('_compat_pickle',
+   'D:\\Sofware\\python3.11.9\\Lib\\_compat_pickle.py',
+   'PYMODULE'),
+  ('multiprocessing.popen_spawn_posix',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\popen_spawn_posix.py',
+   'PYMODULE'),
+  ('multiprocessing.popen_spawn_win32',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\popen_spawn_win32.py',
+   'PYMODULE'),
+  ('subprocess', 'D:\\Sofware\\python3.11.9\\Lib\\subprocess.py', 'PYMODULE'),
+  ('multiprocessing.spawn',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\spawn.py',
+   'PYMODULE'),
+  ('runpy', 'D:\\Sofware\\python3.11.9\\Lib\\runpy.py', 'PYMODULE'),
+  ('pkgutil', 'D:\\Sofware\\python3.11.9\\Lib\\pkgutil.py', 'PYMODULE'),
+  ('zipimport', 'D:\\Sofware\\python3.11.9\\Lib\\zipimport.py', 'PYMODULE'),
+  ('multiprocessing',
+   'D:\\Sofware\\python3.11.9\\Lib\\multiprocessing\\__init__.py',
+   'PYMODULE'),
+  ('threading', 'D:\\Sofware\\python3.11.9\\Lib\\threading.py', 'PYMODULE'),
+  ('_threading_local',
+   'D:\\Sofware\\python3.11.9\\Lib\\_threading_local.py',
+   'PYMODULE'),
+  ('_pyi_rth_utils',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyInstaller\\fake-modules\\_pyi_rth_utils\\__init__.py',
+   'PYMODULE'),
+  ('PyQt6',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\__init__.py',
+   'PYMODULE'),
+  ('_py_abc', 'D:\\Sofware\\python3.11.9\\Lib\\_py_abc.py', 'PYMODULE'),
+  ('stringprep', 'D:\\Sofware\\python3.11.9\\Lib\\stringprep.py', 'PYMODULE'),
+  ('ui.workspace_tab',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\ui\\workspace_tab.py',
+   'PYMODULE'),
+  ('ui',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\ui\\__init__.py',
+   'PYMODULE'),
+  ('pyzipper',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\pyzipper\\__init__.py',
+   'PYMODULE'),
+  ('pyzipper.__version__',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\pyzipper\\__version__.py',
+   'PYMODULE'),
+  ('pyzipper.zipfile_aes',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\pyzipper\\zipfile_aes.py',
+   'PYMODULE'),
+  ('Cryptodome.Random',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Random\\__init__.py',
+   'PYMODULE'),
+  ('Cryptodome',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\__init__.py',
+   'PYMODULE'),
+  ('Cryptodome.Util.Counter',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Util\\Counter.py',
+   'PYMODULE'),
+  ('Cryptodome.Util',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Util\\__init__.py',
+   'PYMODULE'),
+  ('Cryptodome.Util._cpu_features',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Util\\_cpu_features.py',
+   'PYMODULE'),
+  ('Cryptodome.Util._raw_api',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Util\\_raw_api.py',
+   'PYMODULE'),
+  ('platform', 'D:\\Sofware\\python3.11.9\\Lib\\platform.py', 'PYMODULE'),
+  ('ctypes.util',
+   'D:\\Sofware\\python3.11.9\\Lib\\ctypes\\util.py',
+   'PYMODULE'),
+  ('ctypes._aix',
+   'D:\\Sofware\\python3.11.9\\Lib\\ctypes\\_aix.py',
+   'PYMODULE'),
+  ('ctypes.macholib.dyld',
+   'D:\\Sofware\\python3.11.9\\Lib\\ctypes\\macholib\\dyld.py',
+   'PYMODULE'),
+  ('ctypes.macholib',
+   'D:\\Sofware\\python3.11.9\\Lib\\ctypes\\macholib\\__init__.py',
+   'PYMODULE'),
+  ('ctypes.macholib.dylib',
+   'D:\\Sofware\\python3.11.9\\Lib\\ctypes\\macholib\\dylib.py',
+   'PYMODULE'),
+  ('ctypes.macholib.framework',
+   'D:\\Sofware\\python3.11.9\\Lib\\ctypes\\macholib\\framework.py',
+   'PYMODULE'),
+  ('imp', 'D:\\Sofware\\python3.11.9\\Lib\\imp.py', 'PYMODULE'),
+  ('Cryptodome.Util._file_system',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Util\\_file_system.py',
+   'PYMODULE'),
+  ('Cryptodome.Util.py3compat',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Util\\py3compat.py',
+   'PYMODULE'),
+  ('Cryptodome.Hash.SHA1',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\SHA1.py',
+   'PYMODULE'),
+  ('Cryptodome.Hash.HMAC',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\HMAC.py',
+   'PYMODULE'),
+  ('Cryptodome.Hash.MD5',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\MD5.py',
+   'PYMODULE'),
+  ('Cryptodome.Util.strxor',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Util\\strxor.py',
+   'PYMODULE'),
+  ('Cryptodome.Hash.BLAKE2s',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\BLAKE2s.py',
+   'PYMODULE'),
+  ('Cryptodome.Hash',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\__init__.py',
+   'PYMODULE'),
+  ('Cryptodome.Hash.CMAC',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\CMAC.py',
+   'PYMODULE'),
+  ('Cryptodome.Util.number',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Util\\number.py',
+   'PYMODULE'),
+  ('Cryptodome.Hash.SHA3_512',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\SHA3_512.py',
+   'PYMODULE'),
+  ('Cryptodome.Hash.keccak',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\keccak.py',
+   'PYMODULE'),
+  ('Cryptodome.Hash.SHA3_384',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\SHA3_384.py',
+   'PYMODULE'),
+  ('Cryptodome.Hash.SHA3_256',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\SHA3_256.py',
+   'PYMODULE'),
+  ('Cryptodome.Hash.SHA3_224',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\SHA3_224.py',
+   'PYMODULE'),
+  ('Cryptodome.Hash.SHA512',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\SHA512.py',
+   'PYMODULE'),
+  ('Cryptodome.Hash.SHA384',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\SHA384.py',
+   'PYMODULE'),
+  ('Cryptodome.Hash.SHA256',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\SHA256.py',
+   'PYMODULE'),
+  ('Cryptodome.Hash.SHA224',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\SHA224.py',
+   'PYMODULE'),
+  ('Cryptodome.Cipher.AES',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\AES.py',
+   'PYMODULE'),
+  ('Cryptodome.Cipher',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\__init__.py',
+   'PYMODULE'),
+  ('Cryptodome.Cipher._EKSBlowfish',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_EKSBlowfish.py',
+   'PYMODULE'),
+  ('Cryptodome.Cipher._mode_kwp',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_mode_kwp.py',
+   'PYMODULE'),
+  ('Cryptodome.Cipher._mode_kw',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_mode_kw.py',
+   'PYMODULE'),
+  ('Cryptodome.Cipher._mode_ocb',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_mode_ocb.py',
+   'PYMODULE'),
+  ('Cryptodome.Cipher._mode_gcm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_mode_gcm.py',
+   'PYMODULE'),
+  ('Cryptodome.Cipher._mode_siv',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_mode_siv.py',
+   'PYMODULE'),
+  ('Cryptodome.Cipher._mode_ccm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_mode_ccm.py',
+   'PYMODULE'),
+  ('Cryptodome.Cipher._mode_eax',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_mode_eax.py',
+   'PYMODULE'),
+  ('Cryptodome.Cipher._mode_openpgp',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_mode_openpgp.py',
+   'PYMODULE'),
+  ('Cryptodome.Cipher._mode_ctr',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_mode_ctr.py',
+   'PYMODULE'),
+  ('Cryptodome.Cipher._mode_ofb',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_mode_ofb.py',
+   'PYMODULE'),
+  ('Cryptodome.Cipher._mode_cfb',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_mode_cfb.py',
+   'PYMODULE'),
+  ('Cryptodome.Cipher._mode_cbc',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_mode_cbc.py',
+   'PYMODULE'),
+  ('Cryptodome.Cipher._mode_ecb',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_mode_ecb.py',
+   'PYMODULE'),
+  ('Cryptodome.Protocol.KDF',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Protocol\\KDF.py',
+   'PYMODULE'),
+  ('Cryptodome.Protocol',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Protocol\\__init__.py',
+   'PYMODULE'),
+  ('pyzipper.zipfile',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\pyzipper\\zipfile.py',
+   'PYMODULE'),
+  ('ui.ui_style',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\ui\\ui_style.py',
+   'PYMODULE'),
+  ('utils.search_result',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\utils\\search_result.py',
+   'PYMODULE'),
+  ('utils',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\utils\\__init__.py',
+   'PYMODULE'),
+  ('utils.safe_executor',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\utils\\safe_executor.py',
+   'PYMODULE'),
+  ('utils.command_template',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\utils\\command_template.py',
+   'PYMODULE'),
+  ('utils.path_resolver',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\utils\\path_resolver.py',
+   'PYMODULE'),
+  ('core.rule_engine',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\core\\rule_engine.py',
+   'PYMODULE'),
+  ('core',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\core\\__init__.py',
+   'PYMODULE'),
+  ('json', 'D:\\Sofware\\python3.11.9\\Lib\\json\\__init__.py', 'PYMODULE'),
+  ('json.encoder',
+   'D:\\Sofware\\python3.11.9\\Lib\\json\\encoder.py',
+   'PYMODULE'),
+  ('json.decoder',
+   'D:\\Sofware\\python3.11.9\\Lib\\json\\decoder.py',
+   'PYMODULE'),
+  ('json.scanner',
+   'D:\\Sofware\\python3.11.9\\Lib\\json\\scanner.py',
+   'PYMODULE'),
+  ('uuid', 'D:\\Sofware\\python3.11.9\\Lib\\uuid.py', 'PYMODULE'),
+  ('ui.autoruns_tab',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\ui\\autoruns_tab.py',
+   'PYMODULE'),
+  ('ui.network_tab',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\ui\\network_tab.py',
+   'PYMODULE'),
+  ('utils.exporter',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\utils\\exporter.py',
+   'PYMODULE'),
+  ('core.search_service',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\core\\search_service.py',
+   'PYMODULE'),
+  ('core.data_store',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\core\\data_store.py',
+   'PYMODULE'),
+  ('core.autoruns_parser',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\core\\autoruns_parser.py',
+   'PYMODULE'),
+  ('concurrent.futures',
+   'D:\\Sofware\\python3.11.9\\Lib\\concurrent\\futures\\__init__.py',
+   'PYMODULE'),
+  ('concurrent.futures.thread',
+   'D:\\Sofware\\python3.11.9\\Lib\\concurrent\\futures\\thread.py',
+   'PYMODULE'),
+  ('concurrent.futures.process',
+   'D:\\Sofware\\python3.11.9\\Lib\\concurrent\\futures\\process.py',
+   'PYMODULE'),
+  ('concurrent.futures._base',
+   'D:\\Sofware\\python3.11.9\\Lib\\concurrent\\futures\\_base.py',
+   'PYMODULE'),
+  ('concurrent',
+   'D:\\Sofware\\python3.11.9\\Lib\\concurrent\\__init__.py',
+   'PYMODULE'),
+  ('core.network_monitor',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\core\\network_monitor.py',
+   'PYMODULE'),
+  ('psutil',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\psutil\\__init__.py',
+   'PYMODULE'),
+  ('psutil._pswindows',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\psutil\\_pswindows.py',
+   'PYMODULE'),
+  ('psutil._compat',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\psutil\\_compat.py',
+   'PYMODULE'),
+  ('psutil._common',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\psutil\\_common.py',
+   'PYMODULE'),
+  ('__future__', 'D:\\Sofware\\python3.11.9\\Lib\\__future__.py', 'PYMODULE'),
+  ('ctypes', 'D:\\Sofware\\python3.11.9\\Lib\\ctypes\\__init__.py', 'PYMODULE'),
+  ('ctypes._endian',
+   'D:\\Sofware\\python3.11.9\\Lib\\ctypes\\_endian.py',
+   'PYMODULE'),
+  ('datetime', 'D:\\Sofware\\python3.11.9\\Lib\\datetime.py', 'PYMODULE'),
+  ('pathlib', 'D:\\Sofware\\python3.11.9\\Lib\\pathlib.py', 'PYMODULE'),
+  ('tracemalloc', 'D:\\Sofware\\python3.11.9\\Lib\\tracemalloc.py', 'PYMODULE'),
+  ('logging',
+   'D:\\Sofware\\python3.11.9\\Lib\\logging\\__init__.py',
+   'PYMODULE')],
+ [('tools\\autorunsc64.exe',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\tools\\autorunsc64.exe',
+   'BINARY'),
+  ('tools\\sigcheck64.exe',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\tools\\sigcheck64.exe',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Bluetooth.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Bluetooth.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Concurrent.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Concurrent.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Core.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Core.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6DBus.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6DBus.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Designer.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Designer.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Gui.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Gui.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Help.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Help.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Multimedia.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Multimedia.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6MultimediaQuick.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6MultimediaQuick.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6MultimediaWidgets.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6MultimediaWidgets.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Network.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Network.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Nfc.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Nfc.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6OpenGL.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6OpenGL.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6OpenGLWidgets.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6OpenGLWidgets.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Pdf.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Pdf.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6PdfQuick.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6PdfQuick.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6PdfWidgets.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6PdfWidgets.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Positioning.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Positioning.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6PositioningQuick.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6PositioningQuick.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6PrintSupport.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6PrintSupport.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Qml.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Qml.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QmlModels.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QmlModels.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QmlWorkerScript.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QmlWorkerScript.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick3D.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick3D.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick3DAssetImport.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick3DAssetImport.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick3DAssetUtils.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick3DAssetUtils.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick3DEffects.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick3DEffects.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick3DHelpers.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick3DHelpers.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick3DIblBaker.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick3DIblBaker.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick3DParticles.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick3DParticles.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick3DRuntimeRender.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick3DRuntimeRender.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Quick3DUtils.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Quick3DUtils.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickControls2.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickControls2.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickControls2Impl.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickControls2Impl.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickDialogs2.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickDialogs2.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickDialogs2QuickImpl.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickDialogs2QuickImpl.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickDialogs2Utils.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickDialogs2Utils.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickLayouts.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickLayouts.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickParticles.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickParticles.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickShapes.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickShapes.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickTemplates2.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickTemplates2.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickTest.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickTest.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickTimeline.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickTimeline.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6QuickWidgets.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6QuickWidgets.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6RemoteObjects.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6RemoteObjects.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6RemoteObjectsQml.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6RemoteObjectsQml.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Sensors.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Sensors.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6SensorsQuick.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6SensorsQuick.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6SerialPort.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6SerialPort.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6ShaderTools.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6ShaderTools.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Sql.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Sql.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Svg.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Svg.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6SvgWidgets.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6SvgWidgets.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Test.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Test.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6TextToSpeech.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6TextToSpeech.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6WebChannel.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6WebChannel.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6WebSockets.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6WebSockets.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Widgets.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Widgets.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\Qt6Xml.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Xml.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\concrt140.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\concrt140.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\d3dcompiler_47.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\d3dcompiler_47.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\msvcp140.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\msvcp140.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\msvcp140_1.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\msvcp140_1.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\msvcp140_2.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\msvcp140_2.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\opengl32sw.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\opengl32sw.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\vcruntime140.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\vcruntime140.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\bin\\vcruntime140_1.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\vcruntime140_1.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\assetimporters\\assimp.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\assetimporters\\assimp.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\generic\\qtuiotouchplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\generic\\qtuiotouchplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\geometryloaders\\defaultgeometryloader.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\geometryloaders\\defaultgeometryloader.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\geometryloaders\\gltfgeometryloader.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\geometryloaders\\gltfgeometryloader.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\iconengines\\qsvgicon.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\iconengines\\qsvgicon.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qgif.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qgif.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qicns.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qicns.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qico.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qico.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qjpeg.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qjpeg.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qpdf.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qpdf.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qsvg.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qsvg.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qtga.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qtga.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qtiff.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qtiff.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qwbmp.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qwbmp.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\imageformats\\qwebp.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\imageformats\\qwebp.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\multimedia\\windowsmediaplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\multimedia\\windowsmediaplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\networkinformation\\qnetworklistmanager.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\networkinformation\\qnetworklistmanager.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\platforms\\qminimal.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\platforms\\qminimal.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\platforms\\qoffscreen.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\platforms\\qoffscreen.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\platforms\\qwindows.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\platforms\\qwindows.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\position\\qtposition_nmea.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\position\\qtposition_nmea.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\position\\qtposition_positionpoll.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\position\\qtposition_positionpoll.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\position\\qtposition_winrt.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\position\\qtposition_winrt.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\qmllint\\quicklintplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\qmllint\\quicklintplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\renderers\\openglrenderer.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\renderers\\openglrenderer.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\renderers\\rhirenderer.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\renderers\\rhirenderer.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\sceneparsers\\assimpsceneimport.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\sceneparsers\\assimpsceneimport.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\sceneparsers\\gltfsceneexport.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\sceneparsers\\gltfsceneexport.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\sceneparsers\\gltfsceneimport.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\sceneparsers\\gltfsceneimport.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\sensors\\qtsensors_dummy.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\sensors\\qtsensors_dummy.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\sensors\\qtsensors_generic.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\sensors\\qtsensors_generic.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\sensors\\qtsensors_winrt.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\sensors\\qtsensors_winrt.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\sqldrivers\\qsqlite.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\sqldrivers\\qsqlite.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\sqldrivers\\qsqlodbc.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\sqldrivers\\qsqlodbc.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\sqldrivers\\qsqlpsql.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\sqldrivers\\qsqlpsql.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\styles\\qwindowsvistastyle.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\styles\\qwindowsvistastyle.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\texttospeech\\qtexttospeech_mock.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\texttospeech\\qtexttospeech_mock.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\texttospeech\\qtexttospeech_sapi.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\texttospeech\\qtexttospeech_sapi.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\texttospeech\\qtexttospeech_winrt.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\texttospeech\\qtexttospeech_winrt.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\tls\\qcertonlybackend.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\tls\\qcertonlybackend.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\tls\\qopensslbackend.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\tls\\qopensslbackend.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\tls\\qschannelbackend.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\tls\\qschannelbackend.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\plugins\\webview\\qtwebview_webengine.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\plugins\\webview\\qtwebview_webengine.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtMultimedia\\quickmultimediaplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtMultimedia\\quickmultimediaplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtPositioning\\positioningquickplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtPositioning\\positioningquickplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQml\\Models\\modelsplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQml\\Models\\modelsplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQml\\WorkerScript\\workerscriptplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQml\\WorkerScript\\workerscriptplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQml\\XmlListModel\\qmlxmllistmodelplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQml\\XmlListModel\\qmlxmllistmodelplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQml\\qmlplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQml\\qmlplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick3D\\AssetUtils\\qtquick3dassetutilsplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick3D\\AssetUtils\\qtquick3dassetutilsplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick3D\\Effects\\qtquick3deffectplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick3D\\Effects\\qtquick3deffectplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick3D\\Helpers\\qtquick3dhelpersplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick3D\\Helpers\\qtquick3dhelpersplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick3D\\ParticleEffects\\qtquick3dparticleeffectsplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick3D\\ParticleEffects\\qtquick3dparticleeffectsplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick3D\\Particles3D\\qtquick3dparticles3dplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick3D\\Particles3D\\qtquick3dparticles3dplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick3D\\Physics\\Helpers\\qtquick3dphysicshelpersplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick3D\\Physics\\Helpers\\qtquick3dphysicshelpersplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick3D\\Physics\\qquick3dphysicsplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick3D\\Physics\\qquick3dphysicsplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick3D\\SpatialAudio\\quick3dspatialaudioplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick3D\\SpatialAudio\\quick3dspatialaudioplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick3D\\qquick3dplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick3D\\qquick3dplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Basic\\impl\\qtquickcontrols2basicstyleimplplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Basic\\impl\\qtquickcontrols2basicstyleimplplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Basic\\qtquickcontrols2basicstyleplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Basic\\qtquickcontrols2basicstyleplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Fusion\\impl\\qtquickcontrols2fusionstyleimplplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Fusion\\impl\\qtquickcontrols2fusionstyleimplplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Fusion\\qtquickcontrols2fusionstyleplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Fusion\\qtquickcontrols2fusionstyleplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Imagine\\impl\\qtquickcontrols2imaginestyleimplplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Imagine\\impl\\qtquickcontrols2imaginestyleimplplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Imagine\\qtquickcontrols2imaginestyleplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Imagine\\qtquickcontrols2imaginestyleplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Material\\impl\\qtquickcontrols2materialstyleimplplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Material\\impl\\qtquickcontrols2materialstyleimplplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Material\\qtquickcontrols2materialstyleplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Material\\qtquickcontrols2materialstyleplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Universal\\impl\\qtquickcontrols2universalstyleimplplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Universal\\impl\\qtquickcontrols2universalstyleimplplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Universal\\qtquickcontrols2universalstyleplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Universal\\qtquickcontrols2universalstyleplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Windows\\qtquickcontrols2windowsstyleplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\Windows\\qtquickcontrols2windowsstyleplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\impl\\qtquickcontrols2implplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\impl\\qtquickcontrols2implplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Controls\\qtquickcontrols2plugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Controls\\qtquickcontrols2plugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Dialogs\\qtquickdialogsplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Dialogs\\qtquickdialogsplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Dialogs\\quickimpl\\qtquickdialogs2quickimplplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Dialogs\\quickimpl\\qtquickdialogs2quickimplplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Layouts\\qquicklayoutsplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Layouts\\qquicklayoutsplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\LocalStorage\\qmllocalstorageplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\LocalStorage\\qmllocalstorageplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\NativeStyle\\qtquickcontrols2nativestyleplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\NativeStyle\\qtquickcontrols2nativestyleplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Particles\\particlesplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Particles\\particlesplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Pdf\\pdfquickplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Pdf\\pdfquickplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Scene2D\\qtquickscene2dplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Scene2D\\qtquickscene2dplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Scene3D\\qtquickscene3dplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Scene3D\\qtquickscene3dplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Shapes\\qmlshapesplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Shapes\\qmlshapesplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Templates\\qtquicktemplates2plugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Templates\\qtquicktemplates2plugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Timeline\\qtquicktimelineplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Timeline\\qtquicktimelineplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\Window\\quickwindowplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\Window\\quickwindowplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\qtquick2plugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\qtquick2plugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtQuick\\tooling\\quicktoolingplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtQuick\\tooling\\quicktoolingplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtRemoteObjects\\declarative_remoteobjectsplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtRemoteObjects\\declarative_remoteobjectsplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtSensors\\sensorsquickplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtSensors\\sensorsquickplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtTest\\quicktestplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtTest\\quicktestplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtTextToSpeech\\texttospeechqmlplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtTextToSpeech\\texttospeechqmlplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtWebChannel\\webchannelplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtWebChannel\\webchannelplugin.dll',
+   'BINARY'),
+  ('PyQt6\\Qt6\\qml\\QtWebSockets\\qmlwebsocketsplugin.dll',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\qml\\QtWebSockets\\qmlwebsocketsplugin.dll',
+   'BINARY'),
+  ('python311.dll', 'D:\\Sofware\\python3.11.9\\python311.dll', 'BINARY'),
+  ('Cryptodome\\Hash\\_ghash_clmul.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\_ghash_clmul.pyd',
+   'BINARY'),
+  ('Cryptodome\\Util\\_cpuid_c.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Util\\_cpuid_c.pyd',
+   'BINARY'),
+  ('Cryptodome\\Cipher\\_raw_des3.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_raw_des3.pyd',
+   'BINARY'),
+  ('Cryptodome\\Hash\\_SHA384.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\_SHA384.pyd',
+   'BINARY'),
+  ('Cryptodome\\Hash\\_BLAKE2b.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\_BLAKE2b.pyd',
+   'BINARY'),
+  ('Cryptodome\\Hash\\_SHA256.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\_SHA256.pyd',
+   'BINARY'),
+  ('Cryptodome\\Cipher\\_raw_aes.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_raw_aes.pyd',
+   'BINARY'),
+  ('Cryptodome\\Cipher\\_raw_cfb.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_raw_cfb.pyd',
+   'BINARY'),
+  ('Cryptodome\\Cipher\\_raw_cast.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_raw_cast.pyd',
+   'BINARY'),
+  ('Cryptodome\\Hash\\_RIPEMD160.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\_RIPEMD160.pyd',
+   'BINARY'),
+  ('Cryptodome\\PublicKey\\_ec_ws.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\PublicKey\\_ec_ws.pyd',
+   'BINARY'),
+  ('Cryptodome\\Cipher\\_chacha20.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_chacha20.pyd',
+   'BINARY'),
+  ('Cryptodome\\Cipher\\_pkcs1_decode.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_pkcs1_decode.pyd',
+   'BINARY'),
+  ('Cryptodome\\Hash\\_MD2.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\_MD2.pyd',
+   'BINARY'),
+  ('Cryptodome\\Hash\\_keccak.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\_keccak.pyd',
+   'BINARY'),
+  ('Cryptodome\\Cipher\\_raw_ctr.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_raw_ctr.pyd',
+   'BINARY'),
+  ('Cryptodome\\Cipher\\_raw_blowfish.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_raw_blowfish.pyd',
+   'BINARY'),
+  ('Cryptodome\\Hash\\_SHA1.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\_SHA1.pyd',
+   'BINARY'),
+  ('Cryptodome\\PublicKey\\_ed25519.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\PublicKey\\_ed25519.pyd',
+   'BINARY'),
+  ('Cryptodome\\Math\\_modexp.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Math\\_modexp.pyd',
+   'BINARY'),
+  ('Cryptodome\\Cipher\\_raw_arc2.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_raw_arc2.pyd',
+   'BINARY'),
+  ('Cryptodome\\PublicKey\\_curve448.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\PublicKey\\_curve448.pyd',
+   'BINARY'),
+  ('Cryptodome\\Hash\\_MD5.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\_MD5.pyd',
+   'BINARY'),
+  ('Cryptodome\\Util\\_strxor.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Util\\_strxor.pyd',
+   'BINARY'),
+  ('Cryptodome\\Hash\\_SHA512.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\_SHA512.pyd',
+   'BINARY'),
+  ('Cryptodome\\Cipher\\_raw_aesni.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_raw_aesni.pyd',
+   'BINARY'),
+  ('Cryptodome\\Cipher\\_Salsa20.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_Salsa20.pyd',
+   'BINARY'),
+  ('Cryptodome\\PublicKey\\_ed448.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\PublicKey\\_ed448.pyd',
+   'BINARY'),
+  ('Cryptodome\\Hash\\_ghash_portable.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\_ghash_portable.pyd',
+   'BINARY'),
+  ('Cryptodome\\Hash\\_poly1305.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\_poly1305.pyd',
+   'BINARY'),
+  ('Cryptodome\\Protocol\\_scrypt.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Protocol\\_scrypt.pyd',
+   'BINARY'),
+  ('Cryptodome\\Cipher\\_raw_ocb.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_raw_ocb.pyd',
+   'BINARY'),
+  ('Cryptodome\\Cipher\\_raw_des.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_raw_des.pyd',
+   'BINARY'),
+  ('Cryptodome\\Cipher\\_raw_ofb.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_raw_ofb.pyd',
+   'BINARY'),
+  ('Cryptodome\\Hash\\_SHA224.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\_SHA224.pyd',
+   'BINARY'),
+  ('Cryptodome\\Cipher\\_raw_ecb.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_raw_ecb.pyd',
+   'BINARY'),
+  ('Cryptodome\\PublicKey\\_curve25519.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\PublicKey\\_curve25519.pyd',
+   'BINARY'),
+  ('Cryptodome\\Cipher\\_raw_cbc.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_raw_cbc.pyd',
+   'BINARY'),
+  ('Cryptodome\\Hash\\_BLAKE2s.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\_BLAKE2s.pyd',
+   'BINARY'),
+  ('Cryptodome\\Hash\\_MD4.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Hash\\_MD4.pyd',
+   'BINARY'),
+  ('Cryptodome\\Cipher\\_ARC4.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_ARC4.pyd',
+   'BINARY'),
+  ('Cryptodome\\Cipher\\_raw_eksblowfish.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\Cryptodome\\Cipher\\_raw_eksblowfish.pyd',
+   'BINARY'),
+  ('select.pyd', 'D:\\Sofware\\python3.11.9\\DLLs\\select.pyd', 'EXTENSION'),
+  ('_hashlib.pyd',
+   'D:\\Sofware\\python3.11.9\\DLLs\\_hashlib.pyd',
+   'EXTENSION'),
+  ('_multiprocessing.pyd',
+   'D:\\Sofware\\python3.11.9\\DLLs\\_multiprocessing.pyd',
+   'EXTENSION'),
+  ('_decimal.pyd',
+   'D:\\Sofware\\python3.11.9\\DLLs\\_decimal.pyd',
+   'EXTENSION'),
+  ('unicodedata.pyd',
+   'D:\\Sofware\\python3.11.9\\DLLs\\unicodedata.pyd',
+   'EXTENSION'),
+  ('_lzma.pyd', 'D:\\Sofware\\python3.11.9\\DLLs\\_lzma.pyd', 'EXTENSION'),
+  ('_bz2.pyd', 'D:\\Sofware\\python3.11.9\\DLLs\\_bz2.pyd', 'EXTENSION'),
+  ('_socket.pyd', 'D:\\Sofware\\python3.11.9\\DLLs\\_socket.pyd', 'EXTENSION'),
+  ('_queue.pyd', 'D:\\Sofware\\python3.11.9\\DLLs\\_queue.pyd', 'EXTENSION'),
+  ('PyQt6\\QtGui.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\QtGui.pyd',
+   'EXTENSION'),
+  ('PyQt6\\sip.cp311-win_amd64.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\sip.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('_ctypes.pyd', 'D:\\Sofware\\python3.11.9\\DLLs\\_ctypes.pyd', 'EXTENSION'),
+  ('_uuid.pyd', 'D:\\Sofware\\python3.11.9\\DLLs\\_uuid.pyd', 'EXTENSION'),
+  ('psutil\\_psutil_windows.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\psutil\\_psutil_windows.pyd',
+   'EXTENSION'),
+  ('PyQt6\\QtCore.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\QtCore.pyd',
+   'EXTENSION'),
+  ('PyQt6\\QtWidgets.pyd',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\QtWidgets.pyd',
+   'EXTENSION'),
+  ('api-ms-win-crt-string-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-crt-string-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-heap-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-crt-heap-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-runtime-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-crt-runtime-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-stdio-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-crt-stdio-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-time-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-crt-time-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-synch-l1-2-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-synch-l1-2-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-utility-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-crt-utility-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-environment-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-crt-environment-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-math-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-crt-math-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-filesystem-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-crt-filesystem-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-convert-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-crt-convert-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-locale-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-crt-locale-l1-1-0.dll',
+   'BINARY'),
+  ('VCRUNTIME140.dll', 'D:\\Sofware\\python3.11.9\\VCRUNTIME140.dll', 'BINARY'),
+  ('VCRUNTIME140_1.dll',
+   'D:\\Sofware\\python3.11.9\\VCRUNTIME140_1.dll',
+   'BINARY'),
+  ('api-ms-win-crt-process-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-crt-process-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-conio-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-crt-conio-l1-1-0.dll',
+   'BINARY'),
+  ('libcrypto-3.dll',
+   'D:\\Sofware\\python3.11.9\\DLLs\\libcrypto-3.dll',
+   'BINARY'),
+  ('python3.dll', 'D:\\Sofware\\python3.11.9\\python3.dll', 'BINARY'),
+  ('libffi-8.dll', 'D:\\Sofware\\python3.11.9\\DLLs\\libffi-8.dll', 'BINARY'),
+  ('ucrtbase.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\ucrtbase.dll',
+   'BINARY'),
+  ('api-ms-win-core-processthreads-l1-1-1.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-processthreads-l1-1-1.dll',
+   'BINARY'),
+  ('api-ms-win-core-file-l1-2-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-file-l1-2-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-libraryloader-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-libraryloader-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-sysinfo-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-sysinfo-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-debug-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-debug-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-timezone-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-timezone-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-namedpipe-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-namedpipe-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-string-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-string-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-file-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-file-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-rtlsupport-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-rtlsupport-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-processenvironment-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-processenvironment-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-interlocked-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-interlocked-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-file-l2-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-file-l2-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-memory-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-memory-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-localization-l1-2-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-localization-l1-2-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-datetime-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-datetime-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-processthreads-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-processthreads-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-profile-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-profile-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-handle-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-handle-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-console-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-console-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-errorhandling-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-errorhandling-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-util-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-util-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-synch-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-synch-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-heap-l1-1-0.dll',
+   'C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance '
+   'Toolkit\\api-ms-win-core-heap-l1-1-0.dll',
+   'BINARY')],
+ [],
+ [],
+ [('data\\rules.json',
+   'E:\\Code\\sectool_codex - 副本\\package\\app\\data\\rules.json',
+   'DATA'),
+  ('base_library.zip',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\build\\sectool-minimal\\base_library.zip',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_en.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_en.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_sl.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_sl.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_pt_BR.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_pt_BR.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_bg.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_bg.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_it.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_it.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_uk.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_uk.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_en.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_en.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_fi.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_fi.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_cs.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_cs.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_he.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_he.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_tr.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_tr.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_hu.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_hu.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_de.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_de.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_cs.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_cs.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_pl.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_pl.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_fr.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_fr.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_sk.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_sk.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_fr.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_fr.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_ko.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_ko.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_ar.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_ar.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_es.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_es.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_sk.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_sk.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_it.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_it.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_sk.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_sk.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_nn.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_nn.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_gd.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_gd.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_en.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_en.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_de.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_de.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_nn.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_nn.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_bg.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_bg.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_nl.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_nl.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_zh_CN.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_zh_CN.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_lv.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_lv.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_gd.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_gd.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_nn.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_nn.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_pt_BR.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_pt_BR.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_ko.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_ko.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_ja.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_ja.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_es.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_es.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_pl.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_pl.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_da.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_da.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_bg.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_bg.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_ca.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_ca.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_hr.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_hr.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_ja.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_ja.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_fa.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_fa.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_uk.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_uk.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_da.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_da.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_fr.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_fr.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_pt_BR.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_pt_BR.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_gl.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_gl.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_ru.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_ru.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_tr.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_tr.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_hr.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_hr.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_ru.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_ru.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_it.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_it.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_ko.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_ko.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_pt_PT.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_pt_PT.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_lv.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_lv.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_zh_CN.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_zh_CN.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_ca.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_ca.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_fi.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_fi.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_fa.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_fa.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_zh_TW.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_zh_TW.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_he.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_he.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_hu.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_hu.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_hr.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_hr.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_es.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_es.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_tr.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_tr.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_zh_TW.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_zh_TW.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_ar.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_ar.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_ca.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_ca.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_ru.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_ru.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_hu.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_hu.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_nl.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_nl.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_zh_TW.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_zh_TW.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_ja.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_ja.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_uk.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_uk.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_da.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_da.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_ar.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_ar.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_zh_CN.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_zh_CN.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_help_cs.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_help_cs.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_sv.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_sv.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_lt.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_lt.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_sl.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_sl.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_gl.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_gl.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qtbase_pl.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qtbase_pl.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_nl.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_nl.qm',
+   'DATA'),
+  ('PyQt6\\Qt6\\translations\\qt_de.qm',
+   'E:\\Code\\sectool_codex - '
+   '副本\\package\\.venv\\Lib\\site-packages\\PyQt6\\Qt6\\translations\\qt_de.qm',
+   'DATA')])
