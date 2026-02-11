@@ -50,6 +50,7 @@ class RuleEditDialog(QDialog):
         super().__init__(parent)
         apply_flat_style(self)
         self.setWindowTitle("新增规则")
+        self._test_results = []
         self._init_ui()
 
     def _init_ui(self):
@@ -83,10 +84,177 @@ class RuleEditDialog(QDialog):
 
         layout.addLayout(form)
 
+        # 测试规则区域
+        test_layout = QHBoxLayout()
+        self.btn_test_rule = QPushButton("测试规则")
+        self.btn_test_rule.clicked.connect(self._on_test_rule)
+        self.lbl_test_result = QLabel("点击测试规则验证有效性")
+        self.lbl_test_result.setStyleSheet("color: gray;")
+        test_layout.addWidget(self.btn_test_rule)
+        test_layout.addWidget(self.lbl_test_result, 1)
+        layout.addLayout(test_layout)
+
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         buttons.accepted.connect(self._on_accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
+
+    def _on_test_rule(self):
+        """测试规则有效性"""
+        field = self.cmb_field.currentText()
+        match_type = self._normalize_match_type(self.cmb_type.currentText())
+        value = self.edt_value.text().strip()
+
+        if not value:
+            QMessageBox.warning(self, "提示", "匹配值不能为空")
+            return
+
+        # 创建临时规则
+        test_rule = {
+            "id": "test_rule",
+            "family": self.edt_family.text().strip() or "test",
+            "match": [
+                {
+                    "field": field,
+                    "type": match_type,
+                    "value": value
+                }
+            ],
+            "severity": self.cmb_severity.currentText(),
+            "note": self.edt_note.text().strip()
+        }
+
+        # 根据字段类型生成测试样本
+        test_entries = self._generate_test_entries(field, value, match_type)
+
+        # 执行测试
+        from core.rule_engine import RuleEngine
+        engine = RuleEngine.__new__(RuleEngine)
+        engine.rules = [test_rule]
+
+        matched_count = 0
+        test_details = []
+
+        for test_name, entry in test_entries:
+            matched = engine._match_rule(test_rule, entry)
+            if matched:
+                matched_count += 1
+                test_details.append(f"✓ {test_name}")
+            else:
+                test_details.append(f"✗ {test_name}")
+
+        # 显示测试结果
+        # 判断测试是否完全通过：精确匹配和包含匹配应该匹配，不应匹配应该不匹配
+        expected_matches = [name for name, _ in test_entries if "不应" not in name]
+        expected_non_matches = [name for name, _ in test_entries if "不应" in name]
+        
+        actual_matches = [name for name, matched in zip([n for n, _ in test_entries], 
+                                                         ["✓" in d for d in test_details]) if matched]
+        actual_non_matches = [name for name, matched in zip([n for n, _ in test_entries], 
+                                                            ["✓" in d for d in test_details]) if not matched]
+        
+        # 检查是否所有预期匹配的都被匹配了，且所有预期不匹配的都没被匹配
+        all_expected_matched = all(name in actual_matches for name in expected_matches)
+        all_expected_not_matched = all(name in actual_non_matches for name in expected_non_matches)
+        
+        if all_expected_matched and all_expected_not_matched:
+            self.lbl_test_result.setText(f"规则配置正确！所有测试样本验证通过")
+            self.lbl_test_result.setStyleSheet("color: green;")
+            QMessageBox.information(
+                self,
+                "规则测试通过",
+                f"规则配置正确！\n\n匹配类型: {match_type}\n测试字段: {field}\n匹配值: {value}\n\n测试结果:\n" + "\n".join(test_details)
+            )
+        else:
+            self.lbl_test_result.setText(f"规则配置存在问题，请检查")
+            self.lbl_test_result.setStyleSheet("color: red;")
+            QMessageBox.warning(
+                self,
+                "规则测试未通过",
+                f"规则配置存在问题，请检查。\n\n匹配类型: {match_type}\n测试字段: {field}\n匹配值: {value}\n\n测试结果:\n" + "\n".join(test_details)
+            )
+
+    def _generate_regex_test_sample(self, pattern):
+        """根据正则表达式生成一个能匹配该正则的测试样本"""
+        import re
+        
+        # 银狐 rundll32 混淆特征的特殊处理
+        # 检测双引号混淆模式：\"{2,}u\"{2,}n\"{2,}d\"{2,}ll\"{2,}32
+        if '\\"' in pattern and 'u' in pattern and 'n' in pattern and 'd' in pattern and 'll' in pattern and '32' in pattern:
+            return 'r""u""n""d""ll""32.exe'
+        
+        # 对于简单的字符类，提取第一个选项
+        result = pattern
+        
+        # 替换量词 {n,} 或 {n} 为固定次数
+        result = re.sub(r'\{(\d+),?\}', lambda m: int(m.group(1)) * 'X', result)
+        
+        # 替换字符类 [abc] 为第一个字符
+        result = re.sub(r'\[([^\]]+)\]', lambda m: m.group(1)[0], result)
+        
+        # 替换转义的特殊字符
+        result = result.replace('\\d', '1').replace('\\w', 'a').replace('\\.', '.')
+        result = result.replace('\\', '')
+        
+        # 移除正则元字符
+        for char in '^$+?*(){}|':
+            result = result.replace(char, '')
+        
+        return result if result else "test_sample"
+
+    def _generate_test_entries(self, field, value, match_type="contains"):
+        """根据字段类型和匹配类型生成测试条目"""
+        entries = []
+        
+        # 针对正则类型的特殊处理：生成能匹配该正则的测试样本
+        if match_type == "regex":
+            # 尝试根据正则生成匹配样本
+            test_value = self._generate_regex_test_sample(value)
+            if field == "command_line":
+                entries.append(("正则匹配", {"command_line": test_value}))
+                entries.append(("包含匹配", {"command_line": f"prefix {test_value} suffix"}))
+                entries.append(("不应匹配", {"command_line": "completely different command"}))
+            elif field == "image_path":
+                entries.append(("正则匹配", {"image_path": test_value}))
+                entries.append(("不应匹配", {"image_path": "C:\\Windows\\notepad.exe"}))
+            else:
+                entries.append(("字段匹配", {field: test_value}))
+                entries.append(("不应匹配", {field: "different_value"}))
+            return entries
+
+        if field == "command_line":
+            # 测试命令行匹配
+            entries.append(("精确匹配", {"command_line": value}))
+            entries.append(("包含匹配", {"command_line": f"prefix {value} suffix"}))
+            entries.append(("不应匹配", {"command_line": "completely different command"}))
+
+        elif field == "image_path":
+            entries.append(("精确匹配", {"image_path": value}))
+            entries.append(("包含匹配", {"image_path": f"C:\\Windows\\{value}\\test.exe"}))
+            entries.append(("不应匹配", {"image_path": "C:\\Windows\\notepad.exe"}))
+
+        elif field == "ip":
+            entries.append(("IP匹配", {"command_line": f"connect to {value}"}))
+            entries.append(("不应匹配", {"command_line": "connect to 1.2.3.4"}))
+
+        elif field in ("sha256", "md5", "hash"):
+            entries.append(("Hash匹配", {"sha256": value, "md5": value}))
+            entries.append(("不应匹配", {"sha256": "a" * 64, "md5": "b" * 32}))
+
+        elif field == "entry":
+            entries.append(("条目名匹配", {"entry": value}))
+            entries.append(("不应匹配", {"entry": "LegitimateEntry"}))
+
+        elif field in ("publisher", "company", "description", "category"):
+            entries.append(("字段匹配", {field: value}))
+            entries.append(("不应匹配", {field: "Unknown Publisher"}))
+
+        else:
+            # 通用测试
+            entries.append(("字段匹配", {field: value}))
+            entries.append(("不应匹配", {field: "different_value"}))
+
+        return entries
 
     def _on_accept(self):
         if not self.edt_value.text().strip():
@@ -149,9 +317,23 @@ class RuleManagerDialog(QDialog):
         self.table.itemChanged.connect(self._on_item_changed)
         layout.addWidget(self.table)
 
+        # 搜索框
+        search_layout = QHBoxLayout()
+        search_layout.addWidget(QLabel("搜索:"))
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("输入关键字搜索规则(Family/Field/Value/Note)...")
+        self.search_input.textChanged.connect(self._filter_rules)
+        search_layout.addWidget(self.search_input)
+        self.btn_clear_search = QPushButton("清除")
+        self.btn_clear_search.clicked.connect(self._clear_search)
+        search_layout.addWidget(self.btn_clear_search)
+        layout.addLayout(search_layout)
+
         btn_layout = QHBoxLayout()
         self.btn_add = QPushButton("新增")
         self.btn_delete = QPushButton("删除")
+        self.btn_help = QPushButton("帮助")
+        self.btn_test_all = QPushButton("测试所有规则")
         self.btn_import = QPushButton("导入")
         self.btn_import_ioc = QPushButton("导入IOC")
         self.btn_export = QPushButton("导出")
@@ -160,6 +342,8 @@ class RuleManagerDialog(QDialog):
 
         self.btn_add.clicked.connect(self._add_rule)
         self.btn_delete.clicked.connect(self._delete_rule)
+        self.btn_help.clicked.connect(self._show_help)
+        self.btn_test_all.clicked.connect(self._test_all_rules)
         self.btn_import.clicked.connect(self._import_rules)
         self.btn_import_ioc.clicked.connect(self._import_ioc)
         self.btn_export.clicked.connect(self._export_rules)
@@ -168,7 +352,9 @@ class RuleManagerDialog(QDialog):
 
         btn_layout.addWidget(self.btn_add)
         btn_layout.addWidget(self.btn_delete)
+        btn_layout.addWidget(self.btn_help)
         btn_layout.addStretch()
+        btn_layout.addWidget(self.btn_test_all)
         btn_layout.addWidget(self.btn_import)
         btn_layout.addWidget(self.btn_import_ioc)
         btn_layout.addWidget(self.btn_export)
@@ -190,7 +376,12 @@ class RuleManagerDialog(QDialog):
             self.table.setItem(idx, 1, QTableWidgetItem(rule.get("family", "")))
             self.table.setItem(idx, 2, QTableWidgetItem(first_match.get("field", "")))
             self.table.setItem(idx, 3, QTableWidgetItem(display_type))
-            self.table.setItem(idx, 4, QTableWidgetItem(first_match.get("value", "")))
+            # 使用_display_rule_value将JSON转义值转换为可读格式
+            display_value = self._display_rule_value(
+                first_match.get("value", ""),
+                first_match.get("type", "contains")
+            )
+            self.table.setItem(idx, 4, QTableWidgetItem(display_value))
             self.table.setItem(idx, 5, QTableWidgetItem(rule.get("severity", "")))
             self.table.setItem(idx, 6, QTableWidgetItem(rule.get("date", "")))
             self.table.setItem(idx, 7, QTableWidgetItem(rule.get("note", "")))
@@ -204,7 +395,25 @@ class RuleManagerDialog(QDialog):
         dialog = RuleEditDialog(self)
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return
-        self.rule_engine.rules.append(dialog.get_rule())
+        new_rule = dialog.get_rule()
+        
+        # 检查重复规则
+        if self._is_duplicate_rule(new_rule):
+            match_list = new_rule.get("match", [])
+            if match_list:
+                match = match_list[0]
+                QMessageBox.warning(
+                    self, 
+                    "重复规则", 
+                    f"已存在相同的规则:\n"
+                    f"字段: {match.get('field')}\n"
+                    f"类型: {match.get('type')}\n"
+                    f"值: {match.get('value')}\n\n"
+                    f"请修改规则或删除现有规则后再添加。"
+                )
+                return
+        
+        self.rule_engine.rules.append(new_rule)
         self._load_rules()
         self._dirty = True
 
@@ -219,17 +428,468 @@ class RuleManagerDialog(QDialog):
         self._load_rules()
         self._dirty = True
 
+    def _filter_rules(self):
+        """根据搜索关键字过滤规则"""
+        search_text = self.search_input.text().lower().strip()
+        if not search_text:
+            # 显示所有行
+            for row in range(self.table.rowCount()):
+                self.table.setRowHidden(row, False)
+            return
+        
+        # 遍历所有行，根据关键字过滤
+        for row in range(self.table.rowCount()):
+            match = False
+            # 检查所有列
+            for col in range(self.table.columnCount()):
+                item = self.table.item(row, col)
+                if item and search_text in item.text().lower():
+                    match = True
+                    break
+            self.table.setRowHidden(row, not match)
+
+    def _clear_search(self):
+        """清除搜索"""
+        self.search_input.clear()
+        # 显示所有行
+        for row in range(self.table.rowCount()):
+            self.table.setRowHidden(row, False)
+
+    def _show_help(self):
+        """显示规则添加帮助"""
+        help_text = """
+<h2>规则添加规范与示例</h2>
+
+<h3>一、基本格式</h3>
+<p>每条规则包含以下要素：</p>
+<ul>
+<li><b>规则ID</b>：唯一标识，建议使用 rule_前缀 + 随机字符串</li>
+<li><b>家族</b>：威胁家族名称，如"银狐"、"PowerShell"等</li>
+<li><b>字段</b>：要匹配的字段类型</li>
+<li><b>匹配类型</b>：包含 / 正则 / 等于</li>
+<li><b>匹配值</b>：具体的匹配内容</li>
+<li><b>严重级别</b>：critical / high / medium / low</li>
+</ul>
+
+<h3>二、字段类型说明</h3>
+
+<h4>1. image_path (镜像路径)</h4>
+<ul>
+<li><b>说明</b>：可执行文件的完整路径</li>
+<li><b>格式</b>：使用反斜杠或正斜杠均可，匹配时不区分大小写</li>
+<li><b>示例</b>：
+    <ul>
+    <li><code>C:\\jnetpub\\wwwroot\\malware.exe</code> (精确路径)</li>
+    <li><code>jnetpub</code> (路径中包含的特征字符串)</li>
+    <li><code>\\inetpub\\</code> (目录特征)</li>
+    </ul>
+</li>
+</ul>
+
+<h4>2. command_line / launch_string (命令行)</h4>
+<ul>
+<li><b>说明</b>：启动命令或命令行参数</li>
+<li><b>格式</b>：原始命令行字符串</li>
+<li><b>示例</b>：
+    <ul>
+    <li><code>rundll32.exe "C:\\Program Files\\Windows Media Player\\Music.dll" Music</code></li>
+    <li><code>powershell.exe -enc UwB0AGEAcgB0AC0AUwBsAGUAZQBw</code></li>
+    <li><code>-enc</code> (参数特征)</li>
+    </ul>
+</li>
+</ul>
+
+<h4>3. ip (IP地址)</h4>
+<ul>
+<li><b>说明</b>：匹配命令行、启动字符串、镜像路径中的IP地址</li>
+<li><b>格式</b>：标准IPv4或IPv6格式，<b>不需要带端口</b></li>
+<li><b>示例</b>：
+    <ul>
+    <li><code>223.5.5.5</code> (阿里云DNS，用于测试)</li>
+    <li><code>192.168.1.1</code></li>
+    <li><code>[::1]</code> (IPv6格式)</li>
+    </ul>
+</li>
+<li><b>注意</b>：IP匹配会自动从文本中提取所有IP地址进行比对</li>
+</ul>
+
+<h4>4. sha256 / md5 / hash (文件哈希)</h4>
+<ul>
+<li><b>说明</b>：文件哈希值匹配</li>
+<li><b>格式</b>：
+    <ul>
+    <li>SHA256: 64位十六进制字符串</li>
+    <li>MD5: 32位十六进制字符串</li>
+    </ul>
+</li>
+<li><b>匹配条件</b>：
+    <ul>
+    <li>条目必须包含有效的哈希值（通过扫描时计算或导入）</li>
+    <li>使用"等于"匹配类型进行精确匹配</li>
+    </ul>
+</li>
+<li><b>示例</b>：
+    <ul>
+    <li><code>e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</code> (SHA256)</li>
+    <li><code>5d41402abc4b2a76b9719d911017c592</code> (MD5)</li>
+    </ul>
+</li>
+</ul>
+
+<h4>5. entry (条目名称)</h4>
+<ul>
+<li><b>说明</b>：自启动项的名称，如服务名、任务计划名</li>
+<li><b>示例</b>：<code>BitLocker MDM policy</code>、<code>QIpqUotP</code></li>
+</ul>
+
+<h4>6. 其他字段</h4>
+<ul>
+<li><b>publisher</b>：发布者名称</li>
+<li><b>company</b>：公司名称</li>
+<li><b>description</b>：描述信息</li>
+<li><b>category</b>：类别信息</li>
+</ul>
+
+<h3>三、匹配类型说明</h3>
+
+<h4>1. 包含 (contains)</h4>
+<ul>
+<li>不区分大小写的子串匹配</li>
+<li>适用于：路径特征、命令行参数、关键字</li>
+<li>示例：<code>jnetpub</code> 可匹配 <code>C:\\jnetpub\\wwwroot\\test.exe</code></li>
+</ul>
+
+<h4>2. 正则 (regex)</h4>
+<ul>
+<li><b>重要</b>：这是<b>纯正则表达式</b>，不是Python代码，不要写 r"..." 前缀</li>
+<li>自动添加 re.IGNORECASE 标志（不区分大小写）</li>
+<li>JSON中的反斜杠和引号需要正确转义</li>
+<li>示例：
+    <ul>
+    <li><code>\"{2,}u\"{2,}n\"{2,}d\"{2,}l\"{2,}l\"{2,}32</code> (匹配双引号混淆的rundll32)</li>
+    <li><code>temp\\d{3,}\\.exe$</code> (匹配temp目录下数字命名的exe)</li>
+    <li><code>https?://[\\w\\.-]+</code> (匹配HTTP/HTTPS URL)</li>
+    </ul>
+</li>
+</ul>
+
+<h4>3. 等于 (equals)</h4>
+<ul>
+<li>完全匹配，不区分大小写</li>
+<li>适用于：哈希值、精确IP地址、精确条目名</li>
+</ul>
+
+<h3>四、可直接复制的规则示例</h3>
+
+<h4>示例1：rundll32双引号混淆检测</h4>
+<pre style="background:#f5f5f5;padding:10px;border-radius:5px;">
+{
+  "id": "silverfox_rundll_obfuscation",
+  "family": "银狐",
+  "match": [{
+    "field": "command_line",
+    "type": "regex",
+    "value": "\\\"{2,}u\\\"{2,}n\\\"{2,}d\\\"{2,}ll\\\"{2,}32"
+  }],
+  "severity": "high",
+  "note": "rundll32双引号混淆调用检测"
+}
+</pre>
+<p><b>说明</b>：匹配如 <code>r""u""n""d""ll""32.exe</code> 这种双引号分割的混淆形式</p>
+
+<h4>示例2：URL匹配</h4>
+<pre style="background:#f5f5f5;padding:10px;border-radius:5px;">
+{
+  "id": "suspicious_url",
+  "family": "恶意URL",
+  "match": [{
+    "field": "command_line",
+    "type": "regex",
+    "value": "https?://[\\w\\.-]+\\.(ru|cn|tk)/"
+  }],
+  "severity": "medium",
+  "note": "命令行包含可疑URL"
+}
+</pre>
+
+<h4>示例3：Windows路径匹配</h4>
+<pre style="background:#f5f5f5;padding:10px;border-radius:5px;">
+{
+  "id": "temp_executable",
+  "family": "可疑路径",
+  "match": [{
+    "field": "image_path",
+    "type": "regex",
+    "value": "temp\\d{3,}\\.exe$"
+  }],
+  "severity": "medium",
+  "note": "temp目录下数字命名的可执行文件"
+}
+</pre>
+
+<h3>五、常见错误（反例）</h3>
+<table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;">
+<tr style="background:#ffebee;">
+    <th>错误写法</th>
+    <th>错误原因</th>
+    <th>正确写法</th>
+</tr>
+<tr>
+    <td><code>r"..."</code></td>
+    <td>JSON中不需要Python原始字符串前缀</td>
+    <td>直接写正则内容</td>
+</tr>
+<tr>
+    <td><code>\d</code></td>
+    <td>JSON中反斜杠需要转义</td>
+    <td><code>\\d</code></td>
+</tr>
+<tr>
+    <td><code>[Il]</code> 或 <code>[Ii]</code></td>
+    <td>试图用正则做语义判断（I/l混淆）</td>
+    <td>明确指定要匹配的字符</td>
+</tr>
+<tr>
+    <td><code>"value": "C:\\Users"</code></td>
+    <td>JSON中反斜杠需要双重转义</td>
+    <td><code>"value": "C:\\\\Users"</code></td>
+</tr>
+</table>
+
+<h3>六、注意事项</h3>
+<ol>
+<li><b>路径分隔符</b>：Windows路径使用反斜杠(<code>\\</code>)，但匹配时不区分正斜杠和反斜杠</li>
+<li><b>大小写敏感</b>：所有匹配默认不区分大小写</li>
+<li><b>正则转义</b>：JSON中的反斜杠需要双重转义（如 <code>\\d</code> 表示数字）</li>
+<li><b>字段回退</b>：command_line规则若未命中，会自动回退到launch_string</li>
+<li><b>测试验证</b>：添加规则后务必点击"测试规则"按钮验证有效性</li>
+<li><b>避免误报</b>：规则值要有足够特异性，避免过于宽泛的匹配</li>
+</ol>"""
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle("规则添加帮助")
+        dialog.resize(700, 600)
+        apply_flat_style(dialog)
+        
+        layout = QVBoxLayout(dialog)
+        
+        text_edit = QTextEdit()
+        text_edit.setHtml(help_text)
+        text_edit.setReadOnly(True)
+        layout.addWidget(text_edit)
+        
+        btn_ok = QPushButton("确定")
+        btn_ok.clicked.connect(dialog.accept)
+        layout.addWidget(btn_ok)
+        
+        dialog.exec()
+
+    def _test_all_rules(self):
+        """测试所有规则的有效性"""
+        if not self.rule_engine.rules:
+            QMessageBox.information(self, "提示", "当前没有规则需要测试")
+            return
+        
+        # 清除所有行的背景色
+        for row in range(self.table.rowCount()):
+            for col in range(self.table.columnCount()):
+                item = self.table.item(row, col)
+                if item:
+                    item.setBackground(QColor("white"))
+        
+        failed_rules = []
+        passed_count = 0
+        
+        for row, rule in enumerate(self.rule_engine.rules):
+            match_list = rule.get("match", [])
+            if not match_list:
+                continue
+            
+            first_match = match_list[0]
+            field = first_match.get("field", "")
+            match_type = first_match.get("type", "contains")
+            value = first_match.get("value", "")
+            
+            # 生成测试样本
+            test_entries = self._generate_test_entries_for_field(field, value, match_type)
+            
+            # 执行测试
+            all_passed = True
+            for test_name, entry in test_entries:
+                try:
+                    matched = self.rule_engine._match_rule(rule, entry)
+                    # "不应匹配"的样本如果被匹配了，说明规则有问题
+                    if "不应" in test_name and matched:
+                        all_passed = False
+                        break
+                    # 其他样本应该被匹配
+                    elif "不应" not in test_name and not matched:
+                        all_passed = False
+                        break
+                except Exception:
+                    all_passed = False
+                    break
+            
+            if all_passed:
+                passed_count += 1
+            else:
+                failed_rules.append({
+                    "row": row,
+                    "rule_id": rule.get("id", "unknown"),
+                    "family": rule.get("family", "unknown"),
+                    "field": field,
+                    "value": value
+                })
+                # 将失败行的背景设为浅红色
+                for col in range(self.table.columnCount()):
+                    item = self.table.item(row, col)
+                    if item:
+                        item.setBackground(QColor("#ffcccc"))
+        
+        # 显示测试结果
+        total = len(self.rule_engine.rules)
+        if failed_rules:
+            QMessageBox.warning(
+                self,
+                "规则测试完成",
+                f"测试完成！\n\n"
+                f"通过: {passed_count}/{total} 条规则\n"
+                f"失败: {len(failed_rules)} 条规则\n\n"
+                f"失败的规则已用浅红色背景标出，请检查配置。\n\n"
+                f"失败规则列表:\n" +
+                "\n".join([f"- [{r['family']}] {r['rule_id']}: {r['field']}={r['value'][:50]}" 
+                          for r in failed_rules[:5]]) +
+                ("\n..." if len(failed_rules) > 5 else "")
+            )
+        else:
+            QMessageBox.information(
+                self,
+                "规则测试完成",
+                f"恭喜！所有规则测试通过！\n\n"
+                f"共测试 {total} 条规则，全部正常工作。"
+            )
+
+    def _generate_test_entries_for_field(self, field, value, match_type="contains"):
+        """根据字段类型和匹配类型生成测试条目"""
+        entries = []
+        
+        # 针对正则类型的特殊处理
+        if match_type == "regex":
+            test_value = self._generate_regex_test_sample_for_batch(value)
+            if field == "command_line":
+                entries.append(("正则匹配", {"command_line": test_value}))
+                entries.append(("包含匹配", {"command_line": f"prefix {test_value} suffix"}))
+                entries.append(("不应匹配", {"command_line": "completely different command"}))
+            elif field == "image_path":
+                entries.append(("正则匹配", {"image_path": test_value}))
+                entries.append(("不应匹配", {"image_path": "C:\\Windows\\notepad.exe"}))
+            else:
+                entries.append(("字段匹配", {field: test_value}))
+                entries.append(("不应匹配", {field: "different_value"}))
+            return entries
+        
+        if field == "command_line":
+            entries.append(("精确匹配", {"command_line": value}))
+            entries.append(("包含匹配", {"command_line": f"prefix {value} suffix"}))
+            entries.append(("不应匹配", {"command_line": "completely different command"}))
+        elif field == "image_path":
+            entries.append(("精确匹配", {"image_path": value}))
+            entries.append(("包含匹配", {"image_path": f"C:\\Windows\\{value}\\test.exe"}))
+            entries.append(("不应匹配", {"image_path": "C:\\Windows\\notepad.exe"}))
+        elif field == "ip":
+            entries.append(("IP匹配", {"command_line": f"connect to {value}"}))
+            entries.append(("不应匹配", {"command_line": "connect to 1.2.3.4"}))
+        elif field in ("sha256", "md5", "hash"):
+            entries.append(("Hash匹配", {"sha256": value, "md5": value}))
+            entries.append(("不应匹配", {"sha256": "a" * 64, "md5": "b" * 32}))
+        elif field == "entry":
+            entries.append(("条目名匹配", {"entry": value}))
+            entries.append(("不应匹配", {"entry": "LegitimateEntry"}))
+        elif field in ("publisher", "company", "description", "category"):
+            entries.append(("字段匹配", {field: value}))
+            entries.append(("不应匹配", {field: "Unknown Publisher"}))
+        else:
+            entries.append(("字段匹配", {field: value}))
+            entries.append(("不应匹配", {field: "different_value"}))
+        
+        return entries
+    
+    def _generate_regex_test_sample_for_batch(self, pattern):
+        """为批量测试生成正则匹配样本"""
+        import re
+        
+        # 银狐 rundll32 混淆特征的特殊处理
+        # 检测双引号混淆模式：\"{2,}u\"{2,}n\"{2,}d\"{2,}ll\"{2,}32
+        if '\\"' in pattern and 'u' in pattern and 'n' in pattern and 'd' in pattern and 'll' in pattern and '32' in pattern:
+            return 'r""u""n""d""ll""32.exe'
+        
+        # 对于简单的字符类，提取第一个选项
+        result = pattern
+        
+        # 替换量词 {n,} 或 {n} 为固定次数
+        result = re.sub(r'\{(\d+),?\}', lambda m: int(m.group(1)) * 'X', result)
+        
+        # 替换字符类 [abc] 为第一个字符
+        result = re.sub(r'\[([^\]]+)\]', lambda m: m.group(1)[0], result)
+        
+        # 替换转义的特殊字符
+        result = result.replace('\\d', '1').replace('\\w', 'a').replace('\\.', '.')
+        result = result.replace('\\', '')
+        
+        # 移除正则元字符
+        for char in '^$+?*(){}|':
+            result = result.replace(char, '')
+        
+        return result if result else "test_sample"
+
     def _import_rules(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "导入规则", "", "JSON 文件 (*.json)")
         if not file_path:
             return
-        ok, msg = self.rule_engine.load_rules_from_file(file_path)
-        if ok:
-            self._load_rules()
-            self._dirty = True
-            QMessageBox.information(self, "成功", f"{msg}\n请点击“保存”以写入规则文件")
-        else:
-            QMessageBox.warning(self, "失败", msg)
+
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                import json
+                new_rules = json.load(f)
+        except Exception as e:
+            QMessageBox.warning(self, "失败", f"读取文件失败: {str(e)}")
+            return
+
+        # 过滤掉重复规则
+        added = 0
+        skipped = 0
+        duplicate_details = []
+
+        for rule in new_rules:
+            if isinstance(rule, dict) and rule.get("id", "").startswith("_"):
+                # 跳过注释项
+                continue
+            if self._is_duplicate_rule(rule):
+                skipped += 1
+                match_list = rule.get("match", [])
+                if match_list and len(duplicate_details) < 5:  # 只记录前5个重复项
+                    match = match_list[0]
+                    duplicate_details.append(f"- {match.get('field')}={match.get('value', '')[:50]}")
+                continue
+            self.rule_engine.rules.append(rule)
+            added += 1
+
+        self._load_rules()
+        self._dirty = True
+
+        # 构建提示信息
+        msg_parts = [f"成功导入 {added} 条规则"]
+        if skipped > 0:
+            msg_parts.append(f"跳过 {skipped} 条重复规则")
+        msg_parts.append("请点击\"保存\"以写入规则文件")
+
+        if duplicate_details:
+            msg_parts.append("\n重复规则示例:")
+            msg_parts.extend(duplicate_details)
+            if skipped > 5:
+                msg_parts.append(f"... 还有 {skipped - 5} 条重复规则")
+
+        QMessageBox.information(self, "导入完成", "\n".join(msg_parts))
 
     def _import_ioc(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "导入IOC", "", "文本/CSV/TSV (*.txt *.csv *.tsv);;所有文件 (*)")
@@ -330,7 +990,9 @@ class RuleManagerDialog(QDialog):
 
             field = field_item.text().strip() if field_item else ""
             match_type = self._normalize_match_type(type_item.text() if type_item else "")
-            value = value_item.text().strip() if value_item else ""
+            # 使用_normalize_rule_value将UI输入值转换为JSON转义格式
+            display_value = value_item.text().strip() if value_item else ""
+            value = self._normalize_rule_value(display_value, match_type)
             family = family_item.text().strip() if family_item else ""
             severity = severity_item.text().strip() if severity_item else ""
             date = date_item.text().strip() if date_item else ""
@@ -362,6 +1024,41 @@ class RuleManagerDialog(QDialog):
             "等于": "等于",
         }
         return mapping.get((value or "").strip(), value)
+
+    def _display_rule_value(self, value: str, match_type: str = "contains") -> str:
+        """将JSON转义值转换为可读格式显示
+        
+        JSON中的转义在UI显示时转换为实际字符:
+        - \\\\  -> \\  (两个反斜杠显示为一个)
+        - \\\"  -> \"  (转义的双引号显示为双引号)
+        """
+        if not value:
+            return value
+        # 将JSON转义转换为可读格式
+        result = value.replace('\\\\', '\\').replace('\\"', '"')
+        return result
+
+    def _normalize_rule_value(self, value: str, match_type: str = "contains") -> str:
+        """将UI输入值转换为JSON转义格式保存
+        
+        用户输入的实际字符需要转义为JSON格式:
+        - \\  -> \\\\  (一个反斜杠转为两个)
+        - \"  -> \\\"  (双引号需要转义)
+        
+        【重要】此函数检测值是否已经是JSON转义格式，避免重复转义
+        """
+        if not value:
+            return value
+        
+        # 检测是否已经是JSON转义格式（包含\\或\\\"）
+        # 如果已经是转义格式，直接返回
+        if '\\\\' in value or '\\"' in value:
+            return value
+        
+        # 将实际字符转义为JSON格式
+        # 先处理双引号，再处理反斜杠
+        result = value.replace('\\', '\\\\').replace('"', '\\"')
+        return result
 
     def _normalize_match_type(self, value: str) -> str:
         mapping = {
@@ -731,7 +1428,8 @@ class WorkspaceTab(QWidget):
         elif mode == "ip":
             headers = ["Type", "Matched", "Source", "PID", "进程名", "源IP:端口 -> 目的IP:端口", "路径"]
         else:
-            headers = ["Type", "Matched", "Source", "Summary"]
+            # rule 模式：添加规则详情列显示匹配的规则和值
+            headers = ["Type", "Matched", "Source", "Summary", "规则详情"]
         self.results_table.setColumnCount(len(headers))
         self.results_table.setHorizontalHeaderLabels(headers)
         self.results_table.horizontalHeader().setStretchLastSection(True)
@@ -823,7 +1521,11 @@ class WorkspaceTab(QWidget):
                         key=lambda r: severity_order.get(r.get('severity', 'low'), 99)
                     ).get('severity', 'low')
                     
-                    summary = f"Autorun 项 {entry.get('entry', 'Unknown')} 命中规则"
+                    # 构建更详细的摘要，包含条目的位置和名称
+                    entry_name = entry.get('entry', 'Unknown')
+                    entry_location = entry.get('location', 'Unknown')
+                    summary = f"[{entry_location}] {entry_name} 命中 {len(matched_rules)} 条规则"
+                    
                     result = SearchResult(
                         result_type=ResultType.AUTORUN,
                         summary=summary,
@@ -837,6 +1539,63 @@ class WorkspaceTab(QWidget):
                         related_entry=entry
                     )
                     self.matched_results.append(result)
+            
+            # 扫描网络连接数据（IP 规则）
+            if "ip" in allowed_types:
+                network_data = self.search_service.get_network_connections()
+                for conn in network_data:
+                    # 将网络连接转换为条目格式
+                    entry = {
+                        'location': 'Network',
+                        'entry': f"PID:{conn.get('pid', '')}",
+                        'category': 'Network',
+                        'description': f"{conn.get('local_address', '')} -> {conn.get('remote_address', '')}",
+                        'publisher': '',
+                        'company': '',
+                        'image_path': conn.get('process_path', ''),
+                        'launch_string': '',
+                        'timestamp': '',
+                        'md5': '',
+                        'sha256': '',
+                        'signer': '',
+                        'signer_status': '',
+                        'signature_detail': '',
+                        'file_size': '',
+                        'file_version': '',
+                        'service_name': '',
+                        'file_exists': True,
+                        'detail_data': conn
+                    }
+                    
+                    matched_rules = self.rule_engine.scan_entry(entry, allowed_types)
+                    if matched_rules:
+                        # 获取最高严重级别
+                        severity_order = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
+                        max_severity = min(
+                            matched_rules, 
+                            key=lambda r: severity_order.get(r.get('severity', 'low'), 99)
+                        ).get('severity', 'low')
+                        
+                        # 构建摘要
+                        local_addr = conn.get('local_address', '')
+                        remote_addr = conn.get('remote_address', '')
+                        summary = f"[Network] {local_addr} -> {remote_addr} 命中 {len(matched_rules)} 条规则"
+                        
+                        result = SearchResult(
+                            result_type=ResultType.IP_MATCH,
+                            summary=summary,
+                            source='rule_scan',
+                            detail={
+                                'entry': entry,
+                                'matched_rules': matched_rules,
+                                'severity': max_severity,
+                                'kind': 'network',
+                                'connection': conn
+                            },
+                            matched_value=', '.join([r.get('family', r.get('id', '')) for r in matched_rules]),
+                            related_entry=None
+                        )
+                        self.matched_results.append(result)
 
             self._set_result_mode("rule")
             self._update_results_table()
@@ -993,6 +1752,23 @@ class WorkspaceTab(QWidget):
                             summary_item.setBackground(QColor(255, 255, 200))
 
                     self.results_table.setItem(idx, 3, summary_item)
+
+                    # 规则详情列：显示匹配的规则和值
+                    rule_details = []
+                    if result.source == 'rule_scan' and result.detail.get('matched_rules'):
+                        for rule in result.detail['matched_rules']:
+                            match_list = rule.get('match', [])
+                            if match_list:
+                                match = match_list[0]
+                                field = match.get('field', '')
+                                match_type = match.get('type', '')
+                                value = match.get('value', '')
+                                # 简化显示
+                                if len(value) > 30:
+                                    value = value[:27] + "..."
+                                rule_details.append(f"{field}({match_type})={value}")
+                    rule_detail_text = "; ".join(rule_details) if rule_details else ""
+                    self.results_table.setItem(idx, 4, QTableWidgetItem(rule_detail_text))
 
             # 调整列宽
             self.results_table.resizeColumnsToContents()

@@ -6,11 +6,12 @@
       {
         "field": "command_line",
         "type": "regex",
-        "value": "r\"\"u\"\"n\"\"d\"\"[IiI]{2}32"
+        "value": "\\\"{2,}u\\\"{2,}n\\\"{2,}d\\\"{2,}ll\\\"{2,}32"
       }
     ],
     "severity": "high",
-    "note": "仿冒 rundll32 的银狐变种"
+    "date": "",
+    "note": "rundll32双引号混淆调用检测 - 匹配如 r\"\"u\"\"n\"\"d\"\"ll\"\"32 形式"
   },
   {
     "id": "silverfox_jnetpub_path",
@@ -23,6 +24,7 @@
       }
     ],
     "severity": "high",
+    "date": "",
     "note": "银狐常见路径特征"
   },
   {
@@ -36,7 +38,8 @@
       }
     ],
     "severity": "high",
-    "note": "命令行包含 jnetpub\\\\wwwroot"
+    "date": "",
+    "note": "命令行包含 jnetpub\\wwwroot"
   },
   {
     "id": "silverfox_inetpub_path",
@@ -49,6 +52,7 @@
       }
     ],
     "severity": "medium",
+    "date": "",
     "note": "inetpub 路径在普通终端不常见"
   },
   {
@@ -62,6 +66,7 @@
       }
     ],
     "severity": "high",
+    "date": "",
     "note": "疑似仿冒 Windows Media Player Music.dll"
   },
   {
@@ -75,7 +80,8 @@
       }
     ],
     "severity": "high",
-    "note": "疑似仿冒 Windows Mail\\\\wab.dll"
+    "date": "",
+    "note": "疑似仿冒 Windows Mail\\wab.dll"
   },
   {
     "id": "powershell_encoded",
@@ -84,10 +90,53 @@
       {
         "field": "command_line",
         "type": "contains",
-        "value": "-enc "
+        "value": "-enc"
       }
     ],
     "severity": "medium",
+    "date": "",
     "note": "PowerShell 编码执行"
+  },
+  {
+    "id": "rule_0cb215fb",
+    "family": "ceshi_path",
+    "match": [
+      {
+        "field": "image_path",
+        "type": "contains",
+        "value": "c:\\\\program files (x86)\\\\diagnosis\\\\"
+      }
+    ],
+    "severity": "critical",
+    "date": "",
+    "note": ""
+  },
+  {
+    "id": "rule_f408107b",
+    "family": "test_hash",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "contains",
+        "value": "35CEFE4BC4A98AD73DDA4444C700AAC9F749EFDE8F9DE6A643A57A5B605BD4E7"
+      }
+    ],
+    "severity": "critical",
+    "date": "",
+    "note": "everything"
+  },
+  {
+    "id": "rule_46837748",
+    "family": "test_IP",
+    "match": [
+      {
+        "field": "ip",
+        "type": "contains",
+        "value": "47.96.16.191"
+      }
+    ],
+    "severity": "critical",
+    "date": "",
+    "note": ""
   }
 ]

@@ -1,0 +1,197 @@
+[
+  {
+    "id": "silverfox_rundll_obfuscation",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "command_line",
+        "type": "regex",
+        "value": "\\\"{2,}u\\\"{2,}n\\\"{2,}d\\\"{2,}ll\\\"{2,}32"
+      }
+    ],
+    "severity": "high",
+    "note": "rundll32双引号混淆调用检测 - 匹配如 r\"\"u\"\"n\"\"d\"\"ll\"\"32 形式"
+  },
+  {
+    "id": "silverfox_jnetpub_path",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "image_path",
+        "type": "contains",
+        "value": "jnetpub"
+      }
+    ],
+    "severity": "high",
+    "note": "银狐常见路径特征 - image_path 包含 jnetpub"
+  },
+  {
+    "id": "silverfox_jnetpub_cmd",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "command_line",
+        "type": "contains",
+        "value": "jnetpub"
+      }
+    ],
+    "severity": "high",
+    "note": "命令行包含 jnetpub 路径特征"
+  },
+  {
+    "id": "silverfox_inetpub_path",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "image_path",
+        "type": "contains",
+        "value": "inetpub"
+      }
+    ],
+    "severity": "medium",
+    "note": "inetpub 路径在普通终端不常见"
+  },
+  {
+    "id": "silverfox_wmp_music_dll",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "command_line",
+        "type": "contains",
+        "value": "Windows Media Player"
+      }
+    ],
+    "severity": "high",
+    "note": "疑似仿冒 Windows Media Player Music.dll"
+  },
+  {
+    "id": "silverfox_wab_dll",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "command_line",
+        "type": "contains",
+        "value": "Windows Mail"
+      }
+    ],
+    "severity": "high",
+    "note": "疑似仿冒 Windows Mail wab.dll"
+  },
+  {
+    "id": "silverfox_wmp_dll_extension",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "command_line",
+        "type": "regex",
+        "value": "Music\\.dll"
+      }
+    ],
+    "severity": "high",
+    "note": "银狐白利用 - Music.dll 调用"
+  },
+  {
+    "id": "silverfox_wab_dll_extension",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "command_line",
+        "type": "regex",
+        "value": "wab\\.dll"
+      }
+    ],
+    "severity": "high",
+    "note": "银狐白利用 - wab.dll 调用"
+  },
+  {
+    "id": "powershell_encoded",
+    "family": "PowerShell",
+    "match": [
+      {
+        "field": "command_line",
+        "type": "contains",
+        "value": "-enc"
+      }
+    ],
+    "severity": "medium",
+    "note": "PowerShell 编码执行 - 匹配 -enc 参数"
+  },
+  {
+    "id": "test_ip_223_5_5_5",
+    "family": "测试家族",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "223.5.5.5"
+      }
+    ],
+    "severity": "low",
+    "note": "测试IP匹配 - 阿里云DNS"
+  },
+  {
+    "id": "test_ip_8_8_8_8",
+    "family": "测试家族",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "8.8.8.8"
+      }
+    ],
+    "severity": "low",
+    "note": "测试IP匹配 - Google DNS"
+  },
+  {
+    "id": "test_sha256_empty",
+    "family": "测试家族",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "severity": "low",
+    "note": "测试SHA256匹配 - 空文件hash"
+  },
+  {
+    "id": "test_md5_hello",
+    "family": "测试家族",
+    "match": [
+      {
+        "field": "md5",
+        "type": "equals",
+        "value": "5d41402abc4b2a76b9719d911017c592"
+      }
+    ],
+    "severity": "low",
+    "note": "测试MD5匹配 - hello字符串"
+  },
+  {
+    "id": "test_path_regex_temp",
+    "family": "测试家族",
+    "match": [
+      {
+        "field": "image_path",
+        "type": "regex",
+        "value": "temp\\d{3,}\\.exe$"
+      }
+    ],
+    "severity": "medium",
+    "note": "测试路径正则 - 匹配temp目录下数字命名的exe"
+  },
+  {
+    "id": "test_command_regex_http",
+    "family": "测试家族",
+    "match": [
+      {
+        "field": "command_line",
+        "type": "regex",
+        "value": "https?://[\\w\\.-]+"
+      }
+    ],
+    "severity": "medium",
+    "note": "测试命令行正则 - 匹配HTTP/HTTPS URL"
+  }
+]

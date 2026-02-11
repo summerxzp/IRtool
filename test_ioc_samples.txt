@@ -1,0 +1,47 @@
+# 银狐病毒持久化测试样本 - 用于规则扫描测试
+# 格式: IOC值|类型|威胁家族|描述|日期|备注
+
+# ========== 持久化条目测试 (Services) ==========
+# 银狐 Services 持久化 - 路径匹配测试
+C:\jnetpub\wwwroot\9J1puF\nBXrwBPO\EXWv1QXoIGz.exe|路径|银狐|银狐Services持久化恶意路径|2025-02-11|白利用进程cmd.exe，持久化名称QIpqUotP
+
+# 银狐 Services 命令行匹配测试
+cmd /c cd /d "C:\jnetpub\wwwroot\9J1puF\nBXrwBPO\" && start "" "C:\jnetpub\wwwroot\9J1puF\nBXrwBPO\EXWv1QXoIGz.exe"|命令行|银狐|银狐Services持久化命令行|2025-02-11|包含jnetpub特征路径
+
+# ========== 持久化条目测试 (任务计划) ==========
+# 银狐 任务计划 - rundll32混淆测试
+r""u""n""d""II""32.exe "C:\Program Files\Windows Media Player\Music.dll" Music|命令行|银狐|银狐任务计划 rundll32混淆|2025-02-11|任务计划名称: BitLocker MDM policy
+
+r""u""n""d""II""32.exe "C:\Program Files\Windows Mail\wab.dll" Intel acc|命令行|银狐|银狐任务计划 rundll32混淆2|2025-02-11|任务计划名称: BitLocker Encrypt All
+
+# ========== IP地址测试 (持续访问C2) ==========
+# 安全的测试IP - 用于测试IP匹配规则
+223.5.5.5|IP|测试家族|阿里云公共DNS - 安全测试IP|2025-02-11|用于测试IP匹配功能
+8.8.8.8|IP|测试家族|Google DNS - 安全测试IP|2025-02-11|用于测试IP匹配功能
+
+# ========== Hash测试 ==========
+# 测试用的假hash值 - 用于测试hash匹配规则
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855|SHA256|测试家族|测试SHA256匹配|2025-02-11|空文件SHA256
+5d41402abc4b2a76b9719d911017c592|MD5|测试家族|测试MD5匹配|2025-02-11|hello字符串MD5
+
+# ========== 正则匹配测试 ==========
+# 银狐路径特征正则
+jnetpub\\wwwroot|正则|银狐|银狐路径特征正则匹配|2025-02-11|匹配jnetpub\wwwroot路径
+
+# ========== 其他银狐变种测试 ==========
+# 银狐常见inetpub路径
+C:\inetpub\wwwroot\test\malware.exe|路径|银狐|银狐inetpub路径测试|2025-02-11|inetpub路径在普通终端不常见
+
+# 仿冒Windows Media Player DLL
+Windows Media Player\Music.dll|命令行|银狐|仿冒WMP DLL测试|2025-02-11|银狐白利用特征
+
+# 仿冒Windows Mail DLL  
+Windows Mail\wab.dll|命令行|银狐|仿冒Windows Mail DLL测试|2025-02-11|银狐白利用特征
+
+# ========== 命令行特征测试 ==========
+# PowerShell编码执行测试
+powershell.exe -enc UwB0AGEAcgB0AC0AUwBsAGUAZQBwACAALQBzACAAMQAw|命令行|PowerShell|PowerShell编码执行测试|2025-02-11|测试-enc参数检测
+
+# ========== 组合特征测试 ==========
+# 复杂命令行测试
+C:\Windows\System32\rundll32.exe "C:\Users\Public\Documents\test.dll",Run|命令行|测试家族|正常rundll32调用测试|2025-02-11|用于对比测试

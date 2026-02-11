@@ -26,13 +26,15 @@ $useUpx = Test-Path (Join-Path $upxDir 'upx.exe')
 # Build args
 $args = @(
     '-m','PyInstaller',
+    '--onedir',
     '--clean',
     '--noconsole',
     '--name','sectool',
-    '--distpath', (Join-Path $here 'dist'),
-    '--workpath', (Join-Path $here 'build'),
-    '--specpath', (Join-Path $here 'build'),
+    # '--distpath', (Join-Path $here 'dist'),
+    # '--workpath', (Join-Path $here 'build'),
+    # '--specpath', (Join-Path $here 'build'),
     '--paths', $appDir,
+    '--hidden-import', 'PyQt6.sip'
     '--add-data', "$(Join-Path $appDir 'data\rules.json');data",
     '--add-data', "$(Join-Path $appDir 'tools\autorunsc64.exe');tools",
     '--add-data', "$(Join-Path $appDir 'tools\sigcheck64.exe');tools"

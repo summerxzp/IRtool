@@ -82,6 +82,7 @@ class NetworkTab(QWidget):
         self.refresh_interval = 1000  # 默认刷新间隔为1秒
         self._has_auto_resized = False  # 标记是否已经自动调整过列宽
         self._connection_cache = {}  # 连接历史缓存（仅UI层）
+        self.history_retention_minutes = 10  # 历史记录保留时间（分钟），默认10分钟
         
         self._init_ui()
         self._init_timer()
@@ -135,6 +136,16 @@ class NetworkTab(QWidget):
         self.btn_export = QPushButton("导出CSV")
         self.btn_export.clicked.connect(self._export_csv)
         
+        self.btn_clear_history = QPushButton("清空记录")
+        self.btn_clear_history.clicked.connect(self._clear_history)
+        
+        # 历史记录保留时间配置
+        history_retention_label = QLabel("历史保留:")
+        self.cmb_history_retention = QComboBox()
+        self.cmb_history_retention.addItems(["1分钟", "5分钟", "10分钟", "持续保留"])
+        self.cmb_history_retention.setCurrentIndex(2)  # 默认10分钟
+        self.cmb_history_retention.currentTextChanged.connect(self._on_history_retention_changed)
+        
         toolbar.addWidget(self.btn_refresh)
         toolbar.addWidget(self.chk_auto_refresh)
         toolbar.addWidget(refresh_interval_label)
@@ -146,6 +157,9 @@ class NetworkTab(QWidget):
         toolbar.addStretch()
         toolbar.addWidget(self.btn_kill)
         toolbar.addWidget(self.btn_export)
+        toolbar.addWidget(self.btn_clear_history)
+        toolbar.addWidget(history_retention_label)
+        toolbar.addWidget(self.cmb_history_retention)
         
         layout.addLayout(toolbar)
         
@@ -275,6 +289,23 @@ class NetworkTab(QWidget):
         for key, cached in self._connection_cache.items():
             if key not in current_keys:
                 cached['is_current'] = False
+
+        # 清理超过保留时间的历史记录
+        if self.history_retention_minutes > 0:
+            retention_threshold = now - timedelta(minutes=self.history_retention_minutes)
+            keys_to_remove = []
+            for key, cached in self._connection_cache.items():
+                if not cached.get('is_current', True):
+                    # 尝试解析时间戳
+                    try:
+                        conn_time = datetime.strptime(cached['timestamp'], '%Y-%m-%d %H:%M:%S')
+                        if conn_time < retention_threshold:
+                            keys_to_remove.append(key)
+                    except (ValueError, TypeError):
+                        # 如果时间戳解析失败，保留该记录
+                        pass
+            for key in keys_to_remove:
+                del self._connection_cache[key]
 
         self.current_data = current_connections 
         self.all_data = list(self._connection_cache.values())
@@ -497,3 +528,38 @@ class NetworkTab(QWidget):
                 QMessageBox.information(self, "成功", msg)
             else:
                 QMessageBox.warning(self, "错误", msg)
+    
+    def _on_history_retention_changed(self, text):
+        """历史记录保留时间变化时触发"""
+        retention_map = {
+            "1分钟": 1,
+            "5分钟": 5,
+            "10分钟": 10,
+            "持续保留": 0
+        }
+        self.history_retention_minutes = retention_map.get(text, 10)
+        # 立即清理过期的历史记录
+        self.refresh_data()
+    
+    def _clear_history(self):
+        """清空所有历史记录"""
+        reply = QMessageBox.question(
+            self,
+            "确认清空",
+            "确定要清空所有历史记录吗？",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            # 只保留当前活跃的连接，清空历史记录
+            keys_to_remove = []
+            for key, cached in self._connection_cache.items():
+                if not cached.get('is_current', True):
+                    keys_to_remove.append(key)
+            for key in keys_to_remove:
+                del self._connection_cache[key]
+            
+            # 刷新显示
+            self.refresh_data()
+            QMessageBox.information(self, "提示", "历史记录已清空")

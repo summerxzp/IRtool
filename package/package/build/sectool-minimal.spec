@@ -7,9 +7,9 @@ binaries += collect_dynamic_libs('PyQt6')
 
 a = Analysis(
     ['..\\app\\main.py'],
-    pathex=['E:\\Code\\sectool_codex - 副本\\package\\app'],
+    pathex=['D:\\project\\sectool_codex\\package\\package\\app'],
     binaries=binaries,
-    datas=[('E:\\Code\\sectool_codex - 副本\\package\\app\\data\\rules.json', 'data'), ('E:\\Code\\sectool_codex - 副本\\package\\app\\tools\\autorunsc64.exe', 'tools'), ('E:\\Code\\sectool_codex - 副本\\package\\app\\tools\\sigcheck64.exe', 'tools')],
+    datas=[('D:\\project\\sectool_codex\\package\\package\\app\\data\\rules.json', 'data'), ('D:\\project\\sectool_codex\\package\\package\\app\\tools\\autorunsc64.exe', 'tools'), ('D:\\project\\sectool_codex\\package\\package\\app\\tools\\sigcheck64.exe', 'tools')],
     hiddenimports=['PyQt6.sip', 'PyQt6.QtCore', 'PyQt6.QtGui', 'PyQt6.QtWidgets'],
     hookspath=[],
     hooksconfig={},
@@ -22,20 +22,26 @@ pyz = PYZ(a.pure)
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.datas,
     [],
+    exclude_binaries=True,
     name='sectool-minimal',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+)
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.datas,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name='sectool-minimal',
 )
