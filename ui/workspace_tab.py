@@ -1490,27 +1490,34 @@ class WorkspaceTab(QWidget):
                 QMessageBox.warning(self, "警告", "搜索服务未初始化")
                 return
 
-            # 获取 Autoruns 数据
-            self.current_data = self.search_service.get_autoruns_entries()
-            if not self.current_data:
-                QMessageBox.warning(self, "警告", "暂无持久化数据，请先在持久化检测中扫描")
-                return
-
             allowed_types = self._get_selected_rule_types()
             if not allowed_types:
                 QMessageBox.warning(self, "提示", "请至少选择一种规则类型")
                 return
 
-            if "hash" in allowed_types and self._has_hash_rules(allowed_types) and self._hash_missing_all(self.current_data):
-                QMessageBox.information(
-                    self,
-                    "提示",
-                    "检测到 Hash 规则，但当前条目未计算 Hash。\n\n"
-                    "建议在持久化检测中勾选“计算Hash”后重新扫描。"
-                )
+            # 判断是否需要扫描持久化数据
+            needs_autoruns = bool(allowed_types - {"ip"})  # 除了 IP 之外还有其他类型
+            
+            # 获取 Autoruns 数据（如果需要）
+            self.current_data = []
+            if needs_autoruns:
+                self.current_data = self.search_service.get_autoruns_entries()
+                if not self.current_data:
+                    QMessageBox.warning(self, "警告", "暂无持久化数据，请先在持久化检测中扫描")
+                    return
+
+                if "hash" in allowed_types and self._has_hash_rules(allowed_types) and self._hash_missing_all(self.current_data):
+                    QMessageBox.information(
+                        self,
+                        "提示",
+                        "检测到 Hash 规则，但当前条目未计算 Hash。\n\n"
+                        "建议在持久化检测中勾选\"计算Hash\"后重新扫描。"
+                    )
             
             # 扫描规则
             self.matched_results = []
+            
+            # 扫描 Autoruns 数据
             for entry in self.current_data:
                 matched_rules = self.rule_engine.scan_entry(entry, allowed_types)
                 if matched_rules:

@@ -1443,21 +1443,38 @@ class AutorunsTab(QWidget):
             if not entry:
                 return
             target_entry = entry.get('entry', '')
+            target_location = entry.get('location', '')
             if not target_entry:
                 return
 
             source_model = self.model
             proxy_model = self.proxy_model
             view = self.tree_view
+            
+            # 首先尝试同时匹配 entry 和 location
+            if target_location:
+                for i in range(source_model.rowCount()):
+                    index = source_model.index(i, 0)
+                    node = index.internalPointer()
+                    if node:
+                        node_entry = node.data.get('entry', '')
+                        node_location = node.data.get('location', '')
+                        if node_entry == target_entry and node_location == target_location:
+                            proxy_index = proxy_model.mapFromSource(index)
+                            if proxy_index.isValid():
+                                view.setCurrentIndex(proxy_index)
+                                view.scrollTo(proxy_index)
+                            return
+            
+            # 如果 location 为空或精确匹配失败，则只匹配 entry
             for i in range(source_model.rowCount()):
                 index = source_model.index(i, 0)
                 node = index.internalPointer()
                 if node and node.data.get('entry') == target_entry:
                     proxy_index = proxy_model.mapFromSource(index)
-                    if not proxy_index.isValid():
-                        return
-                    view.setCurrentIndex(proxy_index)
-                    view.scrollTo(proxy_index)
+                    if proxy_index.isValid():
+                        view.setCurrentIndex(proxy_index)
+                        view.scrollTo(proxy_index)
                     return
         except Exception as e:
             QMessageBox.warning(self, "错误", f"跳转失败: {str(e)}")
