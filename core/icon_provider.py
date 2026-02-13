@@ -33,6 +33,7 @@ class IconProvider:
             return
         
         self._icon_cache: Dict[str, QIcon] = {}
+        self._overlay_icon_cache: Dict[str, QIcon] = {}
         self._file_icon_provider = QFileIconProvider()
         self._default_icon: Optional[QIcon] = None
         self._icon_size = QSize(16, 16)
@@ -130,6 +131,12 @@ class IconProvider:
         
         if risk_level == 0:
             return base_icon
+
+        # 二级缓存：同一路径 + 同一风险等级只绘制一次
+        overlay_key = f"{self._normalize_path(image_path)}|{int(risk_level)}"
+        cached_overlay = self._overlay_icon_cache.get(overlay_key)
+        if cached_overlay is not None:
+            return cached_overlay
         
         # 创建带标记的图标
         pixmap = base_icon.pixmap(self._icon_size)
@@ -151,18 +158,23 @@ class IconProvider:
             painter.drawEllipse(10, 10, 6, 6)
         
         painter.end()
-        
-        return QIcon(pixmap)
+
+        overlay_icon = QIcon(pixmap)
+        self._overlay_icon_cache[overlay_key] = overlay_icon
+        return overlay_icon
     
     def clear_cache(self):
         """清除图标缓存"""
         self._icon_cache.clear()
+        self._overlay_icon_cache.clear()
     
     def get_cache_stats(self) -> Dict[str, int]:
         """获取缓存统计信息"""
         return {
             'cached_count': len(self._icon_cache),
-            'cache_size': len(self._icon_cache) * self._icon_size.width() * self._icon_size.height() * 4
+            'overlay_cached_count': len(self._overlay_icon_cache),
+            'cache_size': (len(self._icon_cache) + len(self._overlay_icon_cache))
+            * self._icon_size.width() * self._icon_size.height() * 4
         }
 
 

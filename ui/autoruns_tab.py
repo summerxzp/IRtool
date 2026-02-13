@@ -41,6 +41,58 @@ class AutorunsTreeModel(QAbstractItemModel):
         self._icon_provider = IconProvider()
         self._risk_evaluator = get_risk_evaluator()
         self._risk_cache = {}  # 缓存风险评估结果
+
+    def _compose_publisher_display(self, entry_data: dict) -> str:
+        publisher = entry_data.get('publisher', '')
+        signer_status = entry_data.get('signer_status', '')
+        if '(Verified)' in signer_status:
+            return f"(Verified) {publisher}"
+        if '(Error)' in signer_status:
+            error_reason = entry_data.get('signature_detail', 'Unknown error')
+            return f"(Error) {error_reason}"
+        return "(Unsigned)"
+
+    def _refresh_entry_cache(self, entry_data: dict, invalidate_risk: bool = True):
+        """预计算显示与搜索字段，减少 data()/filter 重复开销"""
+        entry_data['_display_values'] = (
+            entry_data.get('category', ''),
+            entry_data.get('entry', ''),
+            entry_data.get('description', ''),
+            self._compose_publisher_display(entry_data),
+            entry_data.get('image_path', ''),
+        )
+        search_fields = [
+            entry_data.get('entry', ''),
+            entry_data.get('description', ''),
+            entry_data.get('publisher', ''),
+            entry_data.get('image_path', ''),
+            entry_data.get('command_line', '') or entry_data.get('launch_string', ''),
+        ]
+        entry_data['_search_blob'] = " ".join(str(v) for v in search_fields if v).lower()
+
+        if invalidate_risk:
+            entry_id = entry_data.get('id')
+            if entry_id:
+                self._risk_cache.pop(entry_id, None)
+
+    def refresh_node(self, node):
+        """节点数据更新后刷新缓存"""
+        if not node or not isinstance(node.data, dict):
+            return
+        self._refresh_entry_cache(node.data, invalidate_risk=True)
+
+    def emit_node_changed(self, node):
+        """统一发出节点刷新信号"""
+        if not node:
+            return
+        try:
+            row = self.root_nodes.index(node)
+        except ValueError:
+            return
+        self.dataChanged.emit(
+            self.index(row, 0),
+            self.index(row, 4)
+        )
     
     def rowCount(self, parent=QModelIndex()):
         if parent.isValid():
@@ -57,45 +109,30 @@ class AutorunsTreeModel(QAbstractItemModel):
             return None
 
         node = index.internalPointer()
-
-        try:
-            if role == Qt.ItemDataRole.DisplayRole:
-                if index.column() == 0:
-                    return node.data.get('category', '')
-                elif index.column() == 1:
-                    # Entry 列：只返回文本，图标通过 DecorationRole 处理
-                    return node.data.get('entry', '')
-                elif index.column() == 2:
-                    return node.data.get('description', '')
-                elif index.column() == 3:
-                    publisher = node.data.get('publisher', '')
-                    signer_status = node.data.get('signer_status', '')
-                    if '(Verified)' in signer_status:
-                        return f"(Verified) {publisher}"
-                    elif '(Error)' in signer_status:
-                        error_reason = node.data.get('signature_detail', 'Unknown error')
-                        return f"(Error) {error_reason}"
-                    else:
-                        return "(Unsigned)"
-                elif index.column() == 4:
-                    return node.data.get('image_path', '')
-            elif role == Qt.ItemDataRole.DecorationRole:
-                # 图标显示：只在 Entry 列（第1列）显示
-                if index.column() == 1:
-                    image_path = node.data.get('image_path', '')
-                    risk_level = self._get_cached_risk_level(node)
-                    return self._icon_provider.get_icon_with_overlay(image_path, risk_level)
-            elif role == Qt.ItemDataRole.ForegroundRole:
-                return self._get_row_foreground_color(node, index.column())
-            elif role == Qt.ItemDataRole.BackgroundRole:
-                return self._get_row_background_color(node)
-            elif role == Qt.ItemDataRole.UserRole:
-                return node.data
-        except Exception as e:
-            import traceback
-            print(f"[Model.data] 错误: {e}")
-            print(f"[Model.data] 错误堆栈:\n{traceback.format_exc()}")
+        if node is None:
             return None
+
+        if role == Qt.ItemDataRole.DisplayRole:
+            display_values = node.data.get('_display_values')
+            if not display_values:
+                self._refresh_entry_cache(node.data, invalidate_risk=False)
+                display_values = node.data.get('_display_values', ())
+            col = index.column()
+            if 0 <= col < len(display_values):
+                return display_values[col]
+            return None
+        elif role == Qt.ItemDataRole.DecorationRole:
+            # 图标显示：只在 Entry 列（第1列）显示
+            if index.column() == 1:
+                image_path = node.data.get('image_path', '')
+                risk_level = self._get_cached_risk_level(node)
+                return self._icon_provider.get_icon_with_overlay(image_path, risk_level)
+        elif role == Qt.ItemDataRole.ForegroundRole:
+            return self._get_row_foreground_color(node, index.column())
+        elif role == Qt.ItemDataRole.BackgroundRole:
+            return self._get_row_background_color(node)
+        elif role == Qt.ItemDataRole.UserRole:
+            return node.data
 
         return None
 
@@ -115,43 +152,31 @@ class AutorunsTreeModel(QAbstractItemModel):
     
     def _get_row_foreground_color(self, node, column):
         """根据条目状态返回前景颜色（字体颜色）- 使用风险评估"""
-        try:
-            # 只对 Entry 列（第 1 列）应用颜色
-            if column != 1:
-                return None
-
-            risk_level = self._get_cached_risk_level(node)
-
-            # 根据风险等级返回颜色
-            if risk_level == RiskLevel.HIGH_RISK:
-                return QColor(139, 0, 0)  # 深红色
-            elif risk_level == RiskLevel.SUSPICIOUS:
-                return QColor(184, 134, 11)  # 深金色
-
+        # 只对 Entry 列（第 1 列）应用颜色
+        if column != 1:
             return None
-        except Exception as e:
-            import traceback
-            print(f"[Model._get_row_foreground_color] 错误: {e}")
-            print(f"[Model._get_row_foreground_color] 错误堆栈:\n{traceback.format_exc()}")
-            return None
+
+        risk_level = self._get_cached_risk_level(node)
+
+        # 根据风险等级返回颜色
+        if risk_level == RiskLevel.HIGH_RISK:
+            return QColor(139, 0, 0)  # 深红色
+        elif risk_level == RiskLevel.SUSPICIOUS:
+            return QColor(184, 134, 11)  # 深金色
+
+        return None
 
     def _get_row_background_color(self, node):
         """根据条目状态返回背景颜色 - 使用风险评估"""
-        try:
-            risk_level = self._get_cached_risk_level(node)
+        risk_level = self._get_cached_risk_level(node)
 
-            # 根据风险等级返回背景色
-            if risk_level == RiskLevel.HIGH_RISK:
-                return QColor(255, 228, 225)  # 浅红色（MistyRose）
-            elif risk_level == RiskLevel.SUSPICIOUS:
-                return QColor(255, 248, 220)  # 浅黄色（Cornsilk）
+        # 根据风险等级返回背景色
+        if risk_level == RiskLevel.HIGH_RISK:
+            return QColor(255, 228, 225)  # 浅红色（MistyRose）
+        elif risk_level == RiskLevel.SUSPICIOUS:
+            return QColor(255, 248, 220)  # 浅黄色（Cornsilk）
 
-            return None
-        except Exception as e:
-            import traceback
-            print(f"[Model._get_row_background_color] 错误: {e}")
-            print(f"[Model._get_row_background_color] 错误堆栈:\n{traceback.format_exc()}")
-            return None
+        return None
 
     def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
         if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Horizontal:
@@ -219,6 +244,7 @@ class AutorunsTreeModel(QAbstractItemModel):
             
             # 清空现有数据
             self.root_nodes.clear()
+            self._risk_cache.clear()
             
             # 批量添加数据
             for i, entry in enumerate(entries):
@@ -339,6 +365,7 @@ class AutorunsTreeModel(QAbstractItemModel):
                         'file_exists': file_exists,
                         'detail_data': detail_data
                     }
+                    self._refresh_entry_cache(main_data, invalidate_risk=False)
                     
                     main_node = TreeNode(main_data)
                     self.root_nodes.append(main_node)
@@ -417,18 +444,8 @@ class AutorunsFilterProxyModel(QSortFilterProxyModel):
         return False
     
     def data(self, proxy_index, role=Qt.ItemDataRole.DisplayRole):
-        """转发所有 role 到源模型"""
-        try:
-            if not proxy_index.isValid():
-                return None
-            
-            source_index = self.mapToSource(proxy_index)
-            return self.sourceModel().data(source_index, role)
-        except Exception as e:
-            import traceback
-            print(f"[ProxyModel.data] 错误: {e}")
-            print(f"[ProxyModel.data] 错误堆栈:\n{traceback.format_exc()}")
-            return None
+        """使用 Qt 默认代理数据路径，避免 Python 层重复转发开销"""
+        return super().data(proxy_index, role)
     
     def filterAcceptsRow(self, source_row, source_parent):
         """确定是否接受某一行"""
@@ -447,14 +464,18 @@ class AutorunsFilterProxyModel(QSortFilterProxyModel):
         # 检查搜索条件
         search_match = True
         if self.search_text:
-            search_fields = [
-                node.data.get('entry', '').lower(),
-                node.data.get('description', '').lower(),
-                node.data.get('publisher', '').lower(),
-                node.data.get('image_path', '').lower(),
-                (node.data.get('command_line', '') or node.data.get('launch_string', '')).lower()
-            ]
-            search_match = any(self.search_text in field for field in search_fields)
+            search_blob = node.data.get('_search_blob', '')
+            if not search_blob:
+                search_fields = [
+                    node.data.get('entry', ''),
+                    node.data.get('description', ''),
+                    node.data.get('publisher', ''),
+                    node.data.get('image_path', ''),
+                    node.data.get('command_line', '') or node.data.get('launch_string', '')
+                ]
+                search_blob = " ".join(str(v) for v in search_fields if v).lower()
+                node.data['_search_blob'] = search_blob
+            search_match = self.search_text in search_blob
         
         # 检查类别过滤
         category_match = True
@@ -636,6 +657,9 @@ class AutorunsTab(QWidget):
         
         # 设置根节点不显示装饰箭头
         self.tree_view.setRootIsDecorated(False)
+
+        # 性能优化：列表行高一致时可显著降低大数据滚动开销
+        self.tree_view.setUniformRowHeights(True)
         
         # 设置交替行颜色
         self.tree_view.setAlternatingRowColors(True)
@@ -1289,11 +1313,9 @@ class AutorunsTab(QWidget):
                         # 更新 detail_data
                         if 'detail_data' in node.data:
                             node.data['detail_data']['hash'] = sha256
-                        # 刷新 UI
-                        self.model.dataChanged.emit(
-                                self.model.index(self.model.root_nodes.index(node), 0),
-                                self.model.index(self.model.root_nodes.index(node), 4)
-                            )
+                        # 刷新缓存并更新 UI
+                        self.model.refresh_node(node)
+                        self.model.emit_node_changed(node)
                         # 发出 entry_updated 信号，触发 Detail Pane 同步刷新
                         self.model.entry_updated.emit(entry_id)
                         break
@@ -1380,11 +1402,9 @@ class AutorunsTab(QWidget):
                                 # 更新 publisher
                                 if parsed_publisher:
                                     node.data['detail_data']['publisher'] = parsed_publisher
-                            # 刷新 UI
-                            self.model.dataChanged.emit(
-                                self.model.index(self.model.root_nodes.index(node), 0),
-                                self.model.index(self.model.root_nodes.index(node), 4)
-                            )
+                            # 刷新缓存并更新 UI
+                            self.model.refresh_node(node)
+                            self.model.emit_node_changed(node)
                             # 如果当前选中该节点，刷新 Detail Pane
                             current_selection = self.tree_view.selectionModel().selectedIndexes()
                             if current_selection:
@@ -1407,11 +1427,9 @@ class AutorunsTab(QWidget):
                             # 更新 detail_data
                             if 'detail_data' in node.data:
                                 node.data['detail_data']['signature'] = "Error"
-                            # 刷新 UI
-                            self.model.dataChanged.emit(
-                                self.model.index(self.model.root_nodes.index(node), 0),
-                                self.model.index(self.model.root_nodes.index(node), 4)
-                            )
+                            # 刷新缓存并更新 UI
+                            self.model.refresh_node(node)
+                            self.model.emit_node_changed(node)
                             break
         except subprocess.TimeoutExpired:
             error_msg = "签名验证超时"
@@ -1427,11 +1445,9 @@ class AutorunsTab(QWidget):
                         # 更新 detail_data
                         if 'detail_data' in node.data:
                             node.data['detail_data']['signature'] = "Error"
-                        # 刷新 UI
-                        self.model.dataChanged.emit(
-                            self.model.index(self.model.root_nodes.index(node), 0),
-                            self.model.index(self.model.root_nodes.index(node), 4)
-                        )
+                        # 刷新缓存并更新 UI
+                        self.model.refresh_node(node)
+                        self.model.emit_node_changed(node)
                         break
         except Exception as e:
             error_msg = str(e)
@@ -1447,11 +1463,9 @@ class AutorunsTab(QWidget):
                         # 更新 detail_data
                         if 'detail_data' in node.data:
                             node.data['detail_data']['signature'] = "Error"
-                        # 刷新 UI
-                        self.model.dataChanged.emit(
-                            self.model.index(self.model.root_nodes.index(node), 0),
-                            self.model.index(self.model.root_nodes.index(node), 4)
-                        )
+                        # 刷新缓存并更新 UI
+                        self.model.refresh_node(node)
+                        self.model.emit_node_changed(node)
                         break
     
     def _open_in_explorer(self, path):

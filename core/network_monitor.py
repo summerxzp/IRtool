@@ -11,6 +11,7 @@ import socket
 class NetworkConnection:
     """网络连接数据模型"""
     timestamp: str
+    timestamp_epoch: float
     pid: int
     process_name: str
     process_path: str
@@ -84,8 +85,10 @@ class NetworkMonitor:
                 }
             
             # 构建连接对象 - 保留原始值
+            now = datetime.now()
             nc = NetworkConnection(
-                timestamp=datetime.now().strftime("%Y/%m/%d %H:%M:%S"),  # 优化时间格式
+                timestamp=now.strftime("%Y/%m/%d %H:%M:%S"),  # 保持现有展示格式
+                timestamp_epoch=now.timestamp(),
                 pid=conn.pid if conn.pid else 0,
                 process_name=proc_name,
                 process_path=proc_path,

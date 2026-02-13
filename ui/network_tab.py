@@ -296,14 +296,9 @@ class NetworkTab(QWidget):
             keys_to_remove = []
             for key, cached in self._connection_cache.items():
                 if not cached.get('is_current', True):
-                    # 尝试解析时间戳
-                    try:
-                        conn_time = datetime.strptime(cached['timestamp'], '%Y-%m-%d %H:%M:%S')
-                        if conn_time < retention_threshold:
-                            keys_to_remove.append(key)
-                    except (ValueError, TypeError):
-                        # 如果时间戳解析失败，保留该记录
-                        pass
+                    conn_time = self._parse_connection_time(cached)
+                    if conn_time and conn_time < retention_threshold:
+                        keys_to_remove.append(key)
             for key in keys_to_remove:
                 del self._connection_cache[key]
 
@@ -460,6 +455,26 @@ class NetworkTab(QWidget):
         if addr in ["", "0.0.0.0", "::", "::ffff:0.0.0.0"]:
             return addr if addr != "" else "*"
         return addr
+
+    def _parse_connection_time(self, conn: dict):
+        """解析连接时间，兼容 epoch 与历史字符串格式"""
+        ts_epoch = conn.get('timestamp_epoch')
+        if isinstance(ts_epoch, (int, float)):
+            try:
+                return datetime.fromtimestamp(ts_epoch)
+            except (OverflowError, OSError, ValueError):
+                pass
+
+        ts_text = conn.get('timestamp')
+        if not ts_text:
+            return None
+
+        for fmt in ('%Y-%m-%d %H:%M:%S', '%Y/%m/%d %H:%M:%S'):
+            try:
+                return datetime.strptime(str(ts_text), fmt)
+            except (ValueError, TypeError):
+                continue
+        return None
     
     def _update_statistics(self, data):
         """更新底部统计信息"""
