@@ -2,21 +2,23 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTableWidget,
     QTableWidgetItem, QPushButton, QComboBox, QMessageBox,
     QLineEdit, QLabel, QTextEdit, QSplitter,
-    QFileDialog, QAbstractItemView, QFrame, QCheckBox, QMenu,
+    QAbstractItemView, QFrame, QCheckBox, QMenu,
     QRadioButton, QButtonGroup
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QColor, QGuiApplication, QClipboard
+from PyQt6.QtGui import QGuiApplication, QClipboard
 import os
 
 from core.rule_engine import RuleEngine
 from core.search_service import SearchService
 from utils.path_resolver import PathResolver, PathScope
 from utils.command_template import CommandTemplateManager
-from utils.safe_executor import SafeExecutor, CommandResult, CommandStatus
+from utils.safe_executor import SafeExecutor
 from utils.search_result import SearchResult, ResultType
 from ui.ui_style import apply_flat_style
 from ui.workspace_rule_dialogs import RuleManagerDialog
+from ui.workspace_results_presenter import WorkspaceResultsPresenter
+from ui.workspace_action_executor import WorkspaceActionExecutor
 
 
 class NumericTableWidgetItem(QTableWidgetItem):
@@ -55,12 +57,13 @@ class WorkspaceTab(QWidget):
         self.rule_engine = RuleEngine()
         self.command_manager = CommandTemplateManager()
         self.executor = SafeExecutor(self)
-        self.path_resolver = PathResolver()
+        self.action_executor = WorkspaceActionExecutor(self, self.command_manager, self.executor)
         self.current_data = []
         self.matched_results = []
         self.selected_entry = None
         self.selected_scope = PathScope.SELF
         self.result_mode = "autorun"
+        self.results_presenter = None
         
         self._init_ui()
     
@@ -162,6 +165,7 @@ class WorkspaceTab(QWidget):
         
         # 结果表格
         self.results_table = QTableWidget()
+        self.results_presenter = WorkspaceResultsPresenter(self.results_table)
         self._set_result_mode(self.result_mode)
         self.results_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.results_table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
@@ -252,10 +256,7 @@ class WorkspaceTab(QWidget):
     
     def _populate_presets(self):
         """填充命令模板下拉框"""
-        self.cmb_preset.clear()
-        self.cmb_preset.addItem("选择命令模板...")
-        for template in self.command_manager.get_all_templates():
-            self.cmb_preset.addItem(template.name, template.template_id)
+        self.action_executor.populate_presets(self.cmb_preset)
 
     def _set_result_mode(self, mode: str):
         """设置结果表格列
@@ -263,14 +264,8 @@ class WorkspaceTab(QWidget):
         注意: 移除了 "ip" 模式，IP 结果现在通过规则扫描呈现
         """
         self.result_mode = mode
-        if mode == "autorun":
-            headers = ["Category", "Entry", "Description", "Publisher", "Image Path"]
-        else:
-            # rule 模式：添加规则详情列显示匹配的规则和值
-            headers = ["Type", "Matched", "Source", "Summary", "规则详情"]
-        self.results_table.setColumnCount(len(headers))
-        self.results_table.setHorizontalHeaderLabels(headers)
-        self.results_table.horizontalHeader().setStretchLastSection(True)
+        if self.results_presenter:
+            self.results_presenter.set_mode(mode)
     
     def _on_search_changed(self):
         """搜索文本变化"""
@@ -545,82 +540,8 @@ class WorkspaceTab(QWidget):
     def _update_results_table(self):
         """更新结果表格"""
         try:
-            sorting_enabled = self.results_table.isSortingEnabled()
-            if sorting_enabled:
-                self.results_table.setSortingEnabled(False)
-            self.results_table.setRowCount(0)
-            if self.result_mode == "autorun":
-                for idx, result in enumerate(self.matched_results):
-                    entry = result.related_entry or result.detail.get('entry', {})
-                    self.results_table.insertRow(idx)
-
-                    self.results_table.setItem(idx, 0, QTableWidgetItem(entry.get('category', '')))
-                    self.results_table.setItem(idx, 1, QTableWidgetItem(entry.get('entry', '')))
-                    self.results_table.setItem(idx, 2, QTableWidgetItem(entry.get('description', '')))
-                    self.results_table.setItem(idx, 3, QTableWidgetItem(entry.get('publisher', '')))
-                    self.results_table.setItem(idx, 4, QTableWidgetItem(entry.get('image_path', '')))
-            else:
-                for idx, result in enumerate(self.matched_results):
-                    self.results_table.insertRow(idx)
-
-                    # Type
-                    type_text = "IP" if result.result_type == ResultType.IP_MATCH else "Autorun"
-                    type_item = QTableWidgetItem(type_text)
-                    if result.result_type == ResultType.IP_MATCH:
-                        type_item.setBackground(QColor(200, 220, 255))
-                    self.results_table.setItem(idx, 0, type_item)
-
-                    # Matched
-                    self.results_table.setItem(idx, 1, QTableWidgetItem(result.matched_value))
-
-                    # Source
-                    source_text = result.source
-                    if result.source == 'command_line':
-                        source_text = 'Command Line'
-                    elif result.source == 'image_path':
-                        source_text = 'Image Path'
-                    elif result.source == 'rule_scan':
-                        source_text = 'Rule Scan'
-                    self.results_table.setItem(idx, 2, QTableWidgetItem(source_text))
-
-                    # Summary
-                    summary_item = QTableWidgetItem(result.summary)
-
-                    # 如果是规则扫描结果，显示严重级别颜色
-                    if result.source == 'rule_scan' and result.detail.get('severity'):
-                        severity = result.detail.get('severity')
-                        if severity == 'high':
-                            summary_item.setBackground(QColor(255, 200, 200))
-                        elif severity == 'medium':
-                            summary_item.setBackground(QColor(255, 255, 200))
-
-                    self.results_table.setItem(idx, 3, summary_item)
-
-                    # 规则详情列：显示匹配的规则和值
-                    rule_details = []
-                    if result.source == 'rule_scan' and result.detail.get('matched_rules'):
-                        for rule in result.detail['matched_rules']:
-                            match_list = rule.get('match', [])
-                            rule_note = rule.get('note', '')
-                            if match_list:
-                                match = match_list[0]
-                                field = match.get('field', '')
-                                match_type = match.get('type', '')
-                                value = match.get('value', '')
-                                # 简化显示
-                                if len(value) > 30:
-                                    value = value[:27] + "..."
-                                detail_str = f"{field}({match_type})={value}"
-                                if rule_note:
-                                    detail_str += f" [{rule_note}]"
-                                rule_details.append(detail_str)
-                    rule_detail_text = "; ".join(rule_details) if rule_details else ""
-                    self.results_table.setItem(idx, 4, QTableWidgetItem(rule_detail_text))
-
-            # 调整列宽
-            self.results_table.resizeColumnsToContents()
-            if sorting_enabled:
-                self.results_table.setSortingEnabled(True)
+            if self.results_presenter:
+                self.results_presenter.update_table(self.result_mode, self.matched_results)
         except Exception as e:
             QMessageBox.warning(self, "错误", f"更新结果表格失败: {str(e)}")
     
@@ -690,192 +611,27 @@ class WorkspaceTab(QWidget):
     def _update_command_preview(self):
         """更新命令预览"""
         try:
-            if not self.selected_entry:
-                return
-            
-            image_path = self.selected_entry.get('image_path', '')
-            preset_id = self.cmb_preset.currentData()
-            
-            if not preset_id:
-                self.cmd_preview.clear()
-                self.btn_execute.setEnabled(False)
-                return
-            
-            # 根据 Target Scope 确定目标
-            target = PathResolver.resolve(image_path, self.selected_scope)
-            
-            if not target:
-                self.cmd_preview.clear()
-                self.btn_execute.setEnabled(False)
-                return
-            
-            # 应用命令模板
-            if preset_id == "encrypt_compress":
-                # 加密压缩需要 input 和 output 参数
-                output_path = self._generate_output_path(target)
-                command = self.command_manager.apply_template(
-                    preset_id, 
-                    input=target, 
-                    output=output_path, 
-                    password="1"
-                )
-            else:
-                # 其他命令只需要 target 参数
-                command = self.command_manager.apply_template(preset_id, target=target)
-            
-            if not command:
-                self.cmd_preview.clear()
-                self.btn_execute.setEnabled(False)
-                return
-            
-            self.cmd_preview.setText(command)
-            self.btn_execute.setEnabled(True)
+            self.action_executor.update_command_preview(
+                selected_entry=self.selected_entry,
+                selected_scope=self.selected_scope,
+                cmb_preset=self.cmb_preset,
+                cmd_preview=self.cmd_preview,
+                btn_execute=self.btn_execute,
+            )
         except Exception as e:
             QMessageBox.warning(self, "错误", f"更新命令预览失败: {str(e)}")
-    
-    def _generate_output_path(self, input_path: str) -> str:
-        """生成输出路径"""
-        import os
-        # 如果输入是文件，生成同名 .zip 文件
-        if os.path.isfile(input_path):
-            base = os.path.splitext(input_path)[0]
-            return f"{base}.zip"
-        # 如果输入是目录，生成 目录名.zip
-        else:
-            dir_name = os.path.basename(input_path.rstrip(os.sep))
-            return os.path.join(os.path.dirname(input_path), f"{dir_name}.zip")
     
     def _execute_command(self):
         """执行命令"""
         try:
-            command = self.cmd_preview.toPlainText()
-            if not command:
-                return
-            
-            preset_id = self.cmb_preset.currentData()
-            
-            # 如果是加密压缩，让用户选择输出路径
-            if preset_id == "encrypt_compress":
-                image_path = self.selected_entry.get('image_path', '')
-                target = PathResolver.resolve(image_path, self.selected_scope)
-                default_output = self._generate_output_path(target)
-                
-                # 弹出保存对话框
-                output_path = PathResolver.save_file(
-                    self,
-                    "选择压缩文件保存位置",
-                    os.path.basename(default_output),
-                    "ZIP 文件 (*.zip)"
-                )
-                
-                if not output_path:
-                    return  # 用户取消
-                
-                # 检测 7z 是否可用
-                if self._check_7z_available():
-                    # 使用 7z 命令
-                    command = self.command_manager.apply_template(
-                        preset_id,
-                        input=target,
-                        output=output_path,
-                        password="1"
-                    )
-                    
-                    # 使用 SafeExecutor 执行命令
-                    def callback(result: CommandResult):
-                        print(f"[Workspace] 命令执行完成")
-                        print(f"[Workspace] 状态: {result.status}")
-                        print(f"[Workspace] 返回码: {result.return_code}")
-                        print(f"[Workspace] 标准输出: {result.stdout}")
-                        print(f"[Workspace] 标准错误: {result.stderr}")
-                        print(f"[Workspace] 错误信息: {result.error_message}")
-                        
-                        if result.status == CommandStatus.SUCCESS:
-                            QMessageBox.information(self, "成功", "命令执行成功")
-                        else:
-                            error_msg = result.error_message or result.stderr
-                            full_msg = f"命令执行失败\n\n错误信息:\n{error_msg}\n\n返回码: {result.return_code}"
-                            QMessageBox.warning(self, "执行失败", full_msg)
-                    
-                    print(f"[Workspace] 准备执行命令: {command}")
-                    self.executor.execute(command, callback)
-                else:
-                    # 使用 pyzipper 作为备选方案
-                    self._compress_with_pyzipper(target, output_path, "1")
-                return
-            
-            # 其他命令执行
-            command = self.cmd_preview.toPlainText()
-            if not command:
-                return
-            
-            # 使用 SafeExecutor 执行命令
-            def callback(result: CommandResult):
-                print(f"[Workspace] 命令执行完成")
-                print(f"[Workspace] 状态: {result.status}")
-                print(f"[Workspace] 返回码: {result.return_code}")
-                print(f"[Workspace] 标准输出: {result.stdout}")
-                print(f"[Workspace] 标准错误: {result.stderr}")
-                print(f"[Workspace] 错误信息: {result.error_message}")
-                
-                if result.status == CommandStatus.SUCCESS:
-                    QMessageBox.information(self, "成功", "命令执行成功")
-                else:
-                    error_msg = result.error_message or result.stderr
-                    full_msg = f"命令执行失败\n\n错误信息:\n{error_msg}\n\n返回码: {result.return_code}"
-                    QMessageBox.warning(self, "执行失败", full_msg)
-            
-            print(f"[Workspace] 准备执行命令: {command}")
-            self.executor.execute(command, callback)
+            self.action_executor.execute_command(
+                selected_entry=self.selected_entry or {},
+                selected_scope=self.selected_scope,
+                cmb_preset=self.cmb_preset,
+                cmd_preview=self.cmd_preview,
+            )
         except Exception as e:
             QMessageBox.warning(self, "错误", f"执行命令失败: {str(e)}")
-    
-    def _check_7z_available(self) -> bool:
-        """检测 7z 是否可用"""
-        try:
-            import shutil
-            return shutil.which("7z") is not None
-        except Exception:
-            return False
-    
-    def _compress_with_pyzipper(self, input_path: str, output_path: str, password: str):
-        """使用 pyzipper 进行加密压缩"""
-        try:
-            import pyzipper
-            import os
-            
-            print(f"[Workspace] 使用 pyzipper 压缩: {input_path} -> {output_path}")
-            
-            # 创建加密的 ZIP 文件
-            with pyzipper.AESZipFile(
-                output_path, 
-                'w', 
-                compression=pyzipper.ZIP_DEFLATED, 
-                encryption=pyzipper.WZ_AES
-            ) as zipf:
-                zipf.setpassword(password.encode('utf-8'))
-                
-                # 如果是文件，直接添加
-                if os.path.isfile(input_path):
-                    filename = os.path.basename(input_path)
-                    zipf.write(input_path, filename)
-                # 如果是目录，递归添加所有文件
-                elif os.path.isdir(input_path):
-                    for root, dirs, files in os.walk(input_path):
-                        for file in files:
-                            file_path = os.path.join(root, file)
-                            arcname = os.path.relpath(file_path, os.path.dirname(input_path))
-                            zipf.write(file_path, arcname)
-            
-            print(f"[Workspace] 压缩完成")
-            QMessageBox.information(self, "成功", f"文件已加密压缩并保存到：\n{output_path}\n\n密码: {password}")
-            
-        except ImportError:
-            QMessageBox.critical(self, "错误", "pyzipper 库未安装\n\n请运行: pip install pyzipper")
-        except PermissionError as e:
-            QMessageBox.critical(self, "错误", f"权限不足: {str(e)}")
-        except Exception as e:
-            QMessageBox.critical(self, "错误", f"压缩失败: {str(e)}")
     
     def _clear_results(self):
         """清空结果"""

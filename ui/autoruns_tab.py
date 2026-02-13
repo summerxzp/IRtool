@@ -16,7 +16,7 @@ from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, pyqtSignal, QSortF
 from PyQt6.QtGui import QColor, QPalette, QIcon, QBrush
 from core.icon_provider import IconProvider
 from core.risk_hint import get_risk_evaluator, RiskLevel
-from core.signature_parser import parse_sigcheck_output
+from core.signature_parser import parse_sigcheck_output, decode_sigcheck_bytes
 from ui.autoruns_entry_mapper import map_to_model_entry
 from ui.autoruns_detail_renderer import AutorunsDetailRenderer
 from ui.autoruns_scan_controller import AutorunsScanController
@@ -620,8 +620,8 @@ class SignatureVerifyWorker(QThread):
         cmd = [self.sigcheck_path, '-accepteula', '-nobanner', self.image_path]
         try:
             result = subprocess.run(cmd, capture_output=True, timeout=30)
-            stdout = result.stdout.decode(self.encoding, errors='replace')
-            stderr = result.stderr.decode(self.encoding, errors='replace')
+            stdout = decode_sigcheck_bytes(result.stdout, preferred_encoding=self.encoding)
+            stderr = decode_sigcheck_bytes(result.stderr, preferred_encoding=self.encoding)
             if result.returncode == 0:
                 self.succeeded.emit(
                     {
@@ -1232,7 +1232,6 @@ class AutorunsTab(QWidget):
     def _on_context_menu(self, pos):
         """右键菜单"""
         from PyQt6.QtWidgets import QMenu
-        from PyQt6.QtGui import QGuiApplication, QClipboard
         
         # 获取点击位置的索引
         index = self.tree_view.indexAt(pos)
@@ -1282,6 +1281,12 @@ class AutorunsTab(QWidget):
         if image_path and image_path.lower() != 'file not found':
             action_open = menu.addAction("在资源管理器中打开")
             action_open.triggered.connect(lambda: self._open_in_explorer(image_path))
+
+        # 计划任务条目：快速打开任务计划程序，并复制任务名/路径
+        is_scheduled_task = category == "Scheduled Tasks" or "Tasks" in str(data.get("location", ""))
+        if is_scheduled_task:
+            action_task_scheduler = menu.addAction("打开任务计划程序并复制任务标识")
+            action_task_scheduler.triggered.connect(lambda: self._open_task_scheduler_for_entry(data))
         
         menu.addSeparator()
         
@@ -1876,3 +1881,82 @@ class AutorunsTab(QWidget):
         layout.addWidget(button_box)
 
         dialog.exec()
+
+    def _open_task_scheduler_for_entry(self, data):
+        """打开任务计划程序，并复制任务标识到剪贴板，便于人工快速定位。"""
+        identifier, candidates = self._build_task_identifier(data)
+        try:
+            from PyQt6.QtGui import QGuiApplication
+
+            subprocess.run(["taskschd.msc"], check=False)
+            if identifier:
+                QGuiApplication.clipboard().setText(identifier)
+                candidate_text = "\n".join(f"- {item}" for item in candidates[:5])
+                QMessageBox.information(
+                    self,
+                    "提示",
+                    "已打开任务计划程序。\n\n"
+                    f"已复制优先标识到剪贴板:\n{identifier}\n\n"
+                    "可用于定位的候选标识:\n"
+                    f"{candidate_text}",
+                )
+            else:
+                QMessageBox.information(self, "提示", "已打开任务计划程序。")
+        except Exception as exc:
+            QMessageBox.warning(self, "错误", f"打开任务计划程序失败: {exc}")
+
+    def _build_task_identifier(self, data):
+        """构建计划任务定位标识，返回 (primary, candidates)。"""
+        task_entry = (data.get("entry", "") or "").strip()
+        task_location = (data.get("location", "") or "").strip()
+        task_command = (data.get("launch_string", "") or "").strip()
+
+        candidates = []
+
+        parsed_from_command = self._extract_task_name_from_command(task_command)
+        if parsed_from_command:
+            candidates.append(parsed_from_command)
+
+        # 常见 entry 为任务名，优先级高于 location。
+        if task_entry:
+            candidates.append(task_entry)
+        if task_location:
+            candidates.append(task_location)
+        if task_command:
+            candidates.append(task_command)
+
+        dedup = []
+        seen = set()
+        for item in candidates:
+            key = item.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            dedup.append(item)
+
+        primary = dedup[0] if dedup else ""
+        return primary, dedup
+
+    @staticmethod
+    def _extract_task_name_from_command(command: str) -> str:
+        """从 schtasks 命令行中提取 /tn 任务名。"""
+        text = (command or "").strip()
+        if not text:
+            return ""
+        lower = text.lower()
+        pos = lower.find("/tn")
+        if pos < 0:
+            return ""
+
+        rest = text[pos + 3 :].strip()
+        if not rest:
+            return ""
+
+        if rest.startswith('"'):
+            end_quote = rest.find('"', 1)
+            if end_quote > 1:
+                return rest[1:end_quote].strip()
+            return rest.strip('"').strip()
+
+        token = rest.split()[0] if rest.split() else ""
+        return token.strip()

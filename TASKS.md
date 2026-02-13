@@ -40,3 +40,42 @@
 - 记录最少包含：功能名、入口 UI、核心模块、是否已存在相似功能。
 - 如已有相似功能，必须写“复用方案”而不是新建重复实现。
 - 验收标准：连续两次迭代无重复功能分叉，新增功能均可在 README 快速定位代码归属。
+
+7. `P0 DONE` 修复 Autoruns 右键签名验证中文乱码
+- 目标：解决 `sigcheck` 输出中文显示为问号的问题。
+- 影响文件：`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/core/signature_parser.py`、`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/autoruns_tab.py`
+- 实施结果：新增多编码自适应解码（优先系统编码 + UTF-16 + GBK/GB18030 等回退），签名验证线程已接入。
+
+8. `P1 DONE` Autoruns 计划任务条目增加右键快速定位入口
+- 目标：对 `Scheduled Tasks` 条目提供更直接的人工排查路径。
+- 影响文件：`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/autoruns_tab.py`
+- 实施结果：新增“打开任务计划程序并复制任务标识”右键动作。
+
+9. `P0 DOING` 工作台拆分阶段二：结果渲染与处置动作解耦
+- 目标：将结果表格渲染和命令执行流程从 `WorkspaceTab` 继续拆分。
+- 影响文件：`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/workspace_tab.py`
+- 验收标准：`WorkspaceTab` 仅保留编排职责，渲染与执行逻辑模块化。
+- 进展（2026-02-13）：已新增 `ui/workspace_results_presenter.py` 和 `ui/workspace_action_executor.py`，并完成接线。
+- 下一步：将规则扫描组装逻辑继续下沉到独立服务，减少 `WorkspaceTab` 业务复杂度。
+
+10. `P1 DONE` 计划任务“精确定位”增强
+- 目标：在已有“打开任务计划程序”基础上补充任务路径提示与复制策略（Entry/Location/LaunchString 优先级）。
+- 影响文件：`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/autoruns_tab.py`
+- 验收标准：常见任务命名冲突场景下，分析员仍能快速定位目标任务。
+- 实施结果：新增任务标识提取与候选列表展示，优先复制可定位标识。
+
+11. `P1 DONE` 情报接口抽象层（微步/其他厂商）骨架
+- 目标：定义统一 IOC 查询接口，避免将供应商 SDK/HTTP 逻辑直接写进 UI。
+- 影响文件建议：`core/threat_intel/` 新目录（provider/base/service）。
+- 验收标准：新增厂商仅实现 provider，不改 UI 主流程。
+- 实施结果：已新增 `base.py`、`service.py`、`provider_weibu.py` 和 package 导出，支持单条/批量查询管线骨架。
+
+12. `P1 TODO` 单条 IOC 右键查询（IP/Hash）
+- 目标：在 Autoruns/Network/Workspace 结果上支持右键发起单条 IOC 查询。
+- 依赖：任务 11。
+- 验收标准：查询结果可在详情区或弹窗展示，失败可回退重试并给出错误信息。
+
+13. `P1 TODO` 批量 IOC 查询任务队列（IP/Hash）
+- 目标：支持对当前结果集批量查询，控制并发与速率限制，避免 API 封禁。
+- 依赖：任务 11。
+- 验收标准：支持暂停/继续/取消，结果可导出并带命中来源与时间戳。

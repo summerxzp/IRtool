@@ -27,6 +27,8 @@
 - 支持分类过滤、关键词过滤、仅显示可疑项。
 - 支持风险提示（颜色+图标角标）、详情面板、跳转联动。
 - 支持单条 hash 计算、单条签名重验（异步线程）、删除条目、CSV 导出。
+- 对计划任务条目支持右键打开任务计划程序，并复制任务标识辅助定位。
+- `sigcheck` 输出增加多编码解码回退，降低中文路径/中文发布者乱码概率。
 
 ### 2.3 工作台（`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/workspace_tab.py`）
 - 汇总搜索（当前以 Autoruns 关键字检索为主）。
@@ -34,6 +36,7 @@
 - 处置辅助命令模板（解锁、取所有权、删除、压缩）与安全执行封装。
 - 与 Autoruns Tab 双向联动（搜索跳转/定位条目）。
 - 规则编辑与规则管理对话框已拆分到 `ui/workspace_rule_dialogs.py`，降低主 Tab 文件复杂度。
+- 结果表格渲染与命令执行流程已拆分到 `ui/workspace_results_presenter.py` / `ui/workspace_action_executor.py`。
 
 ### 2.4 规则系统（`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/core/rule_engine.py`）
 - 规则类型：`contains` / `regex` / `equals`。
@@ -45,6 +48,12 @@
   统一内存数据仓库，负责 Autoruns/Network 数据广播。
 - `SearchService`（`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/core/search_service.py`）：
   负责对 DataStore 数据做归一化与关键词检索。
+
+### 2.6 外部情报接口（骨架已落地）
+- 目标：支持微步等威胁情报服务，对单条或批量 IP/Hash 做查询。
+- 规划原则：通过统一 provider 抽象接入，避免 UI 与厂商 API 强耦合。
+- 执行形态：右键单条查询 + 批量任务队列查询（含限流、失败重试、导出）。
+- 当前实现：`core/threat_intel/` 已提供 `IOCQuery/IOCQueryResult`、provider 抽象、批量查询服务与 `WeibuProvider` 占位实现。
 
 ## 3. 技术架构
 
@@ -125,7 +134,8 @@ sectool_codex/
 │  ├─ risk_hint.py             # 风险评估
 │  ├─ icon_provider.py         # 图标缓存与角标
 │  ├─ data_store.py            # 内存数据仓库
-│  └─ search_service.py        # 工作台搜索服务
+│  ├─ search_service.py        # 工作台搜索服务
+│  └─ threat_intel/            # IOC 情报接口抽象层
 ├─ ui/
 │  ├─ autoruns_tab.py          # 持久化检测主界面
 │  ├─ autoruns_scan_controller.py
@@ -134,6 +144,8 @@ sectool_codex/
 │  ├─ network_tab.py           # 网络监控界面
 │  ├─ workspace_tab.py         # 工作台与规则管理
 │  ├─ workspace_rule_dialogs.py # 规则编辑/规则管理对话框
+│  ├─ workspace_results_presenter.py # 工作台结果表格渲染器
+│  ├─ workspace_action_executor.py  # 工作台命令执行器
 │  └─ ui_style.py              # 全局与模块样式令牌
 ├─ utils/
 │  ├─ safe_executor.py         # 命令执行封装
@@ -171,3 +183,7 @@ python main.py
 ## 9. 最近更新
 
 - 2026-02-13：完成 `workspace_tab.py` 第一阶段拆分，将 `RuleEditDialog` 和 `RuleManagerDialog` 迁移到 `workspace_rule_dialogs.py`，功能行为保持不变。
+- 2026-02-13：修复 Autoruns 右键签名验证编码链路，新增 `sigcheck` 多编码解码回退。
+- 2026-02-13：为 Scheduled Tasks 条目新增“打开任务计划程序并复制任务标识”右键动作。
+- 2026-02-13：完成 `WorkspaceTab` 阶段二拆分，新增结果渲染器与命令执行器模块。
+- 2026-02-13：新增 `core/threat_intel/` 情报接口抽象层骨架（支持后续微步/多厂商接入）。

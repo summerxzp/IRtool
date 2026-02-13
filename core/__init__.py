@@ -9,6 +9,14 @@ from .rule_engine import RuleEngine
 from .search_service import SearchService
 from .icon_provider import IconProvider, get_icon, get_icon_provider
 from .risk_hint import RiskEvaluator, RiskLevel, RiskHint, get_risk_evaluator, evaluate
+from .threat_intel import (
+    IOCQuery,
+    IOCQueryResult,
+    IOCType,
+    ThreatIntelProvider,
+    WeibuProvider,
+    ThreatIntelService,
+)
 
 __all__ = [
     'AutorunsParser',
@@ -24,4 +32,10 @@ __all__ = [
     'RiskHint',
     'get_risk_evaluator',
     'evaluate',
+    'IOCQuery',
+    'IOCQueryResult',
+    'IOCType',
+    'ThreatIntelProvider',
+    'WeibuProvider',
+    'ThreatIntelService',
 ]
