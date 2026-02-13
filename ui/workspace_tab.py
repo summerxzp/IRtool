@@ -12,7 +12,8 @@ import json
 
 from core.rule_engine import RuleEngine
 from core.search_service import SearchService
-from core.threat_intel import ThreatIntelService, WeibuProvider, IOCQuery, IOCType
+from core.threat_intel import ThreatIntelService, WeibuProvider, VirusTotalProvider, IOCQuery, IOCType
+from core.skill_audit import SkillAuditScanner, SkillAuditReport
 from utils.path_resolver import PathResolver, PathScope
 from utils.command_template import CommandTemplateManager
 from utils.safe_executor import SafeExecutor
@@ -64,6 +65,7 @@ class WorkspaceTab(QWidget):
         self._init_threat_intel()
         self.current_data = []
         self.matched_results = []
+        self.last_skill_audit_report = None
         self.selected_entry = None
         self.selected_scope = PathScope.SELF
         self.result_mode = "autorun"
@@ -74,6 +76,7 @@ class WorkspaceTab(QWidget):
     def _init_threat_intel(self):
         """初始化威胁情报服务（当前优先微步）。"""
         api_key = os.getenv("SECTOOL_WEIBU_API_KEY", "").strip()
+        vt_api_key = os.getenv("SECTOOL_VT_API_KEY", "").strip()
         if not api_key:
             try:
                 config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config.json")
@@ -81,9 +84,12 @@ class WorkspaceTab(QWidget):
                     with open(config_path, "r", encoding="utf-8") as f:
                         config = json.load(f)
                     api_key = str(config.get("weibu_api_key", "")).strip()
+                    vt_api_key = vt_api_key or str(config.get("virustotal_api_key", "")).strip()
             except Exception:
                 api_key = ""
+                vt_api_key = vt_api_key or ""
         self.threat_intel_service.register_provider(WeibuProvider(api_key=api_key))
+        self.threat_intel_service.register_provider(VirusTotalProvider(api_key=vt_api_key))
     
     def _init_ui(self):
         """初始化 UI"""
@@ -136,12 +142,20 @@ class WorkspaceTab(QWidget):
         # 规则管理按钮
         self.btn_manage_rules = QPushButton("规则管理")
         self.btn_manage_rules.clicked.connect(self._manage_rules)
+
+        # Skill 路径体检按钮
+        self.btn_skill_audit = QPushButton("Skill体检")
+        self.btn_skill_audit.clicked.connect(self._audit_skill_paths)
+        self.btn_skill_weibu = QPushButton("Skill查微步")
+        self.btn_skill_weibu.clicked.connect(self._query_weibu_from_last_skill_report)
         
         search_layout.addWidget(search_label)
         search_layout.addWidget(self.search_box, 1)
         search_layout.addWidget(self.btn_search)
         search_layout.addWidget(self.btn_scan_rules)
         search_layout.addWidget(self.btn_manage_rules)
+        search_layout.addWidget(self.btn_skill_audit)
+        search_layout.addWidget(self.btn_skill_weibu)
         
         layout.addLayout(search_layout)
 
@@ -670,6 +684,109 @@ class WorkspaceTab(QWidget):
             dialog.exec()
         except Exception as e:
             QMessageBox.warning(self, "错误", f"规则管理失败: {str(e)}")
+
+    def _audit_skill_paths(self):
+        """扫描常见 skill 路径并输出可疑清单。"""
+        try:
+            scanner = SkillAuditScanner()
+            report = scanner.scan_common_roots()
+            self.last_skill_audit_report = report
+        except Exception as exc:
+            QMessageBox.warning(self, "错误", f"Skill 体检失败: {exc}")
+            return
+
+        if not report.findings:
+            msg = (
+                "Skill 体检完成，未发现中高风险可疑文件。\n\n"
+                f"扫描文件数: {report.files_scanned}\n"
+                f"扫描根路径数: {len(report.roots_scanned)}"
+            )
+            if report.errors:
+                msg += f"\n告警/错误: {len(report.errors)}（详见日志）"
+            QMessageBox.information(self, "Skill 体检", msg)
+            return
+
+        lines = []
+        for idx, finding in enumerate(report.findings[:20], start=1):
+            reasons = ", ".join(finding.reasons[:3]) if finding.reasons else "n/a"
+            lines.append(
+                f"{idx}. [{finding.risk_level}] {finding.relative_path}\n"
+                f"   path: {finding.file_path}\n"
+                f"   reasons: {reasons}\n"
+                f"   sha256: {finding.sha256[:16]}..."
+            )
+        if len(report.findings) > 20:
+            lines.append(f"... 其余 {len(report.findings) - 20} 条省略")
+
+        summary = (
+            "Skill 体检完成，发现可疑项。\n\n"
+            f"扫描文件数: {report.files_scanned}\n"
+            f"可疑项: {len(report.findings)}\n"
+            f"扫描根路径数: {len(report.roots_scanned)}\n\n"
+            + "\n".join(lines)
+        )
+        QMessageBox.warning(self, "Skill 体检结果", summary)
+
+        reply = QMessageBox.question(
+            self,
+            "微步查询",
+            "是否基于本次 Skill 体检结果，批量查询可疑文件 Hash（微步）？",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.Yes,
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            self._query_weibu_for_skill_report(report)
+
+    def _query_weibu_from_last_skill_report(self):
+        report = self.last_skill_audit_report
+        if not report:
+            QMessageBox.information(self, "提示", "暂无 Skill 体检结果，请先点击“Skill体检”。")
+            return
+        self._query_weibu_for_skill_report(report)
+
+    def _query_weibu_for_skill_report(self, report: SkillAuditReport):
+        iocs = self._extract_hash_iocs_from_skill_report(report)
+        if not iocs:
+            QMessageBox.information(self, "提示", "当前 Skill 体检结果中没有可查询的 Hash。")
+            return
+
+        max_batch = 80
+        query_items = iocs[:max_batch]
+        results = self.threat_intel_service.query_batch(
+            query_items,
+            "weibu",
+            timeout=8.0,
+            max_workers=4,
+            qps_limit=5.0,
+        )
+        self._show_weibu_result_dialog(
+            results,
+            title=f"微步查询结果（Skill Hash 批量 {len(query_items)} 条）",
+        )
+
+    def _extract_hash_iocs_from_skill_report(self, report: SkillAuditReport):
+        iocs = []
+        seen = set()
+        for finding in report.findings:
+            hv = (finding.sha256 or "").strip().lower()
+            if not self._looks_like_hash(hv):
+                continue
+            key = ("hash", hv)
+            if key in seen:
+                continue
+            seen.add(key)
+            iocs.append(
+                IOCQuery(
+                    value=hv,
+                    ioc_type=IOCType.HASH,
+                    context={
+                        "source": "skill_audit",
+                        "file_path": finding.file_path,
+                        "risk_level": finding.risk_level,
+                    },
+                )
+            )
+        return iocs
     
     def _show_context_menu(self, pos):
         """显示右键菜单"""

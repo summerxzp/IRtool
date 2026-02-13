@@ -14,8 +14,16 @@ from .threat_intel import (
     IOCQueryResult,
     IOCType,
     ThreatIntelProvider,
+    VirusTotalProvider,
     WeibuProvider,
     ThreatIntelService,
+)
+from .skill_audit import (
+    SkillAuditFinding,
+    SkillAuditReport,
+    SkillAuditOptions,
+    SkillAuditScanner,
+    DEFAULT_SKILL_ROOTS,
 )
 
 __all__ = [
@@ -36,6 +44,12 @@ __all__ = [
     'IOCQueryResult',
     'IOCType',
     'ThreatIntelProvider',
+    'VirusTotalProvider',
     'WeibuProvider',
     'ThreatIntelService',
+    'SkillAuditFinding',
+    'SkillAuditReport',
+    'SkillAuditOptions',
+    'SkillAuditScanner',
+    'DEFAULT_SKILL_ROOTS',
 ]

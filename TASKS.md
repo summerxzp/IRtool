@@ -83,12 +83,24 @@
 - 进展（2026-02-13）：Workspace 已提供“微步批量查询（当前结果）”，支持去重、并发和基础 QPS 限速。
 - 下一步：补充异步进度、暂停/取消与结果导出能力。
 
-14. `P1 TODO` 常用 AI Agent Skill 路径体检（OpenClaw/ClaudeCode 等）
+14. `P1 DONE` 常用 AI Agent Skill 路径体检（OpenClaw/ClaudeCode 等）
 - 目标：扫描常见 skill 安装路径，识别可疑新增文件、异常修改时间、异常执行脚本。
 - 影响文件建议：`core/skill_audit/` 与 `ui/workspace_tab.py`（触发入口）。
 - 验收标准：可输出可疑 skill 清单（路径、hash、首次发现时间、风险原因）。
+- 实施结果：已新增 `core/skill_audit/` 模块与 Workspace “Skill体检”入口，支持常见路径扫描、hash 计算、可疑清单弹窗输出。
 
 15. `P1 TODO` Skill 文件 Hash 联动情报查询（微步 + VirusTotal）
 - 目标：对 skill 相关文件进行 hash 计算并联动情报平台查询，形成供应链侧风险辅助信号。
 - 依赖：任务 11、14。
 - 验收标准：支持单条右键查询与批量任务查询，查询结果可回写到工作台结果表。
+
+16. `P1 DOING` Skill Hash -> 微步查询链路
+- 目标：体检后可直接对可疑 skill 文件 hash 发起微步批量查询。
+- 影响文件：`ui/workspace_tab.py`、`core/skill_audit/`、`core/threat_intel/`
+- 进展（2026-02-13）：已支持体检后即时触发微步批量查询，且可复用“最近一次体检结果”再次查询。
+- 下一步：将查询结果落表到 Workspace 结果列表，并支持导出。
+
+17. `P2 DONE` VirusTotal Provider 骨架接入
+- 目标：提前铺设多情报源扩展接口，避免后续改动主链路。
+- 影响文件：`core/threat_intel/provider_virustotal.py`、`core/threat_intel/__init__.py`、`core/__init__.py`、`ui/workspace_tab.py`
+- 实施结果：已完成 VT provider 占位实现与服务注册（当前 UI 默认仍以微步链路为主）。

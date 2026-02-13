@@ -54,12 +54,14 @@
 - 目标：支持微步等威胁情报服务，对单条或批量 IP/Hash 做查询。
 - 规划原则：通过统一 provider 抽象接入，避免 UI 与厂商 API 强耦合。
 - 执行形态：右键单条查询 + 批量任务队列查询（含限流、失败重试、导出）。
-- 当前实现：`core/threat_intel/` 已提供 `IOCQuery/IOCQueryResult`、provider 抽象、批量查询服务与 `WeibuProvider` 占位实现。
+- 当前实现：`core/threat_intel/` 已提供 `IOCQuery/IOCQueryResult`、provider 抽象、批量查询服务与 `WeibuProvider`、`VirusTotalProvider` 占位实现。
 - 当前 UI：Workspace 结果右键支持“微步查询（当前条目）”与“微步批量查询（当前结果）”。
 
 ### 2.7 Skill 供应链排查（规划中）
 - 目标：支持 OpenClaw、ClaudeCode 等常见 skill 路径体检，识别可疑 skill 文件。
 - 计划能力：路径扫描、hash 计算、微步/VirusTotal 联动查询、结果回写工作台。
+- 当前实现：Workspace 已增加 “Skill体检” 入口，调用 `core/skill_audit/` 对常见路径执行扫描与可疑清单输出。
+- 当前实现：可基于体检结果直接触发可疑 skill 文件 hash 的微步批量查询。
 
 ## 3. 技术架构
 
@@ -141,7 +143,8 @@ sectool_codex/
 │  ├─ icon_provider.py         # 图标缓存与角标
 │  ├─ data_store.py            # 内存数据仓库
 │  ├─ search_service.py        # 工作台搜索服务
-│  └─ threat_intel/            # IOC 情报接口抽象层
+│  ├─ threat_intel/            # IOC 情报接口抽象层
+│  └─ skill_audit/             # Skill 路径体检与可疑文件检测
 ├─ ui/
 │  ├─ autoruns_tab.py          # 持久化检测主界面
 │  ├─ autoruns_scan_controller.py
@@ -194,6 +197,20 @@ set SECTOOL_WEIBU_API_KEY=your_api_key
 }
 ```
 
+VirusTotal API Key（可选，预留）：
+
+```bash
+set SECTOOL_VT_API_KEY=your_api_key
+```
+
+或写入 `config.json`：
+
+```json
+{
+  "virustotal_api_key": "your_api_key"
+}
+```
+
 ## 8. 后续优化方向（概要）
 
 - 继续拆分 `workspace_tab.py`（规则管理、结果展示、执行动作分离）。
@@ -208,3 +225,6 @@ set SECTOOL_WEIBU_API_KEY=your_api_key
 - 2026-02-13：完成 `WorkspaceTab` 阶段二拆分，新增结果渲染器与命令执行器模块。
 - 2026-02-13：新增 `core/threat_intel/` 情报接口抽象层骨架（支持后续微步/多厂商接入）。
 - 2026-02-13：打通 Workspace 微步查询 UI 链路（单条右键 + 批量查询入口）。
+- 2026-02-13：新增 Skill 体检基础能力（常见路径扫描 + hash + 可疑清单），并在 Workspace 提供入口。
+- 2026-02-13：打通 Skill 体检结果到微步 Hash 批量查询链路。
+- 2026-02-13：新增 VirusTotal provider 骨架并完成服务注册（UI 默认仍使用微步）。
