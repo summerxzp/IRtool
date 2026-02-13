@@ -1563,11 +1563,19 @@ class WorkspaceTab(QWidget):
             QMessageBox.warning(self, "错误", f"搜索失败: {str(e)}")
 
     def _looks_like_ip(self, value: str) -> bool:
-        """检查值是否看起来像 IP 地址"""
+        """检查值是否看起来像 IP 地址（排除文件路径）"""
         if not value:
             return False
+        # 排除文件路径（包含盘符或反斜杠）
+        if ":\\" in value or value.startswith("\\") or "/" in value:
+            return False
+        # IPv6 检查（包含 : 但不包含盘符）
         if ":" in value:
+            # 排除 Windows 盘符格式（如 C: D:）
+            if len(value) >= 2 and value[1] == ":" and value[0].isalpha():
+                return False
             return True
+        # IPv4 检查
         parts = value.split(".")
         if len(parts) != 4:
             return False

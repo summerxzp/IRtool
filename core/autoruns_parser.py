@@ -10,6 +10,10 @@ from pathlib import Path
 import shutil
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+# Windows API for hiding console window
+import ctypes
+from subprocess import CREATE_NO_WINDOW, SW_HIDE
+
 @dataclass
 class AutorunEntry:
     """自启动项数据模型"""
@@ -114,10 +118,17 @@ class AutorunsParser:
             cmd.append('-v')  # 验证签名
 
         try:
+            # Hide console window on Windows
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = subprocess.SW_HIDE
+            
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
+                stderr=subprocess.PIPE,
+                startupinfo=startupinfo,
+                creationflags=subprocess.CREATE_NO_WINDOW
             )
 
             stdout_bytes, stderr_bytes = process.communicate(timeout=180)  # 3分钟超时

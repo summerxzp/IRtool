@@ -38,3 +38,4 @@ Design priority: correctness > maintainability > extensibility > UI appearance.
 - Only modify explicitly specified files
 - Do not optimize or refactor beyond task scope
 - If a rule must be broken, explain and wait for confirmation
+- New changes/features must be evaluated against specification standards and current project architecture for appropriateness
