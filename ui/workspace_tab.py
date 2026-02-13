@@ -8,9 +8,11 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QGuiApplication, QClipboard
 import os
+import json
 
 from core.rule_engine import RuleEngine
 from core.search_service import SearchService
+from core.threat_intel import ThreatIntelService, WeibuProvider, IOCQuery, IOCType
 from utils.path_resolver import PathResolver, PathScope
 from utils.command_template import CommandTemplateManager
 from utils.safe_executor import SafeExecutor
@@ -58,6 +60,8 @@ class WorkspaceTab(QWidget):
         self.command_manager = CommandTemplateManager()
         self.executor = SafeExecutor(self)
         self.action_executor = WorkspaceActionExecutor(self, self.command_manager, self.executor)
+        self.threat_intel_service = ThreatIntelService()
+        self._init_threat_intel()
         self.current_data = []
         self.matched_results = []
         self.selected_entry = None
@@ -66,6 +70,20 @@ class WorkspaceTab(QWidget):
         self.results_presenter = None
         
         self._init_ui()
+
+    def _init_threat_intel(self):
+        """初始化威胁情报服务（当前优先微步）。"""
+        api_key = os.getenv("SECTOOL_WEIBU_API_KEY", "").strip()
+        if not api_key:
+            try:
+                config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config.json")
+                if os.path.exists(config_path):
+                    with open(config_path, "r", encoding="utf-8") as f:
+                        config = json.load(f)
+                    api_key = str(config.get("weibu_api_key", "")).strip()
+            except Exception:
+                api_key = ""
+        self.threat_intel_service.register_provider(WeibuProvider(api_key=api_key))
     
     def _init_ui(self):
         """初始化 UI"""
@@ -690,10 +708,158 @@ class WorkspaceTab(QWidget):
             if launch_string:
                 action_copy_cmd = menu.addAction("复制命令")
                 action_copy_cmd.triggered.connect(lambda: self._copy_to_clipboard(launch_string))
+
+            iocs = self._extract_iocs_for_result(result, entry)
+            if iocs:
+                menu.addSeparator()
+                action_weibu_single = menu.addAction("微步查询（当前条目）")
+                action_weibu_single.triggered.connect(
+                    lambda: self._query_weibu_single(result, entry)
+                )
+
+            if self.matched_results:
+                action_weibu_batch = menu.addAction("微步批量查询（当前结果）")
+                action_weibu_batch.triggered.connect(self._query_weibu_batch_from_results)
             
             menu.exec(self.results_table.viewport().mapToGlobal(pos))
         except Exception as e:
             QMessageBox.warning(self, "错误", f"显示右键菜单失败: {str(e)}")
+
+    def _extract_iocs_for_result(self, result, entry: dict):
+        iocs = []
+        seen = set()
+
+        def add_ioc(value: str, ioc_type: IOCType):
+            text = (value or "").strip()
+            if not text:
+                return
+            key = (ioc_type.value, text.lower())
+            if key in seen:
+                return
+            seen.add(key)
+            iocs.append(IOCQuery(value=text, ioc_type=ioc_type, context={"source": result.source}))
+
+        # 1) 优先提取 IP（规则扫描网络结果）
+        detail = result.detail if result else {}
+        matched_ip = ""
+        if isinstance(detail, dict):
+            matched_ip = str(detail.get("matched_ip", "") or "").strip()
+            connection = detail.get("connection", {}) if isinstance(detail.get("connection", {}), dict) else {}
+            remote_ip = str(connection.get("remote_address", "") or "").strip()
+            local_ip = str(connection.get("local_address", "") or "").strip()
+            if matched_ip and self._looks_like_ip(matched_ip):
+                add_ioc(matched_ip, IOCType.IP)
+            if remote_ip and self._looks_like_ip(remote_ip):
+                add_ioc(remote_ip, IOCType.IP)
+            if local_ip and self._looks_like_ip(local_ip):
+                add_ioc(local_ip, IOCType.IP)
+
+        # 2) 提取 Hash（sha256 > md5）
+        hash_candidates = []
+        sha256 = str(entry.get("sha256", "") or "").strip()
+        md5 = str(entry.get("md5", "") or "").strip()
+        if sha256:
+            hash_candidates.append(sha256)
+        if md5:
+            hash_candidates.append(md5)
+        detail_data = entry.get("detail_data")
+        if isinstance(detail_data, dict):
+            for key in ("hash", "sha256", "md5"):
+                value = str(detail_data.get(key, "") or "").strip()
+                if value:
+                    hash_candidates.append(value)
+        for hv in hash_candidates:
+            if self._looks_like_hash(hv):
+                add_ioc(hv.lower(), IOCType.HASH)
+
+        return iocs
+
+    @staticmethod
+    def _looks_like_hash(value: str) -> bool:
+        text = (value or "").strip().lower()
+        if len(text) not in (32, 40, 64):
+            return False
+        return all(c in "0123456789abcdef" for c in text)
+
+    def _query_weibu_single(self, result, entry: dict):
+        iocs = self._extract_iocs_for_result(result, entry)
+        if not iocs:
+            QMessageBox.information(self, "提示", "当前条目未提取到可查询 IOC（IP/Hash）")
+            return
+
+        query = iocs[0]
+        query_result = self.threat_intel_service.query_one(query, "weibu", timeout=8.0)
+        self._show_weibu_result_dialog([query_result], title="微步查询结果（单条）")
+
+    def _query_weibu_batch_from_results(self):
+        iocs = []
+        seen = set()
+        for result in self.matched_results:
+            entry = result.related_entry or (result.detail.get("entry", {}) if isinstance(result.detail, dict) else {})
+            for item in self._extract_iocs_for_result(result, entry if isinstance(entry, dict) else {}):
+                key = (item.ioc_type.value, item.value.lower())
+                if key in seen:
+                    continue
+                seen.add(key)
+                iocs.append(item)
+
+        if not iocs:
+            QMessageBox.information(self, "提示", "当前结果集中未提取到可查询 IOC（IP/Hash）")
+            return
+
+        # 先限制数量，避免 UI 无保护情况下误触发过大批量
+        max_batch = 50
+        query_items = iocs[:max_batch]
+        results = self.threat_intel_service.query_batch(
+            query_items,
+            "weibu",
+            timeout=8.0,
+            max_workers=4,
+            qps_limit=5.0,
+        )
+        self._show_weibu_result_dialog(results, title=f"微步查询结果（批量 {len(query_items)} 条）")
+
+    def _show_weibu_result_dialog(self, results: list, title: str):
+        if not results:
+            QMessageBox.information(self, "提示", "无查询结果")
+            return
+
+        success_count = sum(1 for r in results if r.success)
+        failed = [r for r in results if not r.success]
+
+        lines = []
+        for r in results[:10]:
+            ioc_text = f"{r.query.ioc_type.value}:{r.query.value}"
+            if r.success:
+                lines.append(f"[OK] {ioc_text} -> {r.verdict} ({r.severity})")
+            else:
+                lines.append(f"[FAIL] {ioc_text} -> {r.error or 'unknown_error'}")
+
+        if len(results) > 10:
+            lines.append(f"... 其余 {len(results) - 10} 条省略")
+
+        detail = "\n".join(lines)
+        summary = (
+            f"Provider: weibu\n"
+            f"总数: {len(results)}\n"
+            f"成功: {success_count}\n"
+            f"失败: {len(failed)}\n\n"
+            f"{detail}"
+        )
+
+        missing_key = any((r.error or "") == "missing_api_key" for r in failed)
+        if missing_key:
+            summary += (
+                "\n\n当前未配置微步 API Key。\n"
+                "可通过以下方式配置：\n"
+                "1. 环境变量 `SECTOOL_WEIBU_API_KEY`\n"
+                "2. `config.json` 中字段 `weibu_api_key`"
+            )
+
+        if failed:
+            QMessageBox.warning(self, title, summary)
+        else:
+            QMessageBox.information(self, title, summary)
     
     def _open_in_explorer(self, path):
         """在资源管理器中打开文件"""

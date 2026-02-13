@@ -70,12 +70,25 @@
 - 验收标准：新增厂商仅实现 provider，不改 UI 主流程。
 - 实施结果：已新增 `base.py`、`service.py`、`provider_weibu.py` 和 package 导出，支持单条/批量查询管线骨架。
 
-12. `P1 TODO` 单条 IOC 右键查询（IP/Hash）
+12. `P1 DONE` 单条 IOC 右键查询（IP/Hash）
 - 目标：在 Autoruns/Network/Workspace 结果上支持右键发起单条 IOC 查询。
 - 依赖：任务 11。
 - 验收标准：查询结果可在详情区或弹窗展示，失败可回退重试并给出错误信息。
+- 实施结果：Workspace 右键已支持“微步查询（当前条目）”，可自动提取 IP/Hash 并展示查询结果。
 
-13. `P1 TODO` 批量 IOC 查询任务队列（IP/Hash）
+13. `P1 DOING` 批量 IOC 查询任务队列（IP/Hash）
 - 目标：支持对当前结果集批量查询，控制并发与速率限制，避免 API 封禁。
 - 依赖：任务 11。
 - 验收标准：支持暂停/继续/取消，结果可导出并带命中来源与时间戳。
+- 进展（2026-02-13）：Workspace 已提供“微步批量查询（当前结果）”，支持去重、并发和基础 QPS 限速。
+- 下一步：补充异步进度、暂停/取消与结果导出能力。
+
+14. `P1 TODO` 常用 AI Agent Skill 路径体检（OpenClaw/ClaudeCode 等）
+- 目标：扫描常见 skill 安装路径，识别可疑新增文件、异常修改时间、异常执行脚本。
+- 影响文件建议：`core/skill_audit/` 与 `ui/workspace_tab.py`（触发入口）。
+- 验收标准：可输出可疑 skill 清单（路径、hash、首次发现时间、风险原因）。
+
+15. `P1 TODO` Skill 文件 Hash 联动情报查询（微步 + VirusTotal）
+- 目标：对 skill 相关文件进行 hash 计算并联动情报平台查询，形成供应链侧风险辅助信号。
+- 依赖：任务 11、14。
+- 验收标准：支持单条右键查询与批量任务查询，查询结果可回写到工作台结果表。

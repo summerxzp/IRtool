@@ -37,6 +37,7 @@
 - 与 Autoruns Tab 双向联动（搜索跳转/定位条目）。
 - 规则编辑与规则管理对话框已拆分到 `ui/workspace_rule_dialogs.py`，降低主 Tab 文件复杂度。
 - 结果表格渲染与命令执行流程已拆分到 `ui/workspace_results_presenter.py` / `ui/workspace_action_executor.py`。
+- 右键已支持微步单条查询与批量查询 UI 链路（IOC 自动提取 IP/Hash）。
 
 ### 2.4 规则系统（`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/core/rule_engine.py`）
 - 规则类型：`contains` / `regex` / `equals`。
@@ -54,6 +55,11 @@
 - 规划原则：通过统一 provider 抽象接入，避免 UI 与厂商 API 强耦合。
 - 执行形态：右键单条查询 + 批量任务队列查询（含限流、失败重试、导出）。
 - 当前实现：`core/threat_intel/` 已提供 `IOCQuery/IOCQueryResult`、provider 抽象、批量查询服务与 `WeibuProvider` 占位实现。
+- 当前 UI：Workspace 结果右键支持“微步查询（当前条目）”与“微步批量查询（当前结果）”。
+
+### 2.7 Skill 供应链排查（规划中）
+- 目标：支持 OpenClaw、ClaudeCode 等常见 skill 路径体检，识别可疑 skill 文件。
+- 计划能力：路径扫描、hash 计算、微步/VirusTotal 联动查询、结果回写工作台。
 
 ## 3. 技术架构
 
@@ -174,6 +180,20 @@ set SECTOOL_DEBUG_LOG=1
 python main.py
 ```
 
+微步 API Key（可选）：
+
+```bash
+set SECTOOL_WEIBU_API_KEY=your_api_key
+```
+
+或写入 `config.json`：
+
+```json
+{
+  "weibu_api_key": "your_api_key"
+}
+```
+
 ## 8. 后续优化方向（概要）
 
 - 继续拆分 `workspace_tab.py`（规则管理、结果展示、执行动作分离）。
@@ -187,3 +207,4 @@ python main.py
 - 2026-02-13：为 Scheduled Tasks 条目新增“打开任务计划程序并复制任务标识”右键动作。
 - 2026-02-13：完成 `WorkspaceTab` 阶段二拆分，新增结果渲染器与命令执行器模块。
 - 2026-02-13：新增 `core/threat_intel/` 情报接口抽象层骨架（支持后续微步/多厂商接入）。
+- 2026-02-13：打通 Workspace 微步查询 UI 链路（单条右键 + 批量查询入口）。
