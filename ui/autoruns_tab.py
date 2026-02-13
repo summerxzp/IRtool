@@ -1,7 +1,6 @@
 # ui/autoruns_tab.py
 import subprocess
 import sys
-import time
 import uuid
 import locale
 from dataclasses import dataclass, asdict
@@ -13,11 +12,14 @@ from PyQt6.QtWidgets import (
     QLabel, QFrame, QSplitter, QTextEdit, QGridLayout, QScrollArea,
     QDialog, QDialogButtonBox
 )
-from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, QThread, pyqtSignal, QSortFilterProxyModel, QObject
-from PyQt6.QtGui import QFont, QColor, QPalette, QIcon
+from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, pyqtSignal, QSortFilterProxyModel, QObject, QTimer
+from PyQt6.QtGui import QFont, QColor, QPalette, QIcon, QBrush
 from core.autoruns_parser import AutorunsParser
 from core.icon_provider import get_icon, IconProvider
 from core.risk_hint import get_risk_evaluator, RiskLevel, get_risk_color, get_risk_foreground_color
+from core.signature_parser import parse_sigcheck_output
+from ui.autoruns_entry_mapper import map_to_model_entry
+from ui.autoruns_scan_controller import AutorunsScanController
 from ui.ui_style import apply_flat_style
 
 
@@ -41,6 +43,14 @@ class AutorunsTreeModel(QAbstractItemModel):
         self._icon_provider = IconProvider()
         self._risk_evaluator = get_risk_evaluator()
         self._risk_cache = {}  # 缓存风险评估结果
+        self._risk_foreground_brushes = {
+            RiskLevel.HIGH_RISK: QBrush(QColor(139, 0, 0)),   # 深红色
+            RiskLevel.SUSPICIOUS: QBrush(QColor(184, 134, 11)),  # 深金色
+        }
+        self._risk_background_brushes = {
+            RiskLevel.HIGH_RISK: QBrush(QColor(255, 228, 225)),  # 浅红色（MistyRose）
+            RiskLevel.SUSPICIOUS: QBrush(QColor(255, 248, 220)),  # 浅黄色（Cornsilk）
+        }
 
     def _compose_publisher_display(self, entry_data: dict) -> str:
         publisher = entry_data.get('publisher', '')
@@ -54,6 +64,7 @@ class AutorunsTreeModel(QAbstractItemModel):
 
     def _refresh_entry_cache(self, entry_data: dict, invalidate_risk: bool = True):
         """预计算显示与搜索字段，减少 data()/filter 重复开销"""
+        previous_risk_level = entry_data.get('_risk_level')
         entry_data['_display_values'] = (
             entry_data.get('category', ''),
             entry_data.get('entry', ''),
@@ -69,11 +80,25 @@ class AutorunsTreeModel(QAbstractItemModel):
             entry_data.get('command_line', '') or entry_data.get('launch_string', ''),
         ]
         entry_data['_search_blob'] = " ".join(str(v) for v in search_fields if v).lower()
+        risk_level = self._get_risk_level_for_entry(entry_data, invalidate_cache=invalidate_risk)
+        entry_data['_risk_level'] = risk_level
+        entry_data['_fg_brush'] = self._risk_foreground_brushes.get(risk_level)
+        entry_data['_bg_brush'] = self._risk_background_brushes.get(risk_level)
+        if previous_risk_level is not None and previous_risk_level != risk_level:
+            entry_data.pop('_icon_overlay', None)
 
-        if invalidate_risk:
-            entry_id = entry_data.get('id')
-            if entry_id:
-                self._risk_cache.pop(entry_id, None)
+    def _get_risk_level_for_entry(self, entry_data: dict, invalidate_cache: bool = False):
+        entry_id = entry_data.get('id', '')
+        if invalidate_cache and entry_id:
+            self._risk_cache.pop(entry_id, None)
+
+        if entry_id in self._risk_cache:
+            return self._risk_cache[entry_id]
+
+        risk_level = self._risk_evaluator.evaluate(entry_data).level
+        if entry_id:
+            self._risk_cache[entry_id] = risk_level
+        return risk_level
 
     def refresh_node(self, node):
         """节点数据更新后刷新缓存"""
@@ -124,9 +149,7 @@ class AutorunsTreeModel(QAbstractItemModel):
         elif role == Qt.ItemDataRole.DecorationRole:
             # 图标显示：只在 Entry 列（第1列）显示
             if index.column() == 1:
-                image_path = node.data.get('image_path', '')
-                risk_level = self._get_cached_risk_level(node)
-                return self._icon_provider.get_icon_with_overlay(image_path, risk_level)
+                return self.get_node_icon(node)
         elif role == Qt.ItemDataRole.ForegroundRole:
             return self._get_row_foreground_color(node, index.column())
         elif role == Qt.ItemDataRole.BackgroundRole:
@@ -138,45 +161,34 @@ class AutorunsTreeModel(QAbstractItemModel):
 
     def _get_cached_risk_level(self, node) -> int:
         """获取缓存的风险等级"""
-        entry_id = node.data.get('id', '')
-        if not entry_id:
-            # 无 ID 时实时计算
-            risk_hint = self._risk_evaluator.evaluate(node.data)
-            return risk_hint.level
+        cached_level = node.data.get('_risk_level')
+        if cached_level is not None:
+            return cached_level
+        risk_level = self._get_risk_level_for_entry(node.data, invalidate_cache=False)
+        node.data['_risk_level'] = risk_level
+        return risk_level
 
-        if entry_id not in self._risk_cache:
-            risk_hint = self._risk_evaluator.evaluate(node.data)
-            self._risk_cache[entry_id] = risk_hint.level
-
-        return self._risk_cache[entry_id]
+    def get_node_icon(self, node) -> QIcon:
+        """获取节点图标（节点级缓存）"""
+        cached_icon = node.data.get('_icon_overlay')
+        if cached_icon is not None:
+            return cached_icon
+        image_path = node.data.get('image_path', '')
+        risk_level = self._get_cached_risk_level(node)
+        icon = self._icon_provider.get_icon_with_overlay(image_path, risk_level)
+        node.data['_icon_overlay'] = icon
+        return icon
     
     def _get_row_foreground_color(self, node, column):
         """根据条目状态返回前景颜色（字体颜色）- 使用风险评估"""
         # 只对 Entry 列（第 1 列）应用颜色
         if column != 1:
             return None
-
-        risk_level = self._get_cached_risk_level(node)
-
-        # 根据风险等级返回颜色
-        if risk_level == RiskLevel.HIGH_RISK:
-            return QColor(139, 0, 0)  # 深红色
-        elif risk_level == RiskLevel.SUSPICIOUS:
-            return QColor(184, 134, 11)  # 深金色
-
-        return None
+        return node.data.get('_fg_brush')
 
     def _get_row_background_color(self, node):
         """根据条目状态返回背景颜色 - 使用风险评估"""
-        risk_level = self._get_cached_risk_level(node)
-
-        # 根据风险等级返回背景色
-        if risk_level == RiskLevel.HIGH_RISK:
-            return QColor(255, 228, 225)  # 浅红色（MistyRose）
-        elif risk_level == RiskLevel.SUSPICIOUS:
-            return QColor(255, 248, 220)  # 浅黄色（Cornsilk）
-
-        return None
+        return node.data.get('_bg_brush')
 
     def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
         if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Horizontal:
@@ -249,122 +261,8 @@ class AutorunsTreeModel(QAbstractItemModel):
             # 批量添加数据
             for i, entry in enumerate(entries):
                 try:
-                    # 处理 AutorunEntry 对象或字典
-                    if hasattr(entry, 'entry'):  # 如果是 AutorunEntry 对象
-                        entry_val = getattr(entry, 'entry', '')
-                        description = getattr(entry, 'description', '')
-                        publisher = getattr(entry, 'publisher', '')
-                        company = getattr(entry, 'company', '')
-                        image_path = getattr(entry, 'image_path', '')
-                        timestamp = getattr(entry, 'timestamp', '')
-                        category = getattr(entry, 'category', '')
-                        location = getattr(entry, 'location', '')
-                        enabled = getattr(entry, 'enabled', '')
-                        signer_status = getattr(entry, 'signer_status', '')
-                        launch_string = getattr(entry, 'launch_string', '')
-                        command_line = getattr(entry, 'command_line', '') or launch_string
-                        signature_detail = getattr(entry, 'signature_detail', '')
-                        sha256 = getattr(entry, 'sha256', '')
-                        file_size = getattr(entry, 'file_size', '')
-                        file_version = getattr(entry, 'file_version', '')
-                        service_name = getattr(entry, 'service_name', '')
-                        file_exists = getattr(entry, 'file_exists', True)
-                        
-                        # 使用 get_detail_data() 方法获取结构化 detail 数据
-                        if hasattr(entry, 'get_detail_data'):
-                            detail_data = entry.get_detail_data()
-                            # 统一编码处理
-                            if 'publisher' in detail_data and detail_data['publisher']:
-                                try:
-                                    detail_data['publisher'] = detail_data['publisher'].encode('utf-8', errors='replace').decode('utf-8')
-                                except Exception:
-                                    pass
-                            if 'company' in detail_data and detail_data['company']:
-                                try:
-                                    detail_data['company'] = detail_data['company'].encode('utf-8', errors='replace').decode('utf-8')
-                                except Exception:
-                                    pass
-                        else:
-                            # 统一编码处理
-                            if publisher:
-                                try:
-                                    publisher = publisher.encode('utf-8', errors='replace').decode('utf-8')
-                                except Exception:
-                                    pass
-                            if company:
-                                try:
-                                    company = company.encode('utf-8', errors='replace').decode('utf-8')
-                                except Exception:
-                                    pass
-                            
-                            detail_data = {
-                                "image_path": image_path,
-                                "command_line": command_line,
-                                "category": category,
-                                "timestamp": timestamp,
-                                "signature": "Unsigned",
-                                "publisher": publisher,
-                                "company": company,
-                                "size": file_size,
-                                "version": file_version,
-                                "hash": sha256
-                            }
-                    else:  # 如果是字典
-                        entry_val = entry.get('entry', '')
-                        description = entry.get('description', '')
-                        publisher = entry.get('publisher', '')
-                        company = entry.get('company', '')
-                        image_path = entry.get('image_path', '')
-                        timestamp = entry.get('timestamp', '')
-                        category = entry.get('category', '')
-                        location = entry.get('location', '')
-                        enabled = entry.get('enabled', '')
-                        signer_status = entry.get('signer_status', '')
-                        launch_string = entry.get('launch_string', '')
-                        command_line = entry.get('command_line', '') or launch_string
-                        signature_detail = entry.get('signature_detail', '')
-                        sha256 = entry.get('sha256', '')
-                        file_size = entry.get('file_size', '')
-                        file_version = entry.get('file_version', '')
-                        service_name = entry.get('service_name', '')
-                        file_exists = entry.get('file_exists', True)
-                        
-                        detail_data = {
-                            "image_path": image_path,
-                            "command_line": command_line,
-                            "category": category,
-                            "timestamp": timestamp,
-                            "signature": "Unsigned",
-                            "publisher": publisher,
-                            "company": company,
-                            "size": file_size,
-                            "version": file_version,
-                            "hash": sha256
-                        }
-                    
-                    # 创建主节点
-                    main_data = {
-                        'id': str(uuid.uuid4()),
-                        'entry': entry_val,
-                        'description': description,
-                        'publisher': publisher,
-                        'company': company,
-                        'image_path': image_path,
-                        'timestamp': timestamp,
-                        'category': category,
-                        'location': location,
-                        'enabled': enabled,
-                        'signer_status': signer_status,
-                        'launch_string': launch_string,
-                        'command_line': command_line,
-                        'signature_detail': signature_detail,
-                        'sha256': sha256,
-                        'file_size': file_size,
-                        'file_version': file_version,
-                        'service_name': service_name,
-                        'file_exists': file_exists,
-                        'detail_data': detail_data
-                    }
+                    main_data = map_to_model_entry(entry)
+                    main_data["id"] = str(uuid.uuid4())
                     self._refresh_entry_cache(main_data, invalidate_risk=False)
                     
                     main_node = TreeNode(main_data)
@@ -407,21 +305,36 @@ class AutorunsFilterProxyModel(QSortFilterProxyModel):
         self.search_text = ""
         self.selected_category = "全部类别"
         self.show_suspicious_only = False
+
+    def apply_filters(self, search_text: str, selected_category: str, show_suspicious_only: bool) -> bool:
+        """批量更新过滤条件，仅在变更时触发一次过滤刷新。"""
+        normalized_search = (search_text or "").lower()
+        normalized_category = selected_category or "全部类别"
+        normalized_suspicious_only = bool(show_suspicious_only)
+        changed = (
+            self.search_text != normalized_search
+            or self.selected_category != normalized_category
+            or self.show_suspicious_only != normalized_suspicious_only
+        )
+        if not changed:
+            return False
+        self.search_text = normalized_search
+        self.selected_category = normalized_category
+        self.show_suspicious_only = normalized_suspicious_only
+        self.invalidateFilter()
+        return True
     
     def set_search_text(self, text):
         """设置搜索文本"""
-        self.search_text = text.lower()
-        self.invalidateFilter()
+        self.apply_filters(text, self.selected_category, self.show_suspicious_only)
     
     def set_selected_category(self, category):
         """设置选中的类别"""
-        self.selected_category = category
-        self.invalidateFilter()
+        self.apply_filters(self.search_text, category, self.show_suspicious_only)
     
     def set_show_suspicious_only(self, show_only):
         """设置是否仅显示可疑项"""
-        self.show_suspicious_only = show_only
-        self.invalidateFilter()
+        self.apply_filters(self.search_text, self.selected_category, show_only)
     
     def _is_suspicious(self, node):
         """检测是否为可疑项 - 使用风险评估"""
@@ -489,53 +402,6 @@ class AutorunsFilterProxyModel(QSortFilterProxyModel):
         
         return search_match and category_match and suspicious_match
 
-class AutorunsScanWorker(QThread):
-    """扫描工作线程"""
-    finished = pyqtSignal(list)
-    error = pyqtSignal(str)
-    progress = pyqtSignal(str)
-    
-    def __init__(self, parser, include_hash, verify_sig, category_filter):
-        super().__init__()
-        self.parser = parser
-        self.include_hash = include_hash
-        self.verify_sig = verify_sig
-        self.category_filter = category_filter
-        self._is_cancelled = False
-    
-    def cancel(self):
-        """取消扫描"""
-        self._is_cancelled = True
-    
-    def run(self):
-        try:
-            print(f"[ScanThread] 开始扫描，include_hash={self.include_hash}, verify_sig={self.verify_sig}")
-            self.progress.emit("正在扫描自启动项...")
-            entries = self.parser.scan(
-                include_hash=self.include_hash,
-                verify_signature=self.verify_sig,
-                category_filter=self.category_filter
-            )
-            print(f"[ScanThread] 扫描完成，共 {len(entries)} 个条目")
-            
-            # Check if cancelled before emitting finished signal
-            if not self._is_cancelled:
-                print(f"[ScanThread] 转换为字典格式")
-                entries_dict = [e.to_dict() for e in entries]
-                print(f"[ScanThread] 发送 finished 信号")
-                self.finished.emit(entries_dict)
-            else:
-                print(f"[ScanThread] 扫描已取消")
-            
-        except Exception as e:
-            import traceback
-            error_msg = str(e)
-            error_trace = traceback.format_exc()
-            print(f"[ScanThread] 扫描错误: {error_msg}")
-            print(f"[ScanThread] 错误堆栈:\n{error_trace}")
-            if not self._is_cancelled:
-                self.error.emit(error_msg)
-
 class AutorunsTab(QWidget):
     """持久化检测标签页"""
     
@@ -573,9 +439,22 @@ class AutorunsTab(QWidget):
         self.parser = autoruns_parser
         self.data_store = data_store
         self.current_data = []
-        self.current_worker = None  # 当前正在运行的工作线程
-        self._is_scanning = False  # 扫描状态标志
-        self._scan_start_time = None  # 扫描开始时间
+        self._icon_warmup_active = False
+        self._icon_warmup_index = 0
+        self._icon_warmup_batch_size = 20
+        self._filter_debounce_timer = QTimer(self)
+        self._filter_debounce_timer.setSingleShot(True)
+        self._filter_debounce_timer.setInterval(150)
+        self._filter_debounce_timer.timeout.connect(self._filter_table)
+        self._detail_refresh_scheduled = False
+        self._pending_detail_data = None
+
+        self.scan_controller = AutorunsScanController(self.parser, parent=self)
+        self.scan_controller.scan_started.connect(self._on_scan_started)
+        self.scan_controller.scan_progress.connect(self._on_scan_progress)
+        self.scan_controller.scan_finished.connect(self._on_scan_finished)
+        self.scan_controller.scan_error.connect(self._on_scan_error)
+        self.scan_controller.scan_cancelled.connect(self._on_scan_cancelled)
         
         self._init_ui()
     
@@ -610,7 +489,7 @@ class AutorunsTab(QWidget):
         search_label = QLabel("搜索:")
         self.search_box = QLineEdit()
         self.search_box.setPlaceholderText("类型/名称/描述/发布者/文件路径/启动命令")
-        self.search_box.textChanged.connect(self._filter_table)
+        self.search_box.textChanged.connect(self._schedule_filter_table)
         
         self.btn_delete = QPushButton("删除选中项")
         self.btn_delete.clicked.connect(self._delete_selected)
@@ -654,6 +533,8 @@ class AutorunsTab(QWidget):
         
         # 设置选择行为
         self.tree_view.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.tree_view.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+        self.tree_view.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         
         # 设置根节点不显示装饰箭头
         self.tree_view.setRootIsDecorated(False)
@@ -791,123 +672,110 @@ class AutorunsTab(QWidget):
         
         self.status_frame.setLayout(status_inner_layout)
         layout.addWidget(self.status_frame)
+
+    def _schedule_icon_warmup(self):
+        """分批预热图标缓存，减少滚动到新区域时的顿挫"""
+        self._icon_warmup_active = True
+        self._icon_warmup_index = 0
+        QTimer.singleShot(0, self._warmup_icons_batch)
+
+    def _warmup_icons_batch(self):
+        if not self._icon_warmup_active:
+            return
+
+        total = len(self.model.root_nodes)
+        if self._icon_warmup_index >= total:
+            self._icon_warmup_active = False
+            return
+
+        end = min(self._icon_warmup_index + self._icon_warmup_batch_size, total)
+        for i in range(self._icon_warmup_index, end):
+            node = self.model.root_nodes[i]
+            if not node:
+                continue
+            self.model.get_node_icon(node)
+
+        self._icon_warmup_index = end
+        if self._icon_warmup_index < total and self._icon_warmup_active:
+            QTimer.singleShot(0, self._warmup_icons_batch)
+        else:
+            self._icon_warmup_active = False
     
     def _start_scan(self):
         """开始扫描"""
-        # 防止重复启动扫描
-        if self._is_scanning:
+        if self.scan_controller.is_scanning:
             return
-        
-        # 检查是否选择了验证签名，如果是，则显示确认对话框
+
+        self._icon_warmup_active = False
+
         if self.chk_sig.isChecked():
             reply = QMessageBox.question(
-                self, "确认签名验证", 
+                self, "确认签名验证",
                 "验证签名功能需重新扫描，且扫描时间较长(18分钟左右)，是否继续？\n\n注意：此操作可能需要较长时间。",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             )
             if reply == QMessageBox.StandardButton.No:
-                # 如果用户选择否，取消扫描
                 return
-        
-        # 如果当前有正在运行的worker，则取消它
-        if self.current_worker and self.current_worker.isRunning():
-            self.current_worker.quit()
-            self.current_worker.wait()
-        
-        self._is_scanning = True
-        self._scan_start_time = time.time()  # 记录开始时间
+
+        category_filter = None
+        if self.cmb_category.currentIndex() > 0:
+            category_filter = [self.cmb_category.currentText()]
+
+        self.scan_controller.start_scan(
+            include_hash=self.chk_hash.isChecked(),
+            verify_sig=self.chk_sig.isChecked(),
+            category_filter=category_filter,
+        )
+
+    def _on_scan_started(self):
         self.btn_scan.setEnabled(False)
         self.btn_scan.setText("扫描中...")
-        self.btn_cancel.setEnabled(True)  # 启用取消按钮
-        
-        # 更新状态栏
+        self.btn_cancel.setEnabled(True)
         self.lbl_scan_status.setText("扫描中...")
         self.lbl_scan_duration.setText("耗时: 0秒")
         self.lbl_total_items.setText("条目: 0")
         self.lbl_categories.setText("类别: 0")
-        
-        category_filter = None
-        if self.cmb_category.currentIndex() > 0:
-            category_filter = [self.cmb_category.currentText()]
-        
-        self.current_worker = AutorunsScanWorker(
-            self.parser,
-            include_hash=self.chk_hash.isChecked(),
-            verify_sig=self.chk_sig.isChecked(),
-            category_filter=category_filter
-        )
-        self.current_worker.finished.connect(self._on_scan_finished)
-        self.current_worker.error.connect(self._on_scan_error)
-        self.current_worker.progress.connect(self._on_scan_progress)
-        self.current_worker.start()
-    
-    def _on_scan_progress(self, message):
-         """扫描进度更新"""
-         self.btn_scan.setText(message)
-         # 更新状态栏中的扫描状态
-         self.lbl_scan_status.setText(message)
-         # 更新耗时
-         if self._scan_start_time:
-             elapsed = int(time.time() - self._scan_start_time)
-             self.lbl_scan_duration.setText(f"耗时: {elapsed}秒")
+
+    def _on_scan_progress(self, message, elapsed):
+        """扫描进度更新"""
+        self.btn_scan.setText(message)
+        self.lbl_scan_status.setText(message)
+        self.lbl_scan_duration.setText(f"耗时: {elapsed}秒")
     
     def _cancel_scan(self):
         """取消扫描"""
-        if self.current_worker and self.current_worker.isRunning():
-            self.current_worker.cancel()  # This will trigger cancellation
-            self.current_worker.quit()
-            self.current_worker.wait(5000)  # Wait up to 5 seconds
-        
-        # Reset UI state
+        self._icon_warmup_active = False
+        self.scan_controller.cancel_scan()
+
+    def _on_scan_cancelled(self, elapsed):
         self.btn_scan.setEnabled(True)
         self.btn_scan.setText("开始扫描")
-        self.btn_cancel.setEnabled(False)  # Disable cancel button
-        self._is_scanning = False
-        
-        # Update status bar
+        self.btn_cancel.setEnabled(False)
         self.lbl_scan_status.setText("已取消")
-        if self._scan_start_time:
-            elapsed = int(time.time() - self._scan_start_time)
-            self.lbl_scan_duration.setText(f"耗时: {elapsed}秒")
+        self.lbl_scan_duration.setText(f"耗时: {elapsed}秒")
     
-    def _on_scan_finished(self, data):
+    def _on_scan_finished(self, data, elapsed):
         """扫描完成处理"""
         print(f"[AutorunsTab] 扫描完成，收到 {len(data)} 个条目")
         
         self.btn_scan.setEnabled(True)
         self.btn_scan.setText("开始扫描")
-        self.btn_cancel.setEnabled(False)  # Disable cancel button
-        self._is_scanning = False
+        self.btn_cancel.setEnabled(False)
         
-        # Update status bar
         self.lbl_scan_status.setText("扫描完成")
-        if self._scan_start_time:
-            elapsed = int(time.time() - self._scan_start_time)
-            self.lbl_scan_duration.setText(f"耗时: {elapsed}秒")
+        self.lbl_scan_duration.setText(f"耗时: {elapsed}秒")
         
-        # Update stats
         self.current_data = data
         if self.data_store:
             self.data_store.set_autoruns_entries(self.current_data)
         self._update_stats()
         
-        # Update category filter with unique categories from data
         self._update_category_filter(data)
         
-        # 填充树形视图
         print(f"[AutorunsTab] 开始填充树形视图")
         self._populate_tree(data)
         print(f"[AutorunsTab] 树形视图填充完成")
-        
-        # Update status bar
-        self.lbl_scan_status.setText("扫描完成")
-        if self._scan_start_time:
-            elapsed = int(time.time() - self._scan_start_time)
-            self.lbl_scan_duration.setText(f"耗时: {elapsed}秒")
-        
-        # Cleanup worker reference
-        if self.current_worker:
-            self.current_worker = None
+        self._schedule_icon_warmup()
     
     def _update_stats(self):
         """更新统计信息"""
@@ -954,10 +822,8 @@ class AutorunsTab(QWidget):
     
     def cleanup(self):
         """清理资源"""
-        if self.current_worker and self.current_worker.isRunning():
-            self.current_worker.cancel()
-            self.current_worker.quit()
-            self.current_worker.wait(5000)  # 等待最多5秒
+        self._icon_warmup_active = False
+        self.scan_controller.cleanup()
     
     def _is_suspicious(self, entry: dict) -> bool:
         """判断是否可疑"""
@@ -976,39 +842,50 @@ class AutorunsTab(QWidget):
     
     def _on_category_filter_changed(self, text):
         """类别过滤变化时触发"""
-        self._clear_detail_layout()
-        self.detail_placeholder = QLabel("Select an entry to view details")
-        self.detail_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.detail_placeholder.setStyleSheet("color: #999; font-style: italic;")
-        self.detail_layout.addWidget(self.detail_placeholder, 0, 0, 1, 2)
-        self.current_entry_id = None
+        self._show_detail_placeholder()
+        self._filter_debounce_timer.stop()
         self._filter_table()
     
     def _on_filter_option_changed(self, state):
         """过滤选项变化时触发"""
+        self._filter_debounce_timer.stop()
         self._filter_table()
+
+    def _schedule_filter_table(self):
+        """搜索输入去抖，避免每次按键都触发过滤刷新"""
+        self._filter_debounce_timer.start()
     
     def _filter_table(self):
         """过滤表格内容 - 现在使用代理模型"""
         search_text = self.search_box.text()
         selected_category = self.cmb_category.currentText()
         show_suspicious_only = self.chk_suspicious.isChecked()
-        
-        # 禁用 UI 更新
+
+        if hasattr(self.proxy_model, 'apply_filters'):
+            normalized_search = (search_text or "").lower()
+            normalized_category = selected_category or "全部类别"
+            normalized_suspicious_only = bool(show_suspicious_only)
+            if (
+                self.proxy_model.search_text == normalized_search
+                and self.proxy_model.selected_category == normalized_category
+                and self.proxy_model.show_suspicious_only == normalized_suspicious_only
+            ):
+                return
+
         self.tree_view.setUpdatesEnabled(False)
-        
-        # 使用自定义代理模型的过滤方法
-        if hasattr(self.proxy_model, 'set_search_text'):
-            self.proxy_model.set_search_text(search_text)
-            self.proxy_model.set_selected_category(selected_category)
-            self.proxy_model.set_show_suspicious_only(show_suspicious_only)
-        
-        # 强制清理高度/布局缓存
-        self.tree_view.collapseAll()
-        self.tree_view.doItemsLayout()
-        
-        # 启用 UI 更新
-        self.tree_view.setUpdatesEnabled(True)
+        try:
+            if hasattr(self.proxy_model, 'apply_filters'):
+                self.proxy_model.apply_filters(
+                    search_text=search_text,
+                    selected_category=selected_category,
+                    show_suspicious_only=show_suspicious_only,
+                )
+            else:
+                self.proxy_model.set_search_text(search_text)
+                self.proxy_model.set_selected_category(selected_category)
+                self.proxy_model.set_show_suspicious_only(show_suspicious_only)
+        finally:
+            self.tree_view.setUpdatesEnabled(True)
 
     def _on_model_reset(self):
         """模型重置后调整列宽（按分析优先级）"""
@@ -1037,13 +914,7 @@ class AutorunsTab(QWidget):
         """填充树形视图"""
         try:
             print(f"[AutorunsTab] _populate_tree 开始，data 长度: {len(data)}")
-            
-            self._clear_detail_layout()
-            self.detail_placeholder = QLabel("Select an entry to view details")
-            self.detail_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.detail_placeholder.setStyleSheet("color: #999; font-style: italic;")
-            self.detail_layout.addWidget(self.detail_placeholder, 0, 0, 1, 2)
-            self.current_entry_id = None
+            self._show_detail_placeholder()
             
             print(f"[AutorunsTab] 清空模型")
             self.model.clear()
@@ -1120,38 +991,50 @@ class AutorunsTab(QWidget):
         # 显示菜单
         menu.exec(self.tree_view.viewport().mapToGlobal(pos))
     
-    def _on_selection_changed(self, selected, deselected):
-        """选中变化时触发"""
-        if not selected.indexes():
-            # 选中为空，显示占位符
-            self._clear_detail_layout()
-            self.detail_placeholder = QLabel("Select an entry to view details")
-            self.detail_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.detail_placeholder.setStyleSheet("color: #999; font-style: italic;")
-            self.detail_layout.addWidget(self.detail_placeholder, 0, 0, 1, 2)
-            self.current_entry_id = None
+    def _show_detail_placeholder(self):
+        self._clear_detail_layout()
+        self.detail_placeholder = QLabel("Select an entry to view details")
+        self.detail_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.detail_placeholder.setStyleSheet("color: #999; font-style: italic;")
+        self.detail_layout.addWidget(self.detail_placeholder, 0, 0, 1, 2)
+        self.current_entry_id = None
+
+    def _schedule_detail_refresh(self, detail_data):
+        self._pending_detail_data = detail_data
+        if self._detail_refresh_scheduled:
             return
-        
-        # 获取第一个选中的索引
+        self._detail_refresh_scheduled = True
+        QTimer.singleShot(0, self._flush_detail_refresh)
+
+    def _flush_detail_refresh(self):
+        self._detail_refresh_scheduled = False
+        detail_data = self._pending_detail_data
+        self._pending_detail_data = None
+
+        if not detail_data:
+            if self.current_entry_id is not None:
+                self._show_detail_placeholder()
+            return
+
+        entry_id = detail_data.get('id')
+        if entry_id and entry_id == self.current_entry_id:
+            return
+        self._render_detail(detail_data)
+
+    def _on_selection_changed(self, selected, deselected):
+        """选中变化时触发（合并高频事件）"""
+        if not selected.indexes():
+            self._schedule_detail_refresh(None)
+            return
+
         index = selected.indexes()[0]
         if not index.isValid():
+            self._schedule_detail_refresh(None)
             return
-        
-        # 映射到源模型
+
         source_index = self.proxy_model.mapToSource(index)
         node = source_index.internalPointer()
-        
-        if not node:
-            self._clear_detail_layout()
-            self.detail_placeholder = QLabel("Select an entry to view details")
-            self.detail_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.detail_placeholder.setStyleSheet("color: #999; font-style: italic;")
-            self.detail_layout.addWidget(self.detail_placeholder, 0, 0, 1, 2)
-            self.current_entry_id = None
-            return
-        
-        # 渲染 Detail
-        self._render_detail(node.data)
+        self._schedule_detail_refresh(node.data if node else None)
     
     def _render_detail(self, data):
         """渲染 Detail Pane（双栏 + 底部全宽排版）"""
@@ -1322,151 +1205,93 @@ class AutorunsTab(QWidget):
         except Exception as e:
             QMessageBox.critical(self, "错误", f"计算 Hash 失败: {str(e)}")
     
+    def _update_signature_state(self, entry_id: str, signer_status: str, signature_detail: str, publisher: str = ""):
+        """更新签名状态并同步刷新模型缓存"""
+        if not entry_id:
+            return None
+        for node in self.model.root_nodes:
+            if node.data.get('id') != entry_id:
+                continue
+            node.data['signer_status'] = signer_status
+            node.data['signature_detail'] = signature_detail
+            detail = node.data.get('detail_data')
+            if isinstance(detail, dict):
+                if '(Verified)' in signer_status:
+                    detail['signature'] = 'Verified'
+                elif '(Error)' in signer_status:
+                    detail['signature'] = 'Error'
+                else:
+                    detail['signature'] = 'Unsigned'
+                if publisher:
+                    detail['publisher'] = publisher
+            self.model.refresh_node(node)
+            self.model.emit_node_changed(node)
+            return node
+        return None
+
+    def _refresh_detail_if_selected(self, entry_id: str, node):
+        if not entry_id or node is None:
+            return
+        current_selection = self.tree_view.selectionModel().selectedIndexes()
+        if not current_selection:
+            return
+        selected_index = self.proxy_model.mapToSource(current_selection[0])
+        selected_node = selected_index.internalPointer()
+        if selected_node and selected_node.data.get('id') == entry_id:
+            self._render_detail(node.data)
+
     def _verify_signature(self, data):
         """重新验证签名"""
         image_path = data.get('image_path', '')
         if not image_path or image_path.lower() == 'file not found':
             QMessageBox.warning(self, "警告", "无法验证签名：文件路径无效")
             return
-        
+
+        entry_id = data.get('id')
+
         # 使用 sigcheck64.exe 验证签名
         try:
             import os
             base_dir = os.path.dirname(os.path.dirname(__file__))
             sigcheck_path = os.path.join(base_dir, "tools", "sigcheck64.exe")
-            
+
             if not os.path.exists(sigcheck_path):
                 QMessageBox.warning(self, "警告", f"sigcheck64.exe 不存在: {sigcheck_path}")
                 return
-            
+
             # 使用 Windows 本地编码解码输出
             encoding = locale.getpreferredencoding(False)
             cmd = [sigcheck_path, '-accepteula', '-nobanner', image_path]
             result = subprocess.run(cmd, capture_output=True, timeout=30)
-            
+
             # 使用本地编码解码输出
             stdout = result.stdout.decode(encoding, errors='replace')
             stderr = result.stderr.decode(encoding, errors='replace')
-            
+
             if result.returncode == 0:
                 output = stdout.strip()
                 QMessageBox.information(self, "签名验证结果", f"文件: {image_path}\n\n{output}")
-                
-                # 解析签名状态
-                signature_status = "(Unsigned)"
-                signature_detail = ""
-                parsed_publisher = ""
-                parsed_company = ""
-                
-                if "verified" in output.lower():
-                    signature_status = "(Verified)"
-                    # 尝试提取签名者信息
-                    lines = output.split('\n')
-                    for line in lines:
-                        if 'signer' in line.lower() or 'signed by' in line.lower():
-                            signature_detail = line.strip()
-                            # 尝试提取 publisher 和 company
-                            if ':' in line:
-                                parts = line.split(':', 1)
-                                if len(parts) == 2:
-                                    parsed_publisher = parts[1].strip()
-                                    # 编码处理
-                                    try:
-                                        parsed_publisher = parsed_publisher.encode(encoding, errors='replace').decode(encoding)
-                                    except Exception:
-                                        pass
-                            break
-                elif "error" in output.lower() or "failed" in output.lower():
-                    signature_status = "(Error)"
-                    signature_detail = output
-                else:
-                    signature_status = "(Unsigned)"
-                    signature_detail = ""
-                
-                # 写回 entry 数据
-                entry_id = data.get('id')
-                if entry_id:
-                    for node in self.model.root_nodes:
-                        if node.data.get('id') == entry_id:
-                            node.data['signer_status'] = signature_status
-                            node.data['signature_detail'] = signature_detail
-                            # 更新 detail_data
-                            if 'detail_data' in node.data:
-                                # 归一化签名状态
-                                if '(Verified)' in signature_status:
-                                    node.data['detail_data']['signature'] = 'Verified'
-                                elif '(Error)' in signature_status:
-                                    node.data['detail_data']['signature'] = 'Error'
-                                else:
-                                    node.data['detail_data']['signature'] = 'Unsigned'
-                                # 更新 publisher
-                                if parsed_publisher:
-                                    node.data['detail_data']['publisher'] = parsed_publisher
-                            # 刷新缓存并更新 UI
-                            self.model.refresh_node(node)
-                            self.model.emit_node_changed(node)
-                            # 如果当前选中该节点，刷新 Detail Pane
-                            current_selection = self.tree_view.selectionModel().selectedIndexes()
-                            if current_selection:
-                                selected_index = self.proxy_model.mapToSource(current_selection[0])
-                                selected_node = selected_index.internalPointer()
-                                if selected_node and selected_node.data.get('id') == entry_id:
-                                    self._render_detail(node.data)
-                            break
+
+                parsed = parse_sigcheck_output(output)
+                node = self._update_signature_state(
+                    entry_id=entry_id,
+                    signer_status=parsed.signer_status,
+                    signature_detail=parsed.signature_detail,
+                    publisher=parsed.publisher,
+                )
+                self._refresh_detail_if_selected(entry_id, node)
             else:
                 error_msg = stderr if stderr else "Unknown error"
                 QMessageBox.warning(self, "警告", f"签名验证失败: {error_msg}")
-                
-                # 写回错误状态
-                entry_id = data.get('id')
-                if entry_id:
-                    for node in self.model.root_nodes:
-                        if node.data.get('id') == entry_id:
-                            node.data['signer_status'] = "(Error)"
-                            node.data['signature_detail'] = error_msg
-                            # 更新 detail_data
-                            if 'detail_data' in node.data:
-                                node.data['detail_data']['signature'] = "Error"
-                            # 刷新缓存并更新 UI
-                            self.model.refresh_node(node)
-                            self.model.emit_node_changed(node)
-                            break
+                self._update_signature_state(entry_id, "(Error)", error_msg)
         except subprocess.TimeoutExpired:
             error_msg = "签名验证超时"
             QMessageBox.critical(self, "错误", error_msg)
-            
-            # 写回错误状态
-            entry_id = data.get('id')
-            if entry_id:
-                for node in self.model.root_nodes:
-                    if node.data.get('id') == entry_id:
-                        node.data['signer_status'] = "(Error)"
-                        node.data['signature_detail'] = error_msg
-                        # 更新 detail_data
-                        if 'detail_data' in node.data:
-                            node.data['detail_data']['signature'] = "Error"
-                        # 刷新缓存并更新 UI
-                        self.model.refresh_node(node)
-                        self.model.emit_node_changed(node)
-                        break
+            self._update_signature_state(entry_id, "(Error)", error_msg)
         except Exception as e:
             error_msg = str(e)
             QMessageBox.critical(self, "错误", f"签名验证失败: {error_msg}")
-            
-            # 写回错误状态
-            entry_id = data.get('id')
-            if entry_id:
-                for node in self.model.root_nodes:
-                    if node.data.get('id') == entry_id:
-                        node.data['signer_status'] = "(Error)"
-                        node.data['signature_detail'] = error_msg
-                        # 更新 detail_data
-                        if 'detail_data' in node.data:
-                            node.data['detail_data']['signature'] = "Error"
-                        # 刷新缓存并更新 UI
-                        self.model.refresh_node(node)
-                        self.model.emit_node_changed(node)
-                        break
+            self._update_signature_state(entry_id, "(Error)", error_msg)
     
     def _open_in_explorer(self, path):
         """在资源管理器中打开文件（安全方式：打开目录并选中文件）"""
@@ -1534,27 +1359,15 @@ class AutorunsTab(QWidget):
             QMessageBox.warning(self, "错误", f"跳转失败: {str(e)}")
 
 
-    def _on_scan_error(self, error_msg):
+    def _on_scan_error(self, error_msg, elapsed):
         """扫描错误处理"""
+        self._icon_warmup_active = False
         self.btn_scan.setEnabled(True)
         self.btn_scan.setText("开始扫描")
-        self.btn_cancel.setEnabled(False)  # Disable cancel button
-        self._is_scanning = False
-        
-        # Update status bar
+        self.btn_cancel.setEnabled(False)
         self.lbl_scan_status.setText(f"错误: {error_msg}")
-        if self._scan_start_time:
-            elapsed = int(time.time() - self._scan_start_time)
-            self.lbl_scan_duration.setText(f"耗时: {elapsed}秒")
-        
-        # 清空 Detail Pane
-        self._clear_detail_layout()
-        self.detail_placeholder = QLabel("Select an entry to view details")
-        self.detail_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.detail_placeholder.setStyleSheet("color: #999; font-style: italic;")
-        self.detail_layout.addWidget(self.detail_placeholder, 0, 0, 1, 2)
-        self.current_entry_id = None
-        
+        self.lbl_scan_duration.setText(f"耗时: {elapsed}秒")
+        self._show_detail_placeholder()
         QMessageBox.critical(self, "扫描错误", error_msg)
     
     def _delete_selected(self):
@@ -1688,12 +1501,7 @@ class AutorunsTab(QWidget):
                 
                 print(f"[DeleteEntry] 清空 Detail Pane")
                 # 清空 Detail Pane
-                self._clear_detail_layout()
-                self.detail_placeholder = QLabel("Select an entry to view details")
-                self.detail_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.detail_placeholder.setStyleSheet("color: #999; font-style: italic;")
-                self.detail_layout.addWidget(self.detail_placeholder, 0, 0, 1, 2)
-                self.current_entry_id = None
+                self._show_detail_placeholder()
             else:
                 print(f"[DeleteEntry] 删除失败")
                 QMessageBox.warning(self, "删除失败", f"删除失败: {message}")
