@@ -124,6 +124,11 @@ QToolTip {
 
 
 # Autoruns Tab specific style tokens
+AUTORUNS_SPACING_XS = 4
+AUTORUNS_SPACING_SM = 8
+AUTORUNS_SPACING_MD = 10
+AUTORUNS_RADIUS_SM = 4
+AUTORUNS_FONT_SIZE_SM = 12
 AUTORUNS_CONTROL_HEIGHT = 28
 AUTORUNS_HEADER_HEIGHT = 28
 AUTORUNS_CATEGORY_WIDTH = 110
@@ -134,9 +139,7 @@ AUTORUNS_PUBLISHER_MAX_WIDTH = 230
 AUTORUNS_TREE_STYLESHEET = """
 QTreeView {
     border: 1px solid #d6dbe1;
-    gridline-color: #e3e8ef;
     background-color: #ffffff;
-    alternate-background-color: #f7f9fb;
 }
 """
 

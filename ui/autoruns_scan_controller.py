@@ -1,7 +1,17 @@
+import logging
+import os
 import time
 from typing import Optional
 
 from PyQt6.QtCore import QObject, QThread, pyqtSignal
+
+LOGGER = logging.getLogger("sectool.autoruns_scan")
+DEBUG_LOG_ENABLED = os.getenv("SECTOOL_DEBUG_LOG", "0") == "1"
+
+
+def _debug_log(msg: str):
+    if DEBUG_LOG_ENABLED:
+        LOGGER.debug(msg)
 
 
 class AutorunsScanWorker(QThread):
@@ -25,7 +35,7 @@ class AutorunsScanWorker(QThread):
 
     def run(self):
         try:
-            print(
+            _debug_log(
                 f"[ScanThread] 开始扫描，include_hash={self.include_hash}, "
                 f"verify_sig={self.verify_sig}"
             )
@@ -35,22 +45,22 @@ class AutorunsScanWorker(QThread):
                 verify_signature=self.verify_sig,
                 category_filter=self.category_filter,
             )
-            print(f"[ScanThread] 扫描完成，共 {len(entries)} 个条目")
+            _debug_log(f"[ScanThread] 扫描完成，共 {len(entries)} 个条目")
 
             if not self._is_cancelled:
-                print("[ScanThread] 转换为字典格式")
+                _debug_log("[ScanThread] 转换为字典格式")
                 entries_dict = [e.to_dict() for e in entries]
-                print("[ScanThread] 发送 finished 信号")
+                _debug_log("[ScanThread] 发送 finished 信号")
                 self.finished.emit(entries_dict)
             else:
-                print("[ScanThread] 扫描已取消")
+                _debug_log("[ScanThread] 扫描已取消")
         except Exception as exc:
             import traceback
 
             error_msg = str(exc)
             error_trace = traceback.format_exc()
-            print(f"[ScanThread] 扫描错误: {error_msg}")
-            print(f"[ScanThread] 错误堆栈:\n{error_trace}")
+            _debug_log(f"[ScanThread] 扫描错误: {error_msg}")
+            _debug_log(f"[ScanThread] 错误堆栈:\n{error_trace}")
             if not self._is_cancelled:
                 self.error.emit(error_msg)
 

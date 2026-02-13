@@ -1,19 +1,24 @@
 # ui/autoruns_tab.py
+import csv
+import logging
+import locale
+import os
 import subprocess
 import uuid
-import locale
+from datetime import datetime
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTreeView, QAbstractItemView,
     QCheckBox, QComboBox, QLineEdit, QPushButton, QMessageBox,
     QLabel, QFrame, QSplitter, QTextEdit, QGridLayout, QScrollArea,
-    QDialog, QDialogButtonBox
+    QDialog, QDialogButtonBox, QFileDialog
 )
-from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, pyqtSignal, QSortFilterProxyModel, QTimer, QElapsedTimer
-from PyQt6.QtGui import QFont, QColor, QPalette, QIcon, QBrush
+from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, pyqtSignal, QSortFilterProxyModel, QTimer, QElapsedTimer, QThread
+from PyQt6.QtGui import QColor, QPalette, QIcon, QBrush
 from core.icon_provider import IconProvider
 from core.risk_hint import get_risk_evaluator, RiskLevel
 from core.signature_parser import parse_sigcheck_output
 from ui.autoruns_entry_mapper import map_to_model_entry
+from ui.autoruns_detail_renderer import AutorunsDetailRenderer
 from ui.autoruns_scan_controller import AutorunsScanController
 from ui.ui_style import (
     apply_flat_style,
@@ -30,6 +35,15 @@ from ui.ui_style import (
     AUTORUNS_HELP_BUTTON_STYLESHEET,
     AUTORUNS_RISK_HELP_TEXT_STYLESHEET,
 )
+
+
+LOGGER = logging.getLogger("sectool.autoruns_tab")
+DEBUG_LOG_ENABLED = os.getenv("SECTOOL_DEBUG_LOG", "0") == "1"
+
+
+def _debug_log(msg: str):
+    if DEBUG_LOG_ENABLED:
+        LOGGER.debug(msg)
 
 
 
@@ -49,6 +63,10 @@ class AutorunsTreeModel(QAbstractItemModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.root_nodes = []  # 存储根节点
+        self._nodes_by_id = {}
+        self._row_by_id = {}
+        self._nodes_by_entry_location = {}
+        self._nodes_by_entry = {}
         self._icon_provider = IconProvider()
         self._risk_evaluator = get_risk_evaluator()
         self._risk_cache = {}  # 缓存风险评估结果
@@ -62,12 +80,123 @@ class AutorunsTreeModel(QAbstractItemModel):
         }
         self._model_perf_threshold_ms = 50
 
+    def _reset_indexes(self):
+        self._nodes_by_id.clear()
+        self._row_by_id.clear()
+        self._nodes_by_entry_location.clear()
+        self._nodes_by_entry.clear()
+
+    def _index_node(self, node, row: int):
+        if not node or not isinstance(node.data, dict):
+            return
+
+        entry_id = node.data.get('id')
+        if entry_id:
+            self._nodes_by_id[entry_id] = node
+            self._row_by_id[entry_id] = row
+
+        entry_name = node.data.get('entry', '')
+        location = node.data.get('location', '')
+        if entry_name:
+            self._nodes_by_entry.setdefault(entry_name, []).append(node)
+            if location:
+                key = (entry_name, location)
+                if key not in self._nodes_by_entry_location:
+                    self._nodes_by_entry_location[key] = node
+
+    def _deindex_node(self, node):
+        if not node or not isinstance(node.data, dict):
+            return
+
+        entry_id = node.data.get('id')
+        if entry_id:
+            self._nodes_by_id.pop(entry_id, None)
+            self._row_by_id.pop(entry_id, None)
+
+        entry_name = node.data.get('entry', '')
+        location = node.data.get('location', '')
+        if entry_name:
+            bucket = self._nodes_by_entry.get(entry_name, [])
+            if node in bucket:
+                bucket.remove(node)
+            if not bucket:
+                self._nodes_by_entry.pop(entry_name, None)
+            if location:
+                key = (entry_name, location)
+                mapped = self._nodes_by_entry_location.get(key)
+                if mapped is node:
+                    replacement = None
+                    for candidate in bucket:
+                        if candidate.data.get('location', '') == location:
+                            replacement = candidate
+                            break
+                    if replacement is not None:
+                        self._nodes_by_entry_location[key] = replacement
+                    else:
+                        self._nodes_by_entry_location.pop(key, None)
+
+    def _rebuild_row_index(self):
+        self._row_by_id.clear()
+        for idx, node in enumerate(self.root_nodes):
+            entry_id = node.data.get('id')
+            if entry_id:
+                self._row_by_id[entry_id] = idx
+
+    def get_node_by_id(self, entry_id: str):
+        return self._nodes_by_id.get(entry_id)
+
+    def get_node_by_entry_location(self, entry_name: str, location: str = ""):
+        if not entry_name:
+            return None
+        if location:
+            node = self._nodes_by_entry_location.get((entry_name, location))
+            if node:
+                return node
+        bucket = self._nodes_by_entry.get(entry_name, [])
+        return bucket[0] if bucket else None
+
+    def get_source_index_for_node(self, node):
+        if not node:
+            return QModelIndex()
+        entry_id = node.data.get('id') if isinstance(node.data, dict) else None
+        if entry_id and entry_id in self._row_by_id:
+            return self.index(self._row_by_id[entry_id], 0)
+        try:
+            row = self.root_nodes.index(node)
+        except ValueError:
+            return QModelIndex()
+        return self.index(row, 0)
+
+    def get_source_index_by_id(self, entry_id: str):
+        node = self.get_node_by_id(entry_id)
+        if not node:
+            return QModelIndex()
+        return self.get_source_index_for_node(node)
+
+    def remove_node_by_id(self, entry_id: str) -> bool:
+        node = self.get_node_by_id(entry_id)
+        if not node:
+            return False
+        row = self._row_by_id.get(entry_id)
+        if row is None:
+            try:
+                row = self.root_nodes.index(node)
+            except ValueError:
+                return False
+
+        self.beginRemoveRows(QModelIndex(), row, row)
+        removed = self.root_nodes.pop(row)
+        self.endRemoveRows()
+        self._deindex_node(removed)
+        self._rebuild_row_index()
+        return True
+
     def _log_perf_if_slow(self, stage: str, timer: QElapsedTimer, threshold_ms: int = None, extra: str = ""):
         threshold = self._model_perf_threshold_ms if threshold_ms is None else threshold_ms
         elapsed = timer.elapsed()
         if elapsed >= threshold:
             suffix = f" {extra}" if extra else ""
-            print(f"[Perf][AutorunsTreeModel.{stage}] {elapsed}ms{suffix}")
+            LOGGER.info(f"[Perf][AutorunsTreeModel.{stage}] {elapsed}ms{suffix}")
 
     def _compose_publisher_display(self, entry_data: dict) -> str:
         publisher = entry_data.get('publisher', '')
@@ -138,9 +267,14 @@ class AutorunsTreeModel(QAbstractItemModel):
         """统一发出节点刷新信号"""
         if not node:
             return
-        try:
-            row = self.root_nodes.index(node)
-        except ValueError:
+        entry_id = node.data.get('id') if isinstance(node.data, dict) else None
+        row = self._row_by_id.get(entry_id) if entry_id else None
+        if row is None:
+            try:
+                row = self.root_nodes.index(node)
+            except ValueError:
+                return
+        if row < 0 or row >= len(self.root_nodes):
             return
         self.dataChanged.emit(
             self.index(row, 0),
@@ -300,7 +434,7 @@ class AutorunsTreeModel(QAbstractItemModel):
         timer = QElapsedTimer()
         timer.start()
         try:
-            print(f"[Model] 开始添加 {len(entries)} 个条目")
+            _debug_log(f"[Model] 开始添加 {len(entries)} 个条目")
             
             # 为大量数据批量插入做准备
             self.beginResetModel()
@@ -308,6 +442,7 @@ class AutorunsTreeModel(QAbstractItemModel):
             # 清空现有数据
             self.root_nodes.clear()
             self._risk_cache.clear()
+            self._reset_indexes()
             
             # 批量添加数据
             for i, entry in enumerate(entries):
@@ -318,15 +453,16 @@ class AutorunsTreeModel(QAbstractItemModel):
                     
                     main_node = TreeNode(main_data)
                     self.root_nodes.append(main_node)
+                    self._index_node(main_node, len(self.root_nodes) - 1)
                 except Exception as e:
                     import traceback
-                    print(f"[Model] 处理第 {i} 个条目时出错: {e}")
-                    print(f"[Model] 错误堆栈:\n{traceback.format_exc()}")
+                    _debug_log(f"[Model] 处理第 {i} 个条目时出错: {e}")
+                    _debug_log(f"[Model] 错误堆栈:\n{traceback.format_exc()}")
                     continue
             
             # 结束重置
             self.endResetModel()
-            print(f"[Model] 添加条目完成，共 {len(self.root_nodes)} 个条目")
+            _debug_log(f"[Model] 添加条目完成，共 {len(self.root_nodes)} 个条目")
             self._log_perf_if_slow(
                 "add_entries",
                 timer,
@@ -336,8 +472,8 @@ class AutorunsTreeModel(QAbstractItemModel):
             
         except Exception as e:
             import traceback
-            print(f"[Model] 添加条目时发生严重错误: {e}")
-            print(f"[Model] 错误堆栈:\n{traceback.format_exc()}")
+            _debug_log(f"[Model] 添加条目时发生严重错误: {e}")
+            _debug_log(f"[Model] 错误堆栈:\n{traceback.format_exc()}")
             # 确保调用 endResetModel
             try:
                 self.endResetModel()
@@ -358,6 +494,7 @@ class AutorunsTreeModel(QAbstractItemModel):
             self.endRemoveRows()
         # 清除风险缓存
         self._risk_cache.clear()
+        self._reset_indexes()
 
 
 class AutorunsFilterProxyModel(QSortFilterProxyModel):
@@ -465,6 +602,63 @@ class AutorunsFilterProxyModel(QSortFilterProxyModel):
         
         return search_match and category_match and suspicious_match
 
+
+class SignatureVerifyWorker(QThread):
+    """签名验证线程，避免阻塞 UI"""
+
+    succeeded = pyqtSignal(object)  # payload dict
+    failed = pyqtSignal(object)  # payload dict
+
+    def __init__(self, entry_id: str, image_path: str, sigcheck_path: str, encoding: str):
+        super().__init__()
+        self.entry_id = entry_id
+        self.image_path = image_path
+        self.sigcheck_path = sigcheck_path
+        self.encoding = encoding
+
+    def run(self):
+        cmd = [self.sigcheck_path, '-accepteula', '-nobanner', self.image_path]
+        try:
+            result = subprocess.run(cmd, capture_output=True, timeout=30)
+            stdout = result.stdout.decode(self.encoding, errors='replace')
+            stderr = result.stderr.decode(self.encoding, errors='replace')
+            if result.returncode == 0:
+                self.succeeded.emit(
+                    {
+                        "entry_id": self.entry_id,
+                        "image_path": self.image_path,
+                        "output": stdout.strip(),
+                    }
+                )
+                return
+            self.failed.emit(
+                {
+                    "entry_id": self.entry_id,
+                    "image_path": self.image_path,
+                    "error_msg": stderr.strip() or "Unknown error",
+                    "severity": "warning",
+                }
+            )
+        except subprocess.TimeoutExpired:
+            self.failed.emit(
+                {
+                    "entry_id": self.entry_id,
+                    "image_path": self.image_path,
+                    "error_msg": "签名验证超时",
+                    "severity": "critical",
+                }
+            )
+        except Exception as exc:
+            self.failed.emit(
+                {
+                    "entry_id": self.entry_id,
+                    "image_path": self.image_path,
+                    "error_msg": str(exc),
+                    "severity": "critical",
+                }
+            )
+
+
 class AutorunsTab(QWidget):
     """持久化检测标签页"""
     
@@ -515,6 +709,9 @@ class AutorunsTab(QWidget):
         self._perf_threshold_filter_ms = 16
         self._perf_threshold_detail_ms = 16
         self._perf_threshold_model_ms = 50
+        self._column_widths_initialized = False
+        self._signature_workers = set()
+        self._signature_workers_by_entry_id = {}
 
         self.scan_controller = AutorunsScanController(self.parser, parent=self)
         self.scan_controller.scan_started.connect(self._on_scan_started)
@@ -616,7 +813,7 @@ class AutorunsTab(QWidget):
         self.tree_view.setUniformRowHeights(True)
         
         # 设置交替行颜色
-        self.tree_view.setAlternatingRowColors(True)
+        self.tree_view.setAlternatingRowColors(False)
         
         # 设置样式：显示行分隔线（不覆盖 Model 的 BackgroundRole）
         self.tree_view.setStyleSheet(AUTORUNS_TREE_STYLESHEET)
@@ -661,18 +858,12 @@ class AutorunsTab(QWidget):
         self.detail_layout.setContentsMargins(10, 10, 10, 10)
         self.detail_layout.setHorizontalSpacing(8)
         self.detail_layout.setVerticalSpacing(2)
-        
-        # 初始状态：显示提示文字
-        self.detail_placeholder = QLabel("Select an entry to view details")
-        self.detail_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.detail_placeholder.setStyleSheet(AUTORUNS_DETAIL_PLACEHOLDER_STYLESHEET)
-        self.detail_layout.addWidget(self.detail_placeholder, 0, 0, 1, 2)
-        
-        # 存储当前显示的 entry_id
-        self.current_entry_id = None
-        
-        # 存储字段标签
-        self.detail_labels = {}
+        self._detail_renderer = AutorunsDetailRenderer(
+            splitter=self.splitter,
+            detail_layout=self.detail_layout,
+            placeholder_style=AUTORUNS_DETAIL_PLACEHOLDER_STYLESHEET,
+        )
+        self._detail_renderer.show_placeholder()
         
         scroll_area.setWidget(self.detail_widget)
         detail_layout.addWidget(scroll_area)
@@ -731,7 +922,7 @@ class AutorunsTab(QWidget):
         elapsed = timer.elapsed()
         if elapsed >= threshold_ms:
             suffix = f" {extra}" if extra else ""
-            print(f"[Perf][AutorunsTab.{stage}] {elapsed}ms{suffix}")
+            LOGGER.info(f"[Perf][AutorunsTab.{stage}] {elapsed}ms{suffix}")
 
     def _schedule_icon_warmup(self):
         """分批预热图标缓存，减少滚动到新区域时的顿挫"""
@@ -743,19 +934,28 @@ class AutorunsTab(QWidget):
         if not self._icon_warmup_active:
             return
 
+        timer = QElapsedTimer()
+        timer.start()
         total = len(self.model.root_nodes)
         if self._icon_warmup_index >= total:
             self._icon_warmup_active = False
             return
 
-        end = min(self._icon_warmup_index + self._icon_warmup_batch_size, total)
-        for i in range(self._icon_warmup_index, end):
+        start = self._icon_warmup_index
+        end = min(start + self._icon_warmup_batch_size, total)
+        for i in range(start, end):
             node = self.model.root_nodes[i]
             if not node:
                 continue
             self.model.get_node_icon(node)
 
         self._icon_warmup_index = end
+        self._log_perf_if_slow(
+            "icon_warmup_batch",
+            timer,
+            self._perf_threshold_filter_ms,
+            extra=f"range={start}-{end}/{total}",
+        )
         if self._icon_warmup_index < total and self._icon_warmup_active:
             QTimer.singleShot(self._icon_warmup_interval_ms, self._warmup_icons_batch)
         else:
@@ -816,7 +1016,7 @@ class AutorunsTab(QWidget):
     
     def _on_scan_finished(self, data, elapsed):
         """扫描完成处理"""
-        print(f"[AutorunsTab] 扫描完成，收到 {len(data)} 个条目")
+        _debug_log(f"[AutorunsTab] 扫描完成，收到 {len(data)} 个条目")
         
         self.btn_scan.setEnabled(True)
         self.btn_scan.setText("开始扫描")
@@ -832,9 +1032,9 @@ class AutorunsTab(QWidget):
         
         self._update_category_filter(data)
         
-        print(f"[AutorunsTab] 开始填充树形视图")
+        _debug_log("[AutorunsTab] 开始填充树形视图")
         self._populate_tree(data)
-        print(f"[AutorunsTab] 树形视图填充完成")
+        _debug_log("[AutorunsTab] 树形视图填充完成")
         self._schedule_icon_warmup()
     
     def _update_stats(self):
@@ -883,6 +1083,11 @@ class AutorunsTab(QWidget):
     def cleanup(self):
         """清理资源"""
         self._icon_warmup_active = False
+        for entry_id, worker in list(self._signature_workers_by_entry_id.items()):
+            worker.quit()
+            worker.wait(1000)
+            self._cleanup_signature_worker(worker, entry_id)
+        self._signature_workers_by_entry_id.clear()
         self.scan_controller.cleanup()
     
     def _is_suspicious(self, entry: dict) -> bool:
@@ -903,13 +1108,11 @@ class AutorunsTab(QWidget):
     def _on_category_filter_changed(self, text):
         """类别过滤变化时触发"""
         self._show_detail_placeholder()
-        self._filter_debounce_timer.stop()
-        self._filter_table()
+        self._schedule_filter_table()
     
     def _on_filter_option_changed(self, state):
         """过滤选项变化时触发"""
-        self._filter_debounce_timer.stop()
-        self._filter_table()
+        self._schedule_filter_table()
 
     def _schedule_filter_table(self):
         """搜索输入去抖，避免每次按键都触发过滤刷新"""
@@ -954,13 +1157,16 @@ class AutorunsTab(QWidget):
                 self.proxy_model.set_show_suspicious_only(show_suspicious_only)
         finally:
             self.tree_view.setUpdatesEnabled(True)
+            visible_rows = self.proxy_model.rowCount()
+            total_rows = self.model.rowCount()
             self._log_perf_if_slow(
                 "filter_table",
                 timer,
                 self._perf_threshold_filter_ms,
                 extra=(
                     f"search_len={len(search_text)} "
-                    f"category={selected_category} suspicious={int(show_suspicious_only)}"
+                    f"category={selected_category} suspicious={int(show_suspicious_only)} "
+                    f"visible={visible_rows}/{total_rows}"
                 ),
             )
 
@@ -968,20 +1174,24 @@ class AutorunsTab(QWidget):
         """模型重置后调整列宽（按分析优先级）"""
         # Category：固定宽度
         self.tree_view.setColumnWidth(0, AUTORUNS_CATEGORY_WIDTH)
-        
-        # Entry：最大宽度
-        self.tree_view.resizeColumnToContents(1)
-        if self.tree_view.columnWidth(1) > AUTORUNS_ENTRY_MAX_WIDTH:
+
+        if not self._column_widths_initialized:
+            # 首轮扫描完成后做一次性列宽采样，后续避免重复重计算
+            self.tree_view.resizeColumnToContents(1)
+            if self.tree_view.columnWidth(1) > AUTORUNS_ENTRY_MAX_WIDTH:
+                self.tree_view.setColumnWidth(1, AUTORUNS_ENTRY_MAX_WIDTH)
+
+            self.tree_view.resizeColumnToContents(2)
+            if self.tree_view.columnWidth(2) > AUTORUNS_DESC_MAX_WIDTH:
+                self.tree_view.setColumnWidth(2, AUTORUNS_DESC_MAX_WIDTH)
+
+            self.tree_view.resizeColumnToContents(3)
+            if self.tree_view.columnWidth(3) > AUTORUNS_PUBLISHER_MAX_WIDTH:
+                self.tree_view.setColumnWidth(3, AUTORUNS_PUBLISHER_MAX_WIDTH)
+            self._column_widths_initialized = True
+        else:
             self.tree_view.setColumnWidth(1, AUTORUNS_ENTRY_MAX_WIDTH)
-        
-        # Description：最大宽度
-        self.tree_view.resizeColumnToContents(2)
-        if self.tree_view.columnWidth(2) > AUTORUNS_DESC_MAX_WIDTH:
             self.tree_view.setColumnWidth(2, AUTORUNS_DESC_MAX_WIDTH)
-        
-        # Publisher：最大宽度（状态信息）
-        self.tree_view.resizeColumnToContents(3)
-        if self.tree_view.columnWidth(3) > AUTORUNS_PUBLISHER_MAX_WIDTH:
             self.tree_view.setColumnWidth(3, AUTORUNS_PUBLISHER_MAX_WIDTH)
         
         # Image Path：使用剩余空间
@@ -992,16 +1202,16 @@ class AutorunsTab(QWidget):
         timer = QElapsedTimer()
         timer.start()
         try:
-            print(f"[AutorunsTab] _populate_tree 开始，data 长度: {len(data)}")
+            _debug_log(f"[AutorunsTab] _populate_tree 开始，data 长度: {len(data)}")
             self._show_detail_placeholder()
             
-            print(f"[AutorunsTab] 清空模型")
+            _debug_log("[AutorunsTab] 清空模型")
             self.model.clear()
             
-            print(f"[AutorunsTab] 添加条目到模型")
+            _debug_log("[AutorunsTab] 添加条目到模型")
             self.model.add_entries(data)
             
-            print(f"[AutorunsTab] _populate_tree 完成")
+            _debug_log("[AutorunsTab] _populate_tree 完成")
             self._log_perf_if_slow(
                 "populate_tree",
                 timer,
@@ -1010,8 +1220,8 @@ class AutorunsTab(QWidget):
             )
         except Exception as e:
             import traceback
-            print(f"[AutorunsTab] _populate_tree 错误: {e}")
-            print(f"[AutorunsTab] 错误堆栈:\n{traceback.format_exc()}")
+            _debug_log(f"[AutorunsTab] _populate_tree 错误: {e}")
+            _debug_log(f"[AutorunsTab] 错误堆栈:\n{traceback.format_exc()}")
             self._log_perf_if_slow(
                 "populate_tree_failed",
                 timer,
@@ -1083,12 +1293,7 @@ class AutorunsTab(QWidget):
         menu.exec(self.tree_view.viewport().mapToGlobal(pos))
     
     def _show_detail_placeholder(self):
-        self._clear_detail_layout()
-        self.detail_placeholder = QLabel("Select an entry to view details")
-        self.detail_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.detail_placeholder.setStyleSheet(AUTORUNS_DETAIL_PLACEHOLDER_STYLESHEET)
-        self.detail_layout.addWidget(self.detail_placeholder, 0, 0, 1, 2)
-        self.current_entry_id = None
+        self._detail_renderer.show_placeholder()
 
     def _schedule_detail_refresh(self, detail_data):
         self._pending_detail_data = detail_data
@@ -1103,12 +1308,12 @@ class AutorunsTab(QWidget):
         self._pending_detail_data = None
 
         if not detail_data:
-            if self.current_entry_id is not None:
+            if self._detail_renderer.current_entry_id is not None:
                 self._show_detail_placeholder()
             return
 
         entry_id = detail_data.get('id')
-        if entry_id and entry_id == self.current_entry_id:
+        if entry_id and entry_id == self._detail_renderer.current_entry_id:
             return
         self._render_detail(detail_data)
 
@@ -1126,120 +1331,13 @@ class AutorunsTab(QWidget):
         source_index = self.proxy_model.mapToSource(index)
         node = source_index.internalPointer()
         self._schedule_detail_refresh(node.data if node else None)
-    
+
     def _render_detail(self, data):
         """渲染 Detail Pane（双栏 + 底部全宽排版）"""
         timer = QElapsedTimer()
         timer.start()
-        detail_data = data.get('detail_data', {})
-        entry_id = data.get('id')
-        
-        # 清空现有布局
-        self._clear_detail_layout()
-        
-        # 展开 Detail Pane
-        self.splitter.setSizes([700, 300])
-        
-        # 设置字体（字段名用正常大小，字段值用稍小字体）
-        title_font = QFont()
-        title_font.setPointSize(10)
-        title_font.setFamily("Segoe UI, Arial, sans-serif")
-        
-        value_font = QFont()
-        value_font.setPointSize(9)
-        value_font.setFamily("Segoe UI, Arial, sans-serif")
-        
-        # 创建字段标签的辅助函数
-        def create_field_label(key, value, is_selectable=True):
-            label = QLabel(str(value) if value else "")
-            label.setFont(value_font)
-            label.setWordWrap(True)
-            if is_selectable:
-                label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-            return label
-        
-        def create_title_label(text):
-            label = QLabel(text)
-            label.setStyleSheet("font-weight: bold; color: #000;")
-            label.setFont(title_font)
-            return label
-        
-        # 获取签名状态
-        signer_status = data.get('signer_status', '')
-        signature_display = "Unsigned"
-        signature_color = "#d32f2f"  # 红色
-        
-        if '(Verified)' in signer_status:
-            signature_display = "Verified"
-            signature_color = "#2e7d32"  # 绿色
-        elif '(Error)' in signer_status:
-            signature_display = f"Error: {data.get('signature_detail', 'Unknown error')}"
-            signature_color = "#f57c00"  # 橙色
-        
-        # 检查文件是否存在
-        import os
-        image_path = detail_data.get('image_path', '')
-        file_not_found = False
-        if image_path and image_path.lower() != 'file not found':
-            file_not_found = not os.path.exists(image_path)
-        
-        # 第一行：Entry | Size
-        row = 0
-        self.detail_layout.addWidget(create_title_label("Entry"), row, 0)
-        self.detail_layout.addWidget(create_field_label('entry', data.get('entry', '')), row + 1, 0)
-        self.detail_layout.addWidget(create_title_label("Size"), row, 1)
-        size_display = self.format_file_size(detail_data.get('size', ''))
-        self.detail_layout.addWidget(create_field_label('size', size_display), row + 1, 1)
-        
-        # 第二行：Description | Timestamp
-        row += 2
-        self.detail_layout.addWidget(create_title_label("Description"), row, 0)
-        self.detail_layout.addWidget(create_field_label('description', data.get('description', '')), row + 1, 0)
-        self.detail_layout.addWidget(create_title_label("Timestamp"), row, 1)
-        self.detail_layout.addWidget(create_field_label('timestamp', detail_data.get('timestamp', '')), row + 1, 1)
-        
-        # 第三行：Publisher | Signature
-        row += 2
-        self.detail_layout.addWidget(create_title_label("Publisher"), row, 0)
-        self.detail_layout.addWidget(create_field_label('publisher', detail_data.get('publisher', '')), row + 1, 0)
-        self.detail_layout.addWidget(create_title_label("Signature"), row, 1)
-        signature_label = create_field_label('signature', signature_display)
-        signature_label.setStyleSheet(f"color: {signature_color}; font-weight: bold;")
-        self.detail_layout.addWidget(signature_label, row + 1, 1)
-        
-        # 第四行：Version | Hash (SHA256)
-        row += 2
-        self.detail_layout.addWidget(create_title_label("Version"), row, 0)
-        self.detail_layout.addWidget(create_field_label('version', detail_data.get('version', '')), row + 1, 0)
-        self.detail_layout.addWidget(create_title_label("Hash (SHA256)"), row, 1)
-        hash_value = detail_data.get('hash', '')
-        hash_display = hash_value if hash_value else "Not calculated"
-        self.detail_layout.addWidget(create_field_label('hash', hash_display), row + 1, 1)
-        
-        # 底部全宽字段：Image Path
-        row += 2
-        self.detail_layout.addWidget(create_title_label("Image Path"), row, 0, 1, 2)
-        image_path_display = image_path
-        if file_not_found:
-            image_path_display = f"{image_path} (File not found)"
-        image_label = create_field_label('image_path', image_path_display)
-        bg_color = "#ffe0e0" if file_not_found else "#f0f0f0"
-        image_label.setStyleSheet(f"background-color: {bg_color}; padding: 5px; border-radius: 3px;")
-        self.detail_layout.addWidget(image_label, row + 1, 0, 1, 2)
-        
-        # 底部全宽字段：Command Line
-        row += 2
-        self.detail_layout.addWidget(create_title_label("Command Line"), row, 0, 1, 2)
-        command_line = detail_data.get('command_line', '')
-        cmd_label = create_field_label('command_line', command_line)
-        cmd_label.setStyleSheet("background-color: #f0f0f0; padding: 5px; border-radius: 3px;")
-        self.detail_layout.addWidget(cmd_label, row + 1, 0, 1, 2)
-        
-        # 添加弹性空间
-        self.detail_layout.setRowStretch(row + 2, 1)
-        
-        # 保存当前 entry_id
-        self.current_entry_id = entry_id
+        self._detail_renderer.render_detail(data, self.format_file_size)
+        entry_id = self._detail_renderer.current_entry_id
         self._log_perf_if_slow(
             "render_detail",
             timer,
@@ -1249,21 +1347,14 @@ class AutorunsTab(QWidget):
     
     def _clear_detail_layout(self):
         """清空 Detail 布局"""
-        while self.detail_layout.count():
-            item = self.detail_layout.takeAt(0)
-            widget = item.widget()
-            if widget:
-                widget.deleteLater()
-        self.detail_labels.clear()
+        self._detail_renderer.clear()
     
     def _on_entry_updated(self, entry_id):
         """Entry 更新时的回调"""
-        if self.current_entry_id == entry_id:
-            # 找到对应的节点并重新渲染
-            for node in self.model.root_nodes:
-                if node.data.get('id') == entry_id:
-                    self._render_detail(node.data)
-                    break
+        if self._detail_renderer.current_entry_id == entry_id:
+            node = self.model.get_node_by_id(entry_id)
+            if node:
+                self._render_detail(node.data)
     
     def _calculate_hash(self, data):
         """计算 Hash"""
@@ -1288,19 +1379,18 @@ class AutorunsTab(QWidget):
             # 写回 entry 数据
             entry_id = data.get('id')
             if entry_id:
-                for node in self.model.root_nodes:
-                    if node.data.get('id') == entry_id:
-                        node.data['sha256'] = sha256
-                        node.data['md5'] = md5
-                        # 更新 detail_data
-                        if 'detail_data' in node.data:
-                            node.data['detail_data']['hash'] = sha256
-                        # 刷新缓存并更新 UI
-                        self.model.refresh_node(node)
-                        self.model.emit_node_changed(node)
-                        # 发出 entry_updated 信号，触发 Detail Pane 同步刷新
-                        self.model.entry_updated.emit(entry_id)
-                        break
+                node = self.model.get_node_by_id(entry_id)
+                if node:
+                    node.data['sha256'] = sha256
+                    node.data['md5'] = md5
+                    # 更新 detail_data
+                    if 'detail_data' in node.data:
+                        node.data['detail_data']['hash'] = sha256
+                    # 刷新缓存并更新 UI
+                    self.model.refresh_node(node)
+                    self.model.emit_node_changed(node)
+                    # 发出 entry_updated 信号，触发 Detail Pane 同步刷新
+                    self.model.entry_updated.emit(entry_id)
         except Exception as e:
             QMessageBox.critical(self, "错误", f"计算 Hash 失败: {str(e)}")
     
@@ -1308,25 +1398,24 @@ class AutorunsTab(QWidget):
         """更新签名状态并同步刷新模型缓存"""
         if not entry_id:
             return None
-        for node in self.model.root_nodes:
-            if node.data.get('id') != entry_id:
-                continue
-            node.data['signer_status'] = signer_status
-            node.data['signature_detail'] = signature_detail
-            detail = node.data.get('detail_data')
-            if isinstance(detail, dict):
-                if '(Verified)' in signer_status:
-                    detail['signature'] = 'Verified'
-                elif '(Error)' in signer_status:
-                    detail['signature'] = 'Error'
-                else:
-                    detail['signature'] = 'Unsigned'
-                if publisher:
-                    detail['publisher'] = publisher
-            self.model.refresh_node(node)
-            self.model.emit_node_changed(node)
-            return node
-        return None
+        node = self.model.get_node_by_id(entry_id)
+        if not node:
+            return None
+        node.data['signer_status'] = signer_status
+        node.data['signature_detail'] = signature_detail
+        detail = node.data.get('detail_data')
+        if isinstance(detail, dict):
+            if '(Verified)' in signer_status:
+                detail['signature'] = 'Verified'
+            elif '(Error)' in signer_status:
+                detail['signature'] = 'Error'
+            else:
+                detail['signature'] = 'Unsigned'
+            if publisher:
+                detail['publisher'] = publisher
+        self.model.refresh_node(node)
+        self.model.emit_node_changed(node)
+        return node
 
     def _refresh_detail_if_selected(self, entry_id: str, node):
         if not entry_id or node is None:
@@ -1347,50 +1436,66 @@ class AutorunsTab(QWidget):
             return
 
         entry_id = data.get('id')
+        if not entry_id:
+            QMessageBox.warning(self, "警告", "无法验证签名：条目ID缺失")
+            return
 
-        # 使用 sigcheck64.exe 验证签名
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        sigcheck_path = os.path.join(base_dir, "tools", "sigcheck64.exe")
+        if not os.path.exists(sigcheck_path):
+            QMessageBox.warning(self, "警告", f"sigcheck64.exe 不存在: {sigcheck_path}")
+            return
+
+        running_worker = self._signature_workers_by_entry_id.get(entry_id)
+        if running_worker and running_worker.isRunning():
+            QMessageBox.information(self, "提示", "该条目正在进行签名验证，请稍候。")
+            return
+
+        # 使用 Windows 本地编码解码输出
+        encoding = locale.getpreferredencoding(False)
+        worker = SignatureVerifyWorker(entry_id, image_path, sigcheck_path, encoding)
+        worker.succeeded.connect(self._on_verify_signature_succeeded)
+        worker.failed.connect(self._on_verify_signature_failed)
+        worker.finished.connect(lambda: self._cleanup_signature_worker(worker, entry_id))
+        self._signature_workers.add(worker)
+        self._signature_workers_by_entry_id[entry_id] = worker
+        worker.start()
+
+    def _cleanup_signature_worker(self, worker, entry_id: str = ""):
         try:
-            import os
-            base_dir = os.path.dirname(os.path.dirname(__file__))
-            sigcheck_path = os.path.join(base_dir, "tools", "sigcheck64.exe")
+            self._signature_workers.discard(worker)
+            if entry_id and self._signature_workers_by_entry_id.get(entry_id) is worker:
+                self._signature_workers_by_entry_id.pop(entry_id, None)
+            worker.deleteLater()
+        except Exception:
+            pass
 
-            if not os.path.exists(sigcheck_path):
-                QMessageBox.warning(self, "警告", f"sigcheck64.exe 不存在: {sigcheck_path}")
-                return
+    def _on_verify_signature_succeeded(self, payload):
+        entry_id = payload.get("entry_id")
+        image_path = payload.get("image_path", "")
+        output = payload.get("output", "")
 
-            # 使用 Windows 本地编码解码输出
-            encoding = locale.getpreferredencoding(False)
-            cmd = [sigcheck_path, '-accepteula', '-nobanner', image_path]
-            result = subprocess.run(cmd, capture_output=True, timeout=30)
+        QMessageBox.information(self, "签名验证结果", f"文件: {image_path}\n\n{output}")
+        parsed = parse_sigcheck_output(output)
+        node = self._update_signature_state(
+            entry_id=entry_id,
+            signer_status=parsed.signer_status,
+            signature_detail=parsed.signature_detail,
+            publisher=parsed.publisher,
+        )
+        self._refresh_detail_if_selected(entry_id, node)
 
-            # 使用本地编码解码输出
-            stdout = result.stdout.decode(encoding, errors='replace')
-            stderr = result.stderr.decode(encoding, errors='replace')
+    def _on_verify_signature_failed(self, payload):
+        entry_id = payload.get("entry_id")
+        error_msg = payload.get("error_msg", "Unknown error")
+        severity = payload.get("severity", "warning")
 
-            if result.returncode == 0:
-                output = stdout.strip()
-                QMessageBox.information(self, "签名验证结果", f"文件: {image_path}\n\n{output}")
-
-                parsed = parse_sigcheck_output(output)
-                node = self._update_signature_state(
-                    entry_id=entry_id,
-                    signer_status=parsed.signer_status,
-                    signature_detail=parsed.signature_detail,
-                    publisher=parsed.publisher,
-                )
-                self._refresh_detail_if_selected(entry_id, node)
-            else:
-                error_msg = stderr if stderr else "Unknown error"
-                QMessageBox.warning(self, "警告", f"签名验证失败: {error_msg}")
-                self._update_signature_state(entry_id, "(Error)", error_msg)
-        except subprocess.TimeoutExpired:
-            error_msg = "签名验证超时"
-            QMessageBox.critical(self, "错误", error_msg)
-            self._update_signature_state(entry_id, "(Error)", error_msg)
-        except Exception as e:
-            error_msg = str(e)
+        if severity == "critical":
             QMessageBox.critical(self, "错误", f"签名验证失败: {error_msg}")
-            self._update_signature_state(entry_id, "(Error)", error_msg)
+        else:
+            QMessageBox.warning(self, "警告", f"签名验证失败: {error_msg}")
+
+        self._update_signature_state(entry_id, "(Error)", error_msg)
     
     def _open_in_explorer(self, path):
         """在资源管理器中打开文件（安全方式：打开目录并选中文件）"""
@@ -1428,32 +1533,18 @@ class AutorunsTab(QWidget):
             source_model = self.model
             proxy_model = self.proxy_model
             view = self.tree_view
-            
-            # 首先尝试同时匹配 entry 和 location
-            if target_location:
-                for i in range(source_model.rowCount()):
-                    index = source_model.index(i, 0)
-                    node = index.internalPointer()
-                    if node:
-                        node_entry = node.data.get('entry', '')
-                        node_location = node.data.get('location', '')
-                        if node_entry == target_entry and node_location == target_location:
-                            proxy_index = proxy_model.mapFromSource(index)
-                            if proxy_index.isValid():
-                                view.setCurrentIndex(proxy_index)
-                                view.scrollTo(proxy_index)
-                            return
-            
-            # 如果 location 为空或精确匹配失败，则只匹配 entry
-            for i in range(source_model.rowCount()):
-                index = source_model.index(i, 0)
-                node = index.internalPointer()
-                if node and node.data.get('entry') == target_entry:
-                    proxy_index = proxy_model.mapFromSource(index)
-                    if proxy_index.isValid():
-                        view.setCurrentIndex(proxy_index)
-                        view.scrollTo(proxy_index)
-                    return
+
+            node = source_model.get_node_by_entry_location(target_entry, target_location)
+            if not node:
+                return
+
+            source_index = source_model.get_source_index_for_node(node)
+            if not source_index.isValid():
+                return
+            proxy_index = proxy_model.mapFromSource(source_index)
+            if proxy_index.isValid():
+                view.setCurrentIndex(proxy_index)
+                view.scrollTo(proxy_index)
         except Exception as e:
             QMessageBox.warning(self, "错误", f"跳转失败: {str(e)}")
 
@@ -1491,24 +1582,37 @@ class AutorunsTab(QWidget):
             for index in selected_indexes:
                 # 将代理模型的索引转换为源模型的索引
                 source_index = self.proxy_model.mapToSource(index)
-                
-                # 获取源模型中的行号
-                source_row = source_index.row()
-                
-                # 获取原始数据中的对应项
-                if source_row < len(self.current_data):
-                    entry_dict = self.current_data[source_row]
-                    
-                    # 创建AutorunEntry对象
-                    from core.autoruns_parser import AutorunEntry
-                    entry = AutorunEntry(**entry_dict)
-                    
-                    # 尝试删除
-                    success, message = self.parser.delete_entry(entry)
-                    if not success:
-                        QMessageBox.warning(self, "删除失败", f"删除 {entry.entry} 失败: {message}")
-                    else:
-                        QMessageBox.information(self, "删除成功", f"{message}")
+                node = source_index.internalPointer()
+                entry_data = node.data if node and isinstance(node.data, dict) else None
+                if not entry_data:
+                    continue
+
+                from core.autoruns_parser import AutorunEntry
+
+                entry = AutorunEntry(
+                    location=entry_data.get('location', ''),
+                    entry=entry_data.get('entry', ''),
+                    enabled=entry_data.get('enabled', ''),
+                    category=entry_data.get('category', ''),
+                    description=entry_data.get('description', ''),
+                    publisher=entry_data.get('publisher', ''),
+                    company=entry_data.get('company', ''),
+                    image_path=entry_data.get('image_path', ''),
+                    launch_string=entry_data.get('launch_string', ''),
+                    timestamp=entry_data.get('timestamp', ''),
+                    signer=entry_data.get('signer', ''),
+                    signer_status=entry_data.get('signer_status', ''),
+                    signature_detail=entry_data.get('signature_detail', ''),
+                    file_size=entry_data.get('file_size', ''),
+                    file_version=entry_data.get('file_version', ''),
+                    service_name=entry_data.get('service_name', ''),
+                )
+
+                success, message = self.parser.delete_entry(entry)
+                if not success:
+                    QMessageBox.warning(self, "删除失败", f"删除 {entry.entry} 失败: {message}")
+                else:
+                    QMessageBox.information(self, "删除成功", f"{message}")
         
             # 重新扫描以查看更改
             self._start_scan()
@@ -1523,7 +1627,7 @@ class AutorunsTab(QWidget):
 
     def _delete_entry(self, data):
         """删除持久化条目"""
-        print(f"[DeleteEntry] 开始删除条目")
+        _debug_log("[DeleteEntry] 开始删除条目")
         
         entry_name = data.get('entry', '')
         category = data.get('category', '')
@@ -1531,12 +1635,12 @@ class AutorunsTab(QWidget):
         image_path = data.get('image_path', '')
         service_name = data.get('service_name', '')
         
-        print(f"[DeleteEntry] 条目信息:")
-        print(f"  - entry_name: {entry_name}")
-        print(f"  - category: {category}")
-        print(f"  - launch_string: {launch_string}")
-        print(f"  - image_path: {image_path}")
-        print(f"  - service_name: {service_name}")
+        _debug_log("[DeleteEntry] 条目信息:")
+        _debug_log(f"  - entry_name: {entry_name}")
+        _debug_log(f"  - category: {category}")
+        _debug_log(f"  - launch_string: {launch_string}")
+        _debug_log(f"  - image_path: {image_path}")
+        _debug_log(f"  - service_name: {service_name}")
         
         # 确认删除
         reply = QMessageBox.question(
@@ -1549,11 +1653,11 @@ class AutorunsTab(QWidget):
         )
         
         if reply == QMessageBox.StandardButton.No:
-            print(f"[DeleteEntry] 用户取消删除")
+            _debug_log("[DeleteEntry] 用户取消删除")
             return
         
         try:
-            print(f"[DeleteEntry] 创建 AutorunEntry 对象")
+            _debug_log("[DeleteEntry] 创建 AutorunEntry 对象")
             # 创建 AutorunEntry 对象
             from core.autoruns_parser import AutorunEntry
             entry = AutorunEntry(
@@ -1575,40 +1679,35 @@ class AutorunsTab(QWidget):
                 service_name=service_name
             )
             
-            print(f"[DeleteEntry] AutorunEntry 对象创建完成")
-            print(f"[DeleteEntry] 调用 parser.delete_entry")
+            _debug_log("[DeleteEntry] AutorunEntry 对象创建完成")
+            _debug_log("[DeleteEntry] 调用 parser.delete_entry")
             
             # 根据类型删除
             success, message = self.parser.delete_entry(entry)
             
-            print(f"[DeleteEntry] 删除结果: success={success}, message={message}")
+            _debug_log(f"[DeleteEntry] 删除结果: success={success}, message={message}")
             
             if success:
                 QMessageBox.information(self, "删除成功", message)
                 
-                print(f"[DeleteEntry] 从模型中移除条目")
+                _debug_log("[DeleteEntry] 从模型中移除条目")
                 # 从模型中移除该条目
                 entry_id = data.get('id')
-                for i, node in enumerate(self.model.root_nodes):
-                    if node.data.get('id') == entry_id:
-                        print(f"[DeleteEntry] 找到条目，索引: {i}")
-                        self.model.beginRemoveRows(QModelIndex(), i, i)
-                        self.model.root_nodes.pop(i)
-                        self.model.endRemoveRows()
-                        print(f"[DeleteEntry] 条目已从模型中移除")
-                        break
+                removed = self.model.remove_node_by_id(entry_id) if entry_id else False
+                if removed:
+                    _debug_log("[DeleteEntry] 条目已从模型中移除")
                 
-                print(f"[DeleteEntry] 清空 Detail Pane")
+                _debug_log("[DeleteEntry] 清空 Detail Pane")
                 # 清空 Detail Pane
                 self._show_detail_placeholder()
             else:
-                print(f"[DeleteEntry] 删除失败")
+                _debug_log("[DeleteEntry] 删除失败")
                 QMessageBox.warning(self, "删除失败", f"删除失败: {message}")
                 
         except Exception as e:
             import traceback
-            print(f"[DeleteEntry] 删除过程中发生错误: {e}")
-            print(f"[DeleteEntry] 错误堆栈:\n{traceback.format_exc()}")
+            _debug_log(f"[DeleteEntry] 删除过程中发生错误: {e}")
+            _debug_log(f"[DeleteEntry] 错误堆栈:\n{traceback.format_exc()}")
             QMessageBox.critical(self, "删除错误", f"删除过程中发生错误: {str(e)}")
     
     def _copy_and_encrypt_file(self, data):
@@ -1673,8 +1772,50 @@ class AutorunsTab(QWidget):
     
     def _export_csv(self):
         """导出CSV"""
-        # 实现导出逻辑...
-        pass
+        if not self.model.root_nodes:
+            QMessageBox.warning(self, "提示", "当前没有可导出的数据")
+            return
+
+        default_name = f"autoruns_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        save_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "导出 CSV",
+            default_name,
+            "CSV 文件 (*.csv)",
+        )
+        if not save_path:
+            return
+
+        fieldnames = [
+            "category",
+            "entry",
+            "description",
+            "publisher",
+            "image_path",
+            "location",
+            "enabled",
+            "signer_status",
+            "signature_detail",
+            "timestamp",
+            "command_line",
+            "launch_string",
+            "sha256",
+            "file_size",
+            "file_version",
+            "service_name",
+        ]
+
+        try:
+            with open(save_path, "w", newline="", encoding="utf-8-sig") as f:
+                writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+                writer.writeheader()
+                for node in self.model.root_nodes:
+                    if not node or not isinstance(node.data, dict):
+                        continue
+                    writer.writerow(node.data)
+            QMessageBox.information(self, "导出成功", f"CSV 已导出到:\n{save_path}")
+        except Exception as exc:
+            QMessageBox.critical(self, "导出失败", f"导出 CSV 失败: {exc}")
 
     def _show_risk_help(self):
         """显示风险等级说明对话框"""
