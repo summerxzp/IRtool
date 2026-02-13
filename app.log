@@ -607,3 +607,150 @@
 2026-02-11 17:28:22,104 - INFO - [Model] 添加条目完成，共 1729 个条目
 2026-02-11 17:28:22,104 - INFO - [AutorunsTab] _populate_tree 完成
 2026-02-11 17:28:22,105 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-12 11:30:45,163 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-12 11:31:33,966 - INFO - [ScanThread] 扫描完成，共 1729 个条目
+2026-02-12 11:31:33,967 - INFO - [ScanThread] 转换为字典格式
+2026-02-12 11:31:33,994 - INFO - [ScanThread] 发送 finished 信号
+2026-02-12 11:31:34,043 - INFO - [AutorunsTab] 扫描完成，收到 1729 个条目
+2026-02-12 11:31:34,074 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-12 11:31:34,074 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1729
+2026-02-12 11:31:34,076 - INFO - [AutorunsTab] 清空模型
+2026-02-12 11:31:34,076 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-12 11:31:34,076 - INFO - [Model] 开始添加 1729 个条目
+2026-02-12 11:31:34,496 - INFO - [Model] 添加条目完成，共 1729 个条目
+2026-02-12 11:31:34,496 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-12 11:31:34,498 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-12 11:42:10,789 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-12 11:42:58,738 - INFO - [ScanThread] 扫描完成，共 1729 个条目
+2026-02-12 11:42:58,740 - INFO - [ScanThread] 转换为字典格式
+2026-02-12 11:42:58,772 - INFO - [ScanThread] 发送 finished 信号
+2026-02-12 11:42:58,831 - INFO - [AutorunsTab] 扫描完成，收到 1729 个条目
+2026-02-12 11:42:58,863 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-12 11:42:58,864 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1729
+2026-02-12 11:42:58,864 - INFO - [AutorunsTab] 清空模型
+2026-02-12 11:42:58,864 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-12 11:42:58,864 - INFO - [Model] 开始添加 1729 个条目
+2026-02-12 11:43:00,477 - INFO - [Model] 添加条目完成，共 1729 个条目
+2026-02-12 11:43:00,477 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-12 11:43:00,478 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-12 16:01:47,078 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-12 16:03:12,207 - INFO - [ScanThread] 扫描完成，共 1729 个条目
+2026-02-12 16:03:12,207 - INFO - [ScanThread] 转换为字典格式
+2026-02-12 16:03:12,272 - INFO - [ScanThread] 发送 finished 信号
+2026-02-12 16:03:12,386 - INFO - [AutorunsTab] 扫描完成，收到 1729 个条目
+2026-02-12 16:03:12,459 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-12 16:03:12,460 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1729
+2026-02-12 16:03:12,460 - INFO - [AutorunsTab] 清空模型
+2026-02-12 16:03:12,460 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-12 16:03:12,460 - INFO - [Model] 开始添加 1729 个条目
+2026-02-12 16:03:16,375 - INFO - [Model] 添加条目完成，共 1729 个条目
+2026-02-12 16:03:16,376 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-12 16:03:16,377 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-12 16:59:50,959 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-12 17:00:40,935 - INFO - [ScanThread] 扫描完成，共 1729 个条目
+2026-02-12 17:00:40,935 - INFO - [ScanThread] 转换为字典格式
+2026-02-12 17:00:40,980 - INFO - [ScanThread] 发送 finished 信号
+2026-02-12 17:00:41,031 - INFO - [AutorunsTab] 扫描完成，收到 1729 个条目
+2026-02-12 17:00:41,070 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-12 17:00:41,070 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1729
+2026-02-12 17:00:41,096 - INFO - [AutorunsTab] 清空模型
+2026-02-12 17:00:41,097 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-12 17:00:41,097 - INFO - [Model] 开始添加 1729 个条目
+2026-02-12 17:00:43,006 - INFO - [Model] 添加条目完成，共 1729 个条目
+2026-02-12 17:00:43,006 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-12 17:00:43,008 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-12 17:54:13,819 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-12 17:55:11,872 - INFO - [ScanThread] 扫描完成，共 1659 个条目
+2026-02-12 17:55:11,872 - INFO - [ScanThread] 转换为字典格式
+2026-02-12 17:55:11,901 - INFO - [ScanThread] 发送 finished 信号
+2026-02-12 17:55:11,960 - INFO - [AutorunsTab] 扫描完成，收到 1659 个条目
+2026-02-12 17:55:11,996 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-12 17:55:11,997 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1659
+2026-02-12 17:55:11,997 - INFO - [AutorunsTab] 清空模型
+2026-02-12 17:55:11,997 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-12 17:55:11,999 - INFO - [Model] 开始添加 1659 个条目
+2026-02-12 17:55:13,846 - INFO - [Model] 添加条目完成，共 1659 个条目
+2026-02-12 17:55:13,846 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-12 17:55:13,846 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-12 17:55:34,053 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-12 17:56:33,392 - INFO - [ScanThread] 扫描完成，共 1729 个条目
+2026-02-12 17:56:33,392 - INFO - [ScanThread] 转换为字典格式
+2026-02-12 17:56:33,426 - INFO - [ScanThread] 发送 finished 信号
+2026-02-12 17:56:33,481 - INFO - [AutorunsTab] 扫描完成，收到 1729 个条目
+2026-02-12 17:56:33,518 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-12 17:56:33,518 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1729
+2026-02-12 17:56:33,518 - INFO - [AutorunsTab] 清空模型
+2026-02-12 17:56:33,519 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-12 17:56:33,519 - INFO - [Model] 开始添加 1729 个条目
+2026-02-12 17:56:35,202 - INFO - [Model] 添加条目完成，共 1729 个条目
+2026-02-12 17:56:35,202 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-12 17:56:35,203 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-13 10:59:38,335 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-13 11:00:26,810 - INFO - [ScanThread] 扫描完成，共 1737 个条目
+2026-02-13 11:00:26,810 - INFO - [ScanThread] 转换为字典格式
+2026-02-13 11:00:26,850 - INFO - [ScanThread] 发送 finished 信号
+2026-02-13 11:00:26,903 - INFO - [AutorunsTab] 扫描完成，收到 1737 个条目
+2026-02-13 11:00:26,936 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-13 11:00:26,936 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1737
+2026-02-13 11:00:26,959 - INFO - [AutorunsTab] 清空模型
+2026-02-13 11:00:26,959 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-13 11:00:26,959 - INFO - [Model] 开始添加 1737 个条目
+2026-02-13 11:00:28,455 - INFO - [Model] 添加条目完成，共 1737 个条目
+2026-02-13 11:00:28,455 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-13 11:00:28,457 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-13 11:07:02,618 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-13 11:07:41,958 - INFO - [ScanThread] 扫描完成，共 1737 个条目
+2026-02-13 11:07:41,958 - INFO - [ScanThread] 转换为字典格式
+2026-02-13 11:07:41,986 - INFO - [ScanThread] 发送 finished 信号
+2026-02-13 11:07:42,036 - INFO - [AutorunsTab] 扫描完成，收到 1737 个条目
+2026-02-13 11:07:42,067 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-13 11:07:42,067 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1737
+2026-02-13 11:07:42,068 - INFO - [AutorunsTab] 清空模型
+2026-02-13 11:07:42,068 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-13 11:07:42,068 - INFO - [Model] 开始添加 1737 个条目
+2026-02-13 11:07:43,422 - INFO - [Model] 添加条目完成，共 1737 个条目
+2026-02-13 11:07:43,422 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-13 11:07:43,422 - INFO - [AutorunsTab] 树形视图填充完成
+2026-02-13 11:08:00,559 - INFO - [_on_result_double_clicked] row=0, total_results=2
+2026-02-13 11:08:00,559 - INFO - [_on_result_double_clicked] result.related_entry={'category': 'Services', 'command_line': '"C:\\Program Files\\Everything\\Everything.exe" -svc', 'company': 'voidtools', 'description': 'Everything: Everything', 'enabled': 'enabled', 'entry': 'Everything', 'file_exists': True, 'file_size': '2265096', 'file_version': '1.4.1.1024', 'image_path': 'c:\\program files\\everything\\everything.exe', 'launch_string': '"C:\\Program Files\\Everything\\Everything.exe" -svc', 'location': 'HKLM\\System\\CurrentControlSet\\Services', 'md5': '', 'publisher': 'voidtools', 'service_name': 'Everything', 'sha256': '', 'signature_detail': '', 'signer': '(Verified) voidtools', 'signer_status': '(Verified) voidtools', 'timestamp': '2023/5/26 7:47'}
+2026-02-13 11:08:00,560 - INFO - [_on_result_double_clicked] emitting jump_to_autorun: entry=Everything, location=HKLM\System\CurrentControlSet\Services
+2026-02-13 11:08:00,562 - INFO - [jump_to_entry] target_entry=Everything, target_location=HKLM\System\CurrentControlSet\Services
+2026-02-13 11:08:00,563 - INFO - [jump_to_entry] full entry keys: dict_keys(['category', 'command_line', 'company', 'description', 'enabled', 'entry', 'file_exists', 'file_size', 'file_version', 'image_path', 'launch_string', 'location', 'md5', 'publisher', 'service_name', 'sha256', 'signature_detail', 'signer', 'signer_status', 'timestamp'])
+2026-02-13 11:08:00,563 - INFO - [jump_to_entry] source_model row count: 1737
+2026-02-13 11:08:00,563 - INFO - [jump_to_entry] trying to match with location...
+2026-02-13 11:08:00,563 - INFO - [jump_to_entry] row 0: node_entry=, node_location=
+2026-02-13 11:08:00,565 - INFO - [jump_to_entry] row 1: node_entry=autocheck autochk *, node_location=
+2026-02-13 11:08:00,565 - INFO - [jump_to_entry] row 2: node_entry=, node_location=
+2026-02-13 11:08:00,565 - INFO - [jump_to_entry] row 3: node_entry=Adobe Document Cloud for Microsoft Outlook - Acrobat, node_location=
+2026-02-13 11:08:00,565 - INFO - [jump_to_entry] row 4: node_entry=LyncAddin Class, node_location=
+2026-02-13 11:08:00,570 - INFO - [jump_to_entry] no match with location, falling back to entry only
+2026-02-13 11:08:00,570 - INFO - [jump_to_entry] trying to match entry only...
+2026-02-13 11:08:00,571 - INFO - [jump_to_entry] matched entry at row 120, location=
+2026-02-13 11:08:03,391 - INFO - [_on_result_double_clicked] row=1, total_results=2
+2026-02-13 11:08:03,391 - INFO - [_on_result_double_clicked] result.related_entry={'category': 'Logon', 'command_line': '"C:\\Program Files\\Everything\\Everything.exe" -startup', 'company': 'voidtools', 'description': 'Everything', 'enabled': 'enabled', 'entry': 'Everything', 'file_exists': True, 'file_size': '2265096', 'file_version': '1.4.1.1024', 'image_path': 'c:\\program files\\everything\\everything.exe', 'launch_string': '"C:\\Program Files\\Everything\\Everything.exe" -startup', 'location': 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run', 'md5': '', 'publisher': 'voidtools', 'service_name': '', 'sha256': '', 'signature_detail': '', 'signer': '(Verified) voidtools', 'signer_status': '(Verified) voidtools', 'timestamp': '2023/5/26 7:47'}
+2026-02-13 11:08:03,391 - INFO - [_on_result_double_clicked] emitting jump_to_autorun: entry=Everything, location=HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+2026-02-13 11:08:03,394 - INFO - [jump_to_entry] target_entry=Everything, target_location=HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+2026-02-13 11:08:03,394 - INFO - [jump_to_entry] full entry keys: dict_keys(['category', 'command_line', 'company', 'description', 'enabled', 'entry', 'file_exists', 'file_size', 'file_version', 'image_path', 'launch_string', 'location', 'md5', 'publisher', 'service_name', 'sha256', 'signature_detail', 'signer', 'signer_status', 'timestamp'])
+2026-02-13 11:08:03,394 - INFO - [jump_to_entry] source_model row count: 1737
+2026-02-13 11:08:03,396 - INFO - [jump_to_entry] trying to match with location...
+2026-02-13 11:08:03,396 - INFO - [jump_to_entry] row 0: node_entry=, node_location=
+2026-02-13 11:08:03,396 - INFO - [jump_to_entry] row 1: node_entry=autocheck autochk *, node_location=
+2026-02-13 11:08:03,396 - INFO - [jump_to_entry] row 2: node_entry=, node_location=
+2026-02-13 11:08:03,396 - INFO - [jump_to_entry] row 3: node_entry=Adobe Document Cloud for Microsoft Outlook - Acrobat, node_location=
+2026-02-13 11:08:03,396 - INFO - [jump_to_entry] row 4: node_entry=LyncAddin Class, node_location=
+2026-02-13 11:08:03,400 - INFO - [jump_to_entry] no match with location, falling back to entry only
+2026-02-13 11:08:03,400 - INFO - [jump_to_entry] trying to match entry only...
+2026-02-13 11:08:03,402 - INFO - [jump_to_entry] matched entry at row 120, location=
+2026-02-13 11:14:43,950 - INFO - [ScanThread] 开始扫描，include_hash=False, verify_sig=False
+2026-02-13 11:15:24,382 - INFO - [ScanThread] 扫描完成，共 1737 个条目
+2026-02-13 11:15:24,382 - INFO - [ScanThread] 转换为字典格式
+2026-02-13 11:15:24,408 - INFO - [ScanThread] 发送 finished 信号
+2026-02-13 11:15:24,453 - INFO - [AutorunsTab] 扫描完成，收到 1737 个条目
+2026-02-13 11:15:24,483 - INFO - [AutorunsTab] 开始填充树形视图
+2026-02-13 11:15:24,484 - INFO - [AutorunsTab] _populate_tree 开始，data 长度: 1737
+2026-02-13 11:15:24,484 - INFO - [AutorunsTab] 清空模型
+2026-02-13 11:15:24,484 - INFO - [AutorunsTab] 添加条目到模型
+2026-02-13 11:15:24,484 - INFO - [Model] 开始添加 1737 个条目
+2026-02-13 11:15:25,925 - INFO - [Model] 添加条目完成，共 1737 个条目
+2026-02-13 11:15:25,925 - INFO - [AutorunsTab] _populate_tree 完成
+2026-02-13 11:15:25,926 - INFO - [AutorunsTab] 树形视图填充完成

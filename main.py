@@ -57,10 +57,14 @@ def is_admin():
 class MainWindow(QMainWindow):
     """主窗口"""
     
-    def __init__(self):
+    def __init__(self, is_admin_mode=True):
         super().__init__()
         
-        self.setWindowTitle("终端安全检测工具 v1.0")
+        self.is_admin_mode = is_admin_mode
+        title = "终端安全检测工具 v1.0"
+        if not is_admin_mode:
+            title += " (非管理员模式)"
+        self.setWindowTitle(title)
         self.setMinimumSize(1200, 700)
         
         # 初始化核心模块
@@ -148,17 +152,25 @@ class MainWindow(QMainWindow):
 
 def main():
     # 检查管理员权限
-    if not is_admin():
-        # 尝试提权重启
-        ctypes.windll.shell32.ShellExecuteW(
+    is_admin_mode = is_admin()
+    if not is_admin_mode:
+        # 尝试提权重启，但如果用户拒绝则继续以非管理员模式运行
+        result = ctypes.windll.shell32.ShellExecuteW(
             None, "runas", sys.executable, " ".join(sys.argv), None, 1
         )
-        sys.exit(0)
+        # 如果用户点击了"是"接受UAC，ShellExecuteW会返回一个大于32的值
+        # 如果用户点击"否"拒绝UAC，返回值为SE_ERR_ACCESSDENIED (5)
+        # 如果提权成功，当前进程应该退出，让新进程接管
+        # 如果提权失败或被拒绝，继续以非管理员模式运行
+        if result > 32:
+            # 提权请求已发送，退出当前进程
+            sys.exit(0)
+        # 如果 result <= 32，表示提权失败，继续以非管理员模式运行
     
     app = QApplication(sys.argv)
     app.setStyle('Fusion')  # 使用Fusion风格
     
-    window = MainWindow()
+    window = MainWindow(is_admin_mode=is_admin_mode)
     window.show()
     
     sys.exit(app.exec())

@@ -67,6 +67,7 @@ class SearchService:
                 "image_path": getattr(entry, "image_path", ""),
                 "timestamp": getattr(entry, "timestamp", ""),
                 "category": getattr(entry, "category", ""),
+                "location": getattr(entry, "location", ""),
                 "enabled": getattr(entry, "enabled", ""),
                 "signer_status": getattr(entry, "signer_status", ""),
                 "launch_string": getattr(entry, "launch_string", ""),

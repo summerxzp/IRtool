@@ -9,12 +9,15 @@ from typing import List, Optional
 import hashlib
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTreeView, QAbstractItemView,
-    QCheckBox, QComboBox, QLineEdit, QPushButton, QMessageBox, 
-    QLabel, QFrame, QSplitter, QTextEdit, QGridLayout, QScrollArea
+    QCheckBox, QComboBox, QLineEdit, QPushButton, QMessageBox,
+    QLabel, QFrame, QSplitter, QTextEdit, QGridLayout, QScrollArea,
+    QDialog, QDialogButtonBox
 )
 from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, QThread, pyqtSignal, QSortFilterProxyModel, QObject
-from PyQt6.QtGui import QFont, QColor, QPalette
+from PyQt6.QtGui import QFont, QColor, QPalette, QIcon
 from core.autoruns_parser import AutorunsParser
+from core.icon_provider import get_icon, IconProvider
+from core.risk_hint import get_risk_evaluator, RiskLevel, get_risk_color, get_risk_foreground_color
 from ui.ui_style import apply_flat_style
 
 
@@ -29,12 +32,15 @@ class TreeNode:
 
 class AutorunsTreeModel(QAbstractItemModel):
     """Autoruns 数据的树形模型（基于真正的父子关系）"""
-    
+
     entry_updated = pyqtSignal(str)  # entry_id
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.root_nodes = []  # 存储根节点
+        self._icon_provider = IconProvider()
+        self._risk_evaluator = get_risk_evaluator()
+        self._risk_cache = {}  # 缓存风险评估结果
     
     def rowCount(self, parent=QModelIndex()):
         if parent.isValid():
@@ -49,14 +55,15 @@ class AutorunsTreeModel(QAbstractItemModel):
     def data(self, index, role=Qt.ItemDataRole.DisplayRole):
         if not index.isValid():
             return None
-            
+
         node = index.internalPointer()
-        
+
         try:
             if role == Qt.ItemDataRole.DisplayRole:
                 if index.column() == 0:
                     return node.data.get('category', '')
                 elif index.column() == 1:
+                    # Entry 列：只返回文本，图标通过 DecorationRole 处理
                     return node.data.get('entry', '')
                 elif index.column() == 2:
                     return node.data.get('description', '')
@@ -72,6 +79,12 @@ class AutorunsTreeModel(QAbstractItemModel):
                         return "(Unsigned)"
                 elif index.column() == 4:
                     return node.data.get('image_path', '')
+            elif role == Qt.ItemDataRole.DecorationRole:
+                # 图标显示：只在 Entry 列（第1列）显示
+                if index.column() == 1:
+                    image_path = node.data.get('image_path', '')
+                    risk_level = self._get_cached_risk_level(node)
+                    return self._icon_provider.get_icon_with_overlay(image_path, risk_level)
             elif role == Qt.ItemDataRole.ForegroundRole:
                 return self._get_row_foreground_color(node, index.column())
             elif role == Qt.ItemDataRole.BackgroundRole:
@@ -83,48 +96,56 @@ class AutorunsTreeModel(QAbstractItemModel):
             print(f"[Model.data] 错误: {e}")
             print(f"[Model.data] 错误堆栈:\n{traceback.format_exc()}")
             return None
-            
+
         return None
+
+    def _get_cached_risk_level(self, node) -> int:
+        """获取缓存的风险等级"""
+        entry_id = node.data.get('id', '')
+        if not entry_id:
+            # 无 ID 时实时计算
+            risk_hint = self._risk_evaluator.evaluate(node.data)
+            return risk_hint.level
+
+        if entry_id not in self._risk_cache:
+            risk_hint = self._risk_evaluator.evaluate(node.data)
+            self._risk_cache[entry_id] = risk_hint.level
+
+        return self._risk_cache[entry_id]
     
     def _get_row_foreground_color(self, node, column):
-        """根据条目状态返回前景颜色（字体颜色）"""
+        """根据条目状态返回前景颜色（字体颜色）- 使用风险评估"""
         try:
-            file_exists = node.data.get('file_exists', True)
-            signer_status = node.data.get('signer_status', '')
-            
             # 只对 Entry 列（第 1 列）应用颜色
             if column != 1:
                 return None
-            
-            # 文件不存在 → 深橙色
-            if not file_exists:
-                return QColor(200, 100, 0)
-            
-            # 未签名 → 深红色
-            if not signer_status or '(Verified)' not in signer_status:
-                return QColor(200, 0, 0)
-            
+
+            risk_level = self._get_cached_risk_level(node)
+
+            # 根据风险等级返回颜色
+            if risk_level == RiskLevel.HIGH_RISK:
+                return QColor(139, 0, 0)  # 深红色
+            elif risk_level == RiskLevel.SUSPICIOUS:
+                return QColor(184, 134, 11)  # 深金色
+
             return None
         except Exception as e:
             import traceback
             print(f"[Model._get_row_foreground_color] 错误: {e}")
             print(f"[Model._get_row_foreground_color] 错误堆栈:\n{traceback.format_exc()}")
             return None
-    
+
     def _get_row_background_color(self, node):
-        """根据条目状态返回背景颜色"""
+        """根据条目状态返回背景颜色 - 使用风险评估"""
         try:
-            file_exists = node.data.get('file_exists', True)
-            signer_status = node.data.get('signer_status', '')
-            
-            # 文件不存在 → 非常淡的黄色背景
-            if not file_exists:
-                return QColor(255, 250, 220)
-            
-            # 未签名 → 淡红色背景
-            if not signer_status or '(Verified)' not in signer_status:
-                return QColor(255, 182, 193)
-            
+            risk_level = self._get_cached_risk_level(node)
+
+            # 根据风险等级返回背景色
+            if risk_level == RiskLevel.HIGH_RISK:
+                return QColor(255, 228, 225)  # 浅红色（MistyRose）
+            elif risk_level == RiskLevel.SUSPICIOUS:
+                return QColor(255, 248, 220)  # 浅黄色（Cornsilk）
+
             return None
         except Exception as e:
             import traceback
@@ -211,6 +232,7 @@ class AutorunsTreeModel(QAbstractItemModel):
                         image_path = getattr(entry, 'image_path', '')
                         timestamp = getattr(entry, 'timestamp', '')
                         category = getattr(entry, 'category', '')
+                        location = getattr(entry, 'location', '')
                         enabled = getattr(entry, 'enabled', '')
                         signer_status = getattr(entry, 'signer_status', '')
                         launch_string = getattr(entry, 'launch_string', '')
@@ -269,6 +291,7 @@ class AutorunsTreeModel(QAbstractItemModel):
                         image_path = entry.get('image_path', '')
                         timestamp = entry.get('timestamp', '')
                         category = entry.get('category', '')
+                        location = entry.get('location', '')
                         enabled = entry.get('enabled', '')
                         signer_status = entry.get('signer_status', '')
                         launch_string = entry.get('launch_string', '')
@@ -303,6 +326,7 @@ class AutorunsTreeModel(QAbstractItemModel):
                         'image_path': image_path,
                         'timestamp': timestamp,
                         'category': category,
+                        'location': location,
                         'enabled': enabled,
                         'signer_status': signer_status,
                         'launch_string': launch_string,
@@ -344,6 +368,8 @@ class AutorunsTreeModel(QAbstractItemModel):
             self.beginRemoveRows(QModelIndex(), 0, len(self.root_nodes) - 1)
             self.root_nodes.clear()
             self.endRemoveRows()
+        # 清除风险缓存
+        self._risk_cache.clear()
 
 
 class AutorunsFilterProxyModel(QSortFilterProxyModel):
@@ -371,26 +397,23 @@ class AutorunsFilterProxyModel(QSortFilterProxyModel):
         self.invalidateFilter()
     
     def _is_suspicious(self, node):
-        """检测是否为可疑项
-        
-        检测规则：
-        1. Signature != Verified
-        2. file_exists == False
-        """
+        """检测是否为可疑项 - 使用风险评估"""
+        from core.risk_hint import RiskLevel
+
+        # 从源模型获取风险等级
+        source_model = self.sourceModel()
+        if hasattr(source_model, '_get_cached_risk_level'):
+            risk_level = source_model._get_cached_risk_level(node)
+            return risk_level >= RiskLevel.SUSPICIOUS
+
+        # 降级方案：使用原有逻辑
         data = node.data
-        
-        # 规则1: 无签名文件
         signer_status = data.get('signer_status', '')
-        # 签名状态格式: "(Verified) Publisher" 或 "(Error) ..." 或空
-        # 只有包含 "(Verified)" 才是已验证签名
         is_verified = '(Verified)' in signer_status
         if not is_verified:
             return True
-        
-        # 规则2: 文件不存在
         if not data.get('file_exists', True):
             return True
-        
         return False
     
     def data(self, proxy_index, role=Qt.ItemDataRole.DisplayRole):
@@ -724,6 +747,23 @@ class AutorunsTab(QWidget):
         status_inner_layout.addWidget(self.lbl_total_items)
         status_inner_layout.addWidget(self.lbl_categories)
         status_inner_layout.addStretch()  # 添加伸缩空间，使标签靠左对齐
+        
+        # 添加帮助按钮
+        self.btn_help = QPushButton("?")
+        self.btn_help.setFixedSize(22, 22)
+        self.btn_help.setToolTip("风险等级说明")
+        self.btn_help.clicked.connect(self._show_risk_help)
+        # 设置样式确保正确显示
+        self.btn_help.setStyleSheet("""
+            QPushButton {
+                font-weight: bold;
+                font-size: 12px;
+                text-align: center;
+                padding: 0px;
+                margin: 0px;
+            }
+        """)
+        status_inner_layout.addWidget(self.btn_help)
         
         self.status_frame.setLayout(status_inner_layout)
         layout.addWidget(self.status_frame)
@@ -1714,3 +1754,71 @@ class AutorunsTab(QWidget):
         """导出CSV"""
         # 实现导出逻辑...
         pass
+
+    def _show_risk_help(self):
+        """显示风险等级说明对话框"""
+        dialog = QDialog(self)
+        dialog.setWindowTitle("风险等级说明")
+        dialog.setMinimumSize(450, 350)
+
+        layout = QVBoxLayout(dialog)
+
+        # 标题
+        title_label = QLabel("<h3>条目风险等级判定标准</h3>")
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title_label)
+
+        # 内容区域
+        content_text = QTextEdit()
+        content_text.setReadOnly(True)
+        content_text.setStyleSheet("""
+            QTextEdit {
+                background-color: #f8f9fa;
+                border: 1px solid #dee2e6;
+                border-radius: 4px;
+                padding: 10px;
+                line-height: 1.6;
+            }
+        """)
+
+        help_content = """
+<p><b>🟢 明显可信 (SAFE)</b></p>
+<ul>
+<li>Microsoft 或其他可信发布者签名</li>
+<li>位于系统目录 (System32 / Program Files)</li>
+<li>签名验证通过</li>
+</ul>
+<p style="color: #2e7d32;">UI 表现：默认颜色，无特殊标记</p>
+
+<p><b>🟡 可疑 (SUSPICIOUS)</b></p>
+<ul>
+<li>非系统目录下的可执行文件</li>
+<li>发布者为空或未知</li>
+<li>无有效数字签名</li>
+</ul>
+<p style="color: #b8860b;">UI 表现：浅黄色背景，深金色字体，图标右下角黄色标记</p>
+
+<p><b>🔴 高风险 (HIGH_RISK)</b></p>
+<ul>
+<li>文件不存在 (已被删除或移动)</li>
+<li>无签名 + 位于用户可写目录 (AppData / Temp / Downloads 等)</li>
+<li>典型的恶意软件驻留路径</li>
+</ul>
+<p style="color: #8b0000;">UI 表现：浅红色背景，深红色字体，图标右下角红色标记</p>
+
+<p><b>💡 提示</b></p>
+<ul>
+<li>风险等级仅作为辅助分析参考，不是最终判定</li>
+<li>建议结合签名验证、文件哈希、命令行参数综合判断</li>
+<li>对于高风险条目，建议优先检查</li>
+</ul>
+"""
+        content_text.setHtml(help_content)
+        layout.addWidget(content_text)
+
+        # 按钮
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
+        button_box.accepted.connect(dialog.accept)
+        layout.addWidget(button_box)
+
+        dialog.exec()

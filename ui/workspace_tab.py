@@ -367,29 +367,73 @@ class RuleManagerDialog(QDialog):
         self._loading = True
         self.table.setRowCount(0)
         self._rule_index_by_row = []
+        
+        # 定义下拉框选项
+        field_options = [
+            "command_line", "image_path", "entry", "description",
+            "publisher", "company", "location", "category", "launch_string",
+            "ip", "hash", "sha256", "md5"
+        ]
+        type_options = ["包含", "正则", "等于"]
+        severity_options = ["critical", "high", "medium", "low"]
+        
         for idx, rule in enumerate(rules):
             self.table.insertRow(idx)
             match_list = rule.get("match", [])
             first_match = match_list[0] if match_list else {}
             display_type = self._display_match_type(first_match.get("type", ""))
+            
+            # ID 列 (隐藏)
             self.table.setItem(idx, 0, QTableWidgetItem(rule.get("id", "")))
+            
+            # Family 列 (文本)
             self.table.setItem(idx, 1, QTableWidgetItem(rule.get("family", "")))
-            self.table.setItem(idx, 2, QTableWidgetItem(first_match.get("field", "")))
-            self.table.setItem(idx, 3, QTableWidgetItem(display_type))
-            # 使用_display_rule_value将JSON转义值转换为可读格式
+            
+            # Field 列 (下拉框)
+            field_combo = QComboBox()
+            field_combo.addItems(field_options)
+            field_combo.setCurrentText(first_match.get("field", "command_line"))
+            field_combo.currentTextChanged.connect(lambda: self._on_combo_changed())
+            self.table.setCellWidget(idx, 2, field_combo)
+            
+            # Type 列 (下拉框)
+            type_combo = QComboBox()
+            type_combo.addItems(type_options)
+            type_combo.setCurrentText(display_type)
+            type_combo.currentTextChanged.connect(lambda: self._on_combo_changed())
+            self.table.setCellWidget(idx, 3, type_combo)
+            
+            # Value 列 (文本)
             display_value = self._display_rule_value(
                 first_match.get("value", ""),
                 first_match.get("type", "contains")
             )
             self.table.setItem(idx, 4, QTableWidgetItem(display_value))
-            self.table.setItem(idx, 5, QTableWidgetItem(rule.get("severity", "")))
+            
+            # Severity 列 (下拉框)
+            severity_combo = QComboBox()
+            severity_combo.addItems(severity_options)
+            severity_combo.setCurrentText(rule.get("severity", "medium"))
+            severity_combo.currentTextChanged.connect(lambda: self._on_combo_changed())
+            self.table.setCellWidget(idx, 5, severity_combo)
+            
+            # Date 列 (文本)
             self.table.setItem(idx, 6, QTableWidgetItem(rule.get("date", "")))
+            
+            # Note 列 (文本)
             self.table.setItem(idx, 7, QTableWidgetItem(rule.get("note", "")))
+            
             self._rule_index_by_row.append(idx)
+        
         self.table.resizeColumnsToContents()
         self.table.setColumnHidden(0, True)
         self._loading = False
         self._dirty = False
+    
+    def _on_combo_changed(self):
+        """下拉框值改变时触发"""
+        if not self._loading:
+            self._dirty = True
 
     def _add_rule(self):
         dialog = RuleEditDialog(self)
@@ -979,22 +1023,25 @@ class RuleManagerDialog(QDialog):
     def _apply_table_to_rules(self):
         rules = []
         for row in range(self.table.rowCount()):
-            field_item = self.table.item(row, 2)
-            type_item = self.table.item(row, 3)
             value_item = self.table.item(row, 4)
             family_item = self.table.item(row, 1)
-            severity_item = self.table.item(row, 5)
             date_item = self.table.item(row, 6)
             note_item = self.table.item(row, 7)
             id_item = self.table.item(row, 0)
 
-            field = field_item.text().strip() if field_item else ""
-            match_type = self._normalize_match_type(type_item.text() if type_item else "")
+            # 从下拉框获取值
+            field_combo = self.table.cellWidget(row, 2)
+            type_combo = self.table.cellWidget(row, 3)
+            severity_combo = self.table.cellWidget(row, 5)
+            
+            field = field_combo.currentText() if field_combo else ""
+            match_type = self._normalize_match_type(type_combo.currentText() if type_combo else "")
+            severity = severity_combo.currentText() if severity_combo else ""
+            
             # 使用_normalize_rule_value将UI输入值转换为JSON转义格式
             display_value = value_item.text().strip() if value_item else ""
             value = self._normalize_rule_value(display_value, match_type)
             family = family_item.text().strip() if family_item else ""
-            severity = severity_item.text().strip() if severity_item else ""
             date = date_item.text().strip() if date_item else ""
             note = note_item.text().strip() if note_item else ""
             rule_id = id_item.text().strip() if id_item else f"rule_{uuid.uuid4().hex[:8]}"

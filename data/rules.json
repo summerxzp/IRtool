@@ -138,5 +138,89 @@
     "severity": "critical",
     "date": "",
     "note": ""
+  },
+  {
+    "id": "rule_46837748",
+    "family": "test_chongfu",
+    "match": [
+      {
+        "field": "ip",
+        "type": "contains",
+        "value": "47.96.16.192"
+      }
+    ],
+    "severity": "critical",
+    "date": "",
+    "note": ""
+  },
+  {
+    "id": "ioc_54b8770f",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "c69c5603781ce894efb1055a53371c13d3510ccdcd1283473e5871cb9a8ce769"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/10",
+    "note": "H3tzd\\hemizINSP.exe"
+  },
+  {
+    "id": "ioc_8e2d5645",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "f34454a18daa1cdd6adb74e1797cbb124adadd3dd4d97c7f5ecedd0639e0d0ea"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/10",
+    "note": "H3tzd\\76ulASw1.3Yh"
+  },
+  {
+    "id": "ioc_ced78a51",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "03175ed8bb9c59f4ec623e385c2beae0b9ce5b2c20334cc95f390096be986c56"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/10",
+    "note": "H3tzd\\YT3h5.dll"
+  },
+  {
+    "id": "ioc_15b7ca78",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "46abaf39d6784f845403ad9c43e24c28d2cd0bb5385e80b4f192c9319dfcde5a"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/10",
+    "note": "SunloginCli5.31.exe"
+  },
+  {
+    "id": "ioc_37a97de4",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "command_line",
+        "type": "contains",
+        "value": "500ckaia5.com"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/10",
+    "note": ""
   }
 ]
