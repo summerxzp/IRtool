@@ -1,26 +1,35 @@
 # ui/autoruns_tab.py
 import subprocess
-import sys
 import uuid
 import locale
-from dataclasses import dataclass, asdict
-from typing import List, Optional
-import hashlib
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTreeView, QAbstractItemView,
     QCheckBox, QComboBox, QLineEdit, QPushButton, QMessageBox,
     QLabel, QFrame, QSplitter, QTextEdit, QGridLayout, QScrollArea,
     QDialog, QDialogButtonBox
 )
-from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, pyqtSignal, QSortFilterProxyModel, QObject, QTimer
+from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, pyqtSignal, QSortFilterProxyModel, QTimer, QElapsedTimer
 from PyQt6.QtGui import QFont, QColor, QPalette, QIcon, QBrush
-from core.autoruns_parser import AutorunsParser
-from core.icon_provider import get_icon, IconProvider
-from core.risk_hint import get_risk_evaluator, RiskLevel, get_risk_color, get_risk_foreground_color
+from core.icon_provider import IconProvider
+from core.risk_hint import get_risk_evaluator, RiskLevel
 from core.signature_parser import parse_sigcheck_output
 from ui.autoruns_entry_mapper import map_to_model_entry
 from ui.autoruns_scan_controller import AutorunsScanController
-from ui.ui_style import apply_flat_style
+from ui.ui_style import (
+    apply_flat_style,
+    AUTORUNS_CONTROL_HEIGHT,
+    AUTORUNS_HEADER_HEIGHT,
+    AUTORUNS_CATEGORY_WIDTH,
+    AUTORUNS_ENTRY_MAX_WIDTH,
+    AUTORUNS_DESC_MAX_WIDTH,
+    AUTORUNS_PUBLISHER_MAX_WIDTH,
+    AUTORUNS_TREE_STYLESHEET,
+    AUTORUNS_DETAIL_TITLE_STYLESHEET,
+    AUTORUNS_DETAIL_PLACEHOLDER_STYLESHEET,
+    AUTORUNS_SCROLL_AREA_STYLESHEET,
+    AUTORUNS_HELP_BUTTON_STYLESHEET,
+    AUTORUNS_RISK_HELP_TEXT_STYLESHEET,
+)
 
 
 
@@ -48,9 +57,17 @@ class AutorunsTreeModel(QAbstractItemModel):
             RiskLevel.SUSPICIOUS: QBrush(QColor(184, 134, 11)),  # 深金色
         }
         self._risk_background_brushes = {
-            RiskLevel.HIGH_RISK: QBrush(QColor(255, 228, 225)),  # 浅红色（MistyRose）
-            RiskLevel.SUSPICIOUS: QBrush(QColor(255, 248, 220)),  # 浅黄色（Cornsilk）
+            RiskLevel.HIGH_RISK: QBrush(QColor(255, 245, 245)),  # 更低饱和背景
+            RiskLevel.SUSPICIOUS: QBrush(QColor(255, 252, 242)),  # 更低饱和背景
         }
+        self._model_perf_threshold_ms = 50
+
+    def _log_perf_if_slow(self, stage: str, timer: QElapsedTimer, threshold_ms: int = None, extra: str = ""):
+        threshold = self._model_perf_threshold_ms if threshold_ms is None else threshold_ms
+        elapsed = timer.elapsed()
+        if elapsed >= threshold:
+            suffix = f" {extra}" if extra else ""
+            print(f"[Perf][AutorunsTreeModel.{stage}] {elapsed}ms{suffix}")
 
     def _compose_publisher_display(self, entry_data: dict) -> str:
         publisher = entry_data.get('publisher', '')
@@ -62,9 +79,13 @@ class AutorunsTreeModel(QAbstractItemModel):
             return f"(Error) {error_reason}"
         return "(Unsigned)"
 
-    def _refresh_entry_cache(self, entry_data: dict, invalidate_risk: bool = True):
+    def _refresh_entry_cache(
+        self,
+        entry_data: dict,
+        invalidate_risk: bool = True,
+        precompute_risk: bool = False,
+    ):
         """预计算显示与搜索字段，减少 data()/filter 重复开销"""
-        previous_risk_level = entry_data.get('_risk_level')
         entry_data['_display_values'] = (
             entry_data.get('category', ''),
             entry_data.get('entry', ''),
@@ -80,12 +101,9 @@ class AutorunsTreeModel(QAbstractItemModel):
             entry_data.get('command_line', '') or entry_data.get('launch_string', ''),
         ]
         entry_data['_search_blob'] = " ".join(str(v) for v in search_fields if v).lower()
-        risk_level = self._get_risk_level_for_entry(entry_data, invalidate_cache=invalidate_risk)
-        entry_data['_risk_level'] = risk_level
-        entry_data['_fg_brush'] = self._risk_foreground_brushes.get(risk_level)
-        entry_data['_bg_brush'] = self._risk_background_brushes.get(risk_level)
-        if previous_risk_level is not None and previous_risk_level != risk_level:
-            entry_data.pop('_icon_overlay', None)
+
+        if invalidate_risk or precompute_risk:
+            self._ensure_risk_visual_cache(entry_data, invalidate_cache=invalidate_risk)
 
     def _get_risk_level_for_entry(self, entry_data: dict, invalidate_cache: bool = False):
         entry_id = entry_data.get('id', '')
@@ -98,6 +116,16 @@ class AutorunsTreeModel(QAbstractItemModel):
         risk_level = self._risk_evaluator.evaluate(entry_data).level
         if entry_id:
             self._risk_cache[entry_id] = risk_level
+        return risk_level
+
+    def _ensure_risk_visual_cache(self, entry_data: dict, invalidate_cache: bool = False) -> int:
+        previous_risk_level = entry_data.get('_risk_level')
+        risk_level = self._get_risk_level_for_entry(entry_data, invalidate_cache=invalidate_cache)
+        entry_data['_risk_level'] = risk_level
+        entry_data['_fg_brush'] = self._risk_foreground_brushes.get(risk_level)
+        entry_data['_bg_brush'] = self._risk_background_brushes.get(risk_level)
+        if previous_risk_level is not None and previous_risk_level != risk_level:
+            entry_data.pop('_icon_overlay', None)
         return risk_level
 
     def refresh_node(self, node):
@@ -146,6 +174,19 @@ class AutorunsTreeModel(QAbstractItemModel):
             if 0 <= col < len(display_values):
                 return display_values[col]
             return None
+        elif role == Qt.ItemDataRole.ToolTipRole:
+            col = index.column()
+            if col == 0:
+                return node.data.get('category', '')
+            if col == 1:
+                return node.data.get('entry', '')
+            if col == 2:
+                return node.data.get('description', '')
+            if col == 3:
+                return self._compose_publisher_display(node.data)
+            if col == 4:
+                return node.data.get('image_path', '')
+            return None
         elif role == Qt.ItemDataRole.DecorationRole:
             # 图标显示：只在 Entry 列（第1列）显示
             if index.column() == 1:
@@ -153,7 +194,7 @@ class AutorunsTreeModel(QAbstractItemModel):
         elif role == Qt.ItemDataRole.ForegroundRole:
             return self._get_row_foreground_color(node, index.column())
         elif role == Qt.ItemDataRole.BackgroundRole:
-            return self._get_row_background_color(node)
+            return self._get_row_background_color(node, index.column())
         elif role == Qt.ItemDataRole.UserRole:
             return node.data
 
@@ -164,9 +205,7 @@ class AutorunsTreeModel(QAbstractItemModel):
         cached_level = node.data.get('_risk_level')
         if cached_level is not None:
             return cached_level
-        risk_level = self._get_risk_level_for_entry(node.data, invalidate_cache=False)
-        node.data['_risk_level'] = risk_level
-        return risk_level
+        return self._ensure_risk_visual_cache(node.data, invalidate_cache=False)
 
     def get_node_icon(self, node) -> QIcon:
         """获取节点图标（节点级缓存）"""
@@ -184,10 +223,20 @@ class AutorunsTreeModel(QAbstractItemModel):
         # 只对 Entry 列（第 1 列）应用颜色
         if column != 1:
             return None
+        brush = node.data.get('_fg_brush')
+        if brush is not None:
+            return brush
+        self._ensure_risk_visual_cache(node.data, invalidate_cache=False)
         return node.data.get('_fg_brush')
 
-    def _get_row_background_color(self, node):
+    def _get_row_background_color(self, node, column):
         """根据条目状态返回背景颜色 - 使用风险评估"""
+        if column != 1:
+            return None
+        brush = node.data.get('_bg_brush')
+        if brush is not None:
+            return brush
+        self._ensure_risk_visual_cache(node.data, invalidate_cache=False)
         return node.data.get('_bg_brush')
 
     def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
@@ -247,7 +296,9 @@ class AutorunsTreeModel(QAbstractItemModel):
         """添加新的条目到模型"""
         if not entries:
             return
-        
+
+        timer = QElapsedTimer()
+        timer.start()
         try:
             print(f"[Model] 开始添加 {len(entries)} 个条目")
             
@@ -276,6 +327,12 @@ class AutorunsTreeModel(QAbstractItemModel):
             # 结束重置
             self.endResetModel()
             print(f"[Model] 添加条目完成，共 {len(self.root_nodes)} 个条目")
+            self._log_perf_if_slow(
+                "add_entries",
+                timer,
+                threshold_ms=50,
+                extra=f"entries={len(entries)}",
+            )
             
         except Exception as e:
             import traceback
@@ -286,6 +343,12 @@ class AutorunsTreeModel(QAbstractItemModel):
                 self.endResetModel()
             except:
                 pass
+            self._log_perf_if_slow(
+                "add_entries_failed",
+                timer,
+                threshold_ms=50,
+                extra=f"entries={len(entries)}",
+            )
     
     def clear(self):
         """清空模型"""
@@ -442,12 +505,16 @@ class AutorunsTab(QWidget):
         self._icon_warmup_active = False
         self._icon_warmup_index = 0
         self._icon_warmup_batch_size = 20
+        self._icon_warmup_interval_ms = 8
         self._filter_debounce_timer = QTimer(self)
         self._filter_debounce_timer.setSingleShot(True)
         self._filter_debounce_timer.setInterval(150)
         self._filter_debounce_timer.timeout.connect(self._filter_table)
         self._detail_refresh_scheduled = False
         self._pending_detail_data = None
+        self._perf_threshold_filter_ms = 16
+        self._perf_threshold_detail_ms = 16
+        self._perf_threshold_model_ms = 50
 
         self.scan_controller = AutorunsScanController(self.parser, parent=self)
         self.scan_controller.scan_started.connect(self._on_scan_started)
@@ -466,10 +533,12 @@ class AutorunsTab(QWidget):
         
         self.btn_scan = QPushButton("开始扫描")
         self.btn_scan.clicked.connect(self._start_scan)
+        self.btn_scan.setFixedHeight(AUTORUNS_CONTROL_HEIGHT)
         
         self.btn_cancel = QPushButton("取消扫描")
         self.btn_cancel.clicked.connect(self._cancel_scan)
         self.btn_cancel.setEnabled(False)  # 默认禁用，扫描时启用
+        self.btn_cancel.setFixedHeight(AUTORUNS_CONTROL_HEIGHT)
         
         self.chk_hash = QCheckBox("计算Hash")
         self.chk_hash.setChecked(False)  # 默认不计算，加快速度
@@ -481,6 +550,7 @@ class AutorunsTab(QWidget):
         self.cmb_category = QComboBox()
         self.cmb_category.addItem("全部类别")
         self.cmb_category.currentTextChanged.connect(self._on_category_filter_changed)
+        self.cmb_category.setFixedHeight(AUTORUNS_CONTROL_HEIGHT)
         
         self.chk_suspicious = QCheckBox("仅显示可疑项")
         self.chk_suspicious.stateChanged.connect(self._on_filter_option_changed)
@@ -490,12 +560,15 @@ class AutorunsTab(QWidget):
         self.search_box = QLineEdit()
         self.search_box.setPlaceholderText("类型/名称/描述/发布者/文件路径/启动命令")
         self.search_box.textChanged.connect(self._schedule_filter_table)
+        self.search_box.setFixedHeight(AUTORUNS_CONTROL_HEIGHT)
         
         self.btn_delete = QPushButton("删除选中项")
         self.btn_delete.clicked.connect(self._delete_selected)
+        self.btn_delete.setFixedHeight(AUTORUNS_CONTROL_HEIGHT)
         
         self.btn_export = QPushButton("导出CSV")
         self.btn_export.clicked.connect(self._export_csv)
+        self.btn_export.setFixedHeight(AUTORUNS_CONTROL_HEIGHT)
         
         toolbar.addWidget(self.btn_scan)
         toolbar.addWidget(self.btn_cancel)
@@ -546,14 +619,9 @@ class AutorunsTab(QWidget):
         self.tree_view.setAlternatingRowColors(True)
         
         # 设置样式：显示行分隔线（不覆盖 Model 的 BackgroundRole）
-        self.tree_view.setStyleSheet("""
-            QTreeView {
-                border: 1px solid #d6dbe1;
-                gridline-color: #e3e8ef;
-                background-color: #ffffff;
-                alternate-background-color: #f7f9fb;
-            }
-        """)
+        self.tree_view.setStyleSheet(AUTORUNS_TREE_STYLESHEET)
+        self.tree_view.setTextElideMode(Qt.TextElideMode.ElideMiddle)
+        self.tree_view.header().setFixedHeight(AUTORUNS_HEADER_HEIGHT)
         
         # 设置选中态的 palette
         palette = self.tree_view.palette()
@@ -578,19 +646,14 @@ class AutorunsTab(QWidget):
         
         # Detail 标题
         detail_label = QLabel("详细信息")
-        detail_label.setStyleSheet("font-weight: bold; font-size: 12px; padding: 5px;")
+        detail_label.setStyleSheet(AUTORUNS_DETAIL_TITLE_STYLESHEET)
         detail_layout.addWidget(detail_label)
         
         # 创建滚动区域
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
         scroll_area.setFrameShape(QFrame.Shape.NoFrame)
-        scroll_area.setStyleSheet("""
-            QScrollArea {
-                border: 1px solid #d6dbe1;
-                background-color: #ffffff;
-            }
-        """)
+        scroll_area.setStyleSheet(AUTORUNS_SCROLL_AREA_STYLESHEET)
         
         # Detail 内容容器
         self.detail_widget = QWidget()
@@ -602,7 +665,7 @@ class AutorunsTab(QWidget):
         # 初始状态：显示提示文字
         self.detail_placeholder = QLabel("Select an entry to view details")
         self.detail_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.detail_placeholder.setStyleSheet("color: #999; font-style: italic;")
+        self.detail_placeholder.setStyleSheet(AUTORUNS_DETAIL_PLACEHOLDER_STYLESHEET)
         self.detail_layout.addWidget(self.detail_placeholder, 0, 0, 1, 2)
         
         # 存储当前显示的 entry_id
@@ -658,26 +721,23 @@ class AutorunsTab(QWidget):
         self.btn_help.setFixedSize(22, 22)
         self.btn_help.setToolTip("风险等级说明")
         self.btn_help.clicked.connect(self._show_risk_help)
-        # 设置样式确保正确显示
-        self.btn_help.setStyleSheet("""
-            QPushButton {
-                font-weight: bold;
-                font-size: 12px;
-                text-align: center;
-                padding: 0px;
-                margin: 0px;
-            }
-        """)
+        self.btn_help.setStyleSheet(AUTORUNS_HELP_BUTTON_STYLESHEET)
         status_inner_layout.addWidget(self.btn_help)
         
         self.status_frame.setLayout(status_inner_layout)
         layout.addWidget(self.status_frame)
 
+    def _log_perf_if_slow(self, stage: str, timer: QElapsedTimer, threshold_ms: int, extra: str = ""):
+        elapsed = timer.elapsed()
+        if elapsed >= threshold_ms:
+            suffix = f" {extra}" if extra else ""
+            print(f"[Perf][AutorunsTab.{stage}] {elapsed}ms{suffix}")
+
     def _schedule_icon_warmup(self):
         """分批预热图标缓存，减少滚动到新区域时的顿挫"""
         self._icon_warmup_active = True
         self._icon_warmup_index = 0
-        QTimer.singleShot(0, self._warmup_icons_batch)
+        QTimer.singleShot(self._icon_warmup_interval_ms, self._warmup_icons_batch)
 
     def _warmup_icons_batch(self):
         if not self._icon_warmup_active:
@@ -697,7 +757,7 @@ class AutorunsTab(QWidget):
 
         self._icon_warmup_index = end
         if self._icon_warmup_index < total and self._icon_warmup_active:
-            QTimer.singleShot(0, self._warmup_icons_batch)
+            QTimer.singleShot(self._icon_warmup_interval_ms, self._warmup_icons_batch)
         else:
             self._icon_warmup_active = False
     
@@ -857,6 +917,8 @@ class AutorunsTab(QWidget):
     
     def _filter_table(self):
         """过滤表格内容 - 现在使用代理模型"""
+        timer = QElapsedTimer()
+        timer.start()
         search_text = self.search_box.text()
         selected_category = self.cmb_category.currentText()
         show_suspicious_only = self.chk_suspicious.isChecked()
@@ -870,6 +932,12 @@ class AutorunsTab(QWidget):
                 and self.proxy_model.selected_category == normalized_category
                 and self.proxy_model.show_suspicious_only == normalized_suspicious_only
             ):
+                self._log_perf_if_slow(
+                    "filter_skip",
+                    timer,
+                    self._perf_threshold_filter_ms,
+                    extra=f"search_len={len(search_text)}",
+                )
                 return
 
         self.tree_view.setUpdatesEnabled(False)
@@ -886,32 +954,43 @@ class AutorunsTab(QWidget):
                 self.proxy_model.set_show_suspicious_only(show_suspicious_only)
         finally:
             self.tree_view.setUpdatesEnabled(True)
+            self._log_perf_if_slow(
+                "filter_table",
+                timer,
+                self._perf_threshold_filter_ms,
+                extra=(
+                    f"search_len={len(search_text)} "
+                    f"category={selected_category} suspicious={int(show_suspicious_only)}"
+                ),
+            )
 
     def _on_model_reset(self):
         """模型重置后调整列宽（按分析优先级）"""
         # Category：固定宽度
-        self.tree_view.setColumnWidth(0, 100)
+        self.tree_view.setColumnWidth(0, AUTORUNS_CATEGORY_WIDTH)
         
-        # Entry：最大宽度 350
+        # Entry：最大宽度
         self.tree_view.resizeColumnToContents(1)
-        if self.tree_view.columnWidth(1) > 350:
-            self.tree_view.setColumnWidth(1, 350)
+        if self.tree_view.columnWidth(1) > AUTORUNS_ENTRY_MAX_WIDTH:
+            self.tree_view.setColumnWidth(1, AUTORUNS_ENTRY_MAX_WIDTH)
         
-        # Description：最大宽度 250
+        # Description：最大宽度
         self.tree_view.resizeColumnToContents(2)
-        if self.tree_view.columnWidth(2) > 250:
-            self.tree_view.setColumnWidth(2, 250)
+        if self.tree_view.columnWidth(2) > AUTORUNS_DESC_MAX_WIDTH:
+            self.tree_view.setColumnWidth(2, AUTORUNS_DESC_MAX_WIDTH)
         
-        # Publisher：最大宽度 220
+        # Publisher：最大宽度（状态信息）
         self.tree_view.resizeColumnToContents(3)
-        if self.tree_view.columnWidth(3) > 220:
-            self.tree_view.setColumnWidth(3, 220)
+        if self.tree_view.columnWidth(3) > AUTORUNS_PUBLISHER_MAX_WIDTH:
+            self.tree_view.setColumnWidth(3, AUTORUNS_PUBLISHER_MAX_WIDTH)
         
         # Image Path：使用剩余空间
         self.tree_view.header().setStretchLastSection(True)
     
     def _populate_tree(self, data):
         """填充树形视图"""
+        timer = QElapsedTimer()
+        timer.start()
         try:
             print(f"[AutorunsTab] _populate_tree 开始，data 长度: {len(data)}")
             self._show_detail_placeholder()
@@ -923,10 +1002,22 @@ class AutorunsTab(QWidget):
             self.model.add_entries(data)
             
             print(f"[AutorunsTab] _populate_tree 完成")
+            self._log_perf_if_slow(
+                "populate_tree",
+                timer,
+                self._perf_threshold_model_ms,
+                extra=f"entries={len(data)}",
+            )
         except Exception as e:
             import traceback
             print(f"[AutorunsTab] _populate_tree 错误: {e}")
             print(f"[AutorunsTab] 错误堆栈:\n{traceback.format_exc()}")
+            self._log_perf_if_slow(
+                "populate_tree_failed",
+                timer,
+                self._perf_threshold_model_ms,
+                extra=f"entries={len(data)}",
+            )
     
     def _on_context_menu(self, pos):
         """右键菜单"""
@@ -995,7 +1086,7 @@ class AutorunsTab(QWidget):
         self._clear_detail_layout()
         self.detail_placeholder = QLabel("Select an entry to view details")
         self.detail_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.detail_placeholder.setStyleSheet("color: #999; font-style: italic;")
+        self.detail_placeholder.setStyleSheet(AUTORUNS_DETAIL_PLACEHOLDER_STYLESHEET)
         self.detail_layout.addWidget(self.detail_placeholder, 0, 0, 1, 2)
         self.current_entry_id = None
 
@@ -1038,6 +1129,8 @@ class AutorunsTab(QWidget):
     
     def _render_detail(self, data):
         """渲染 Detail Pane（双栏 + 底部全宽排版）"""
+        timer = QElapsedTimer()
+        timer.start()
         detail_data = data.get('detail_data', {})
         entry_id = data.get('id')
         
@@ -1147,6 +1240,12 @@ class AutorunsTab(QWidget):
         
         # 保存当前 entry_id
         self.current_entry_id = entry_id
+        self._log_perf_if_slow(
+            "render_detail",
+            timer,
+            self._perf_threshold_detail_ms,
+            extra=f"entry_id={entry_id}",
+        )
     
     def _clear_detail_layout(self):
         """清空 Detail 布局"""
@@ -1593,15 +1692,7 @@ class AutorunsTab(QWidget):
         # 内容区域
         content_text = QTextEdit()
         content_text.setReadOnly(True)
-        content_text.setStyleSheet("""
-            QTextEdit {
-                background-color: #f8f9fa;
-                border: 1px solid #dee2e6;
-                border-radius: 4px;
-                padding: 10px;
-                line-height: 1.6;
-            }
-        """)
+        content_text.setStyleSheet(AUTORUNS_RISK_HELP_TEXT_STYLESHEET)
 
         help_content = """
 <p><b>🟢 明显可信 (SAFE)</b></p>
@@ -1618,7 +1709,7 @@ class AutorunsTab(QWidget):
 <li>发布者为空或未知</li>
 <li>无有效数字签名</li>
 </ul>
-<p style="color: #b8860b;">UI 表现：浅黄色背景，深金色字体，图标右下角黄色标记</p>
+<p style="color: #b8860b;">UI 表现：Entry 列浅黄色强调，深金色字体，图标右下角黄色标记</p>
 
 <p><b>🔴 高风险 (HIGH_RISK)</b></p>
 <ul>
@@ -1626,7 +1717,7 @@ class AutorunsTab(QWidget):
 <li>无签名 + 位于用户可写目录 (AppData / Temp / Downloads 等)</li>
 <li>典型的恶意软件驻留路径</li>
 </ul>
-<p style="color: #8b0000;">UI 表现：浅红色背景，深红色字体，图标右下角红色标记</p>
+<p style="color: #8b0000;">UI 表现：Entry 列浅红色强调，深红色字体，图标右下角红色标记</p>
 
 <p><b>💡 提示</b></p>
 <ul>

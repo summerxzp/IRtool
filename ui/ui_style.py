@@ -123,5 +123,52 @@ QToolTip {
 """
 
 
+# Autoruns Tab specific style tokens
+AUTORUNS_CONTROL_HEIGHT = 28
+AUTORUNS_HEADER_HEIGHT = 28
+AUTORUNS_CATEGORY_WIDTH = 110
+AUTORUNS_ENTRY_MAX_WIDTH = 340
+AUTORUNS_DESC_MAX_WIDTH = 260
+AUTORUNS_PUBLISHER_MAX_WIDTH = 230
+
+AUTORUNS_TREE_STYLESHEET = """
+QTreeView {
+    border: 1px solid #d6dbe1;
+    gridline-color: #e3e8ef;
+    background-color: #ffffff;
+    alternate-background-color: #f7f9fb;
+}
+"""
+
+AUTORUNS_DETAIL_TITLE_STYLESHEET = "font-weight: 600; font-size: 12px; padding: 5px 4px;"
+AUTORUNS_DETAIL_PLACEHOLDER_STYLESHEET = "color: #88919c; font-style: italic;"
+AUTORUNS_SCROLL_AREA_STYLESHEET = """
+QScrollArea {
+    border: 1px solid #d6dbe1;
+    background-color: #ffffff;
+}
+"""
+
+AUTORUNS_HELP_BUTTON_STYLESHEET = """
+QPushButton {
+    font-weight: 700;
+    font-size: 12px;
+    text-align: center;
+    padding: 0px;
+    margin: 0px;
+}
+"""
+
+AUTORUNS_RISK_HELP_TEXT_STYLESHEET = """
+QTextEdit {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 10px;
+    line-height: 1.6;
+}
+"""
+
+
 def apply_flat_style(widget: QWidget) -> None:
     widget.setStyleSheet(_BASE_STYLESHEET)
