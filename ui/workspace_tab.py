@@ -504,6 +504,17 @@ class RuleManagerDialog(QDialog):
         help_text = """
 <h2>规则添加规范与示例</h2>
 
+<div style="background:#fff3cd;padding:15px;border-radius:5px;margin-bottom:20px;">
+<h3>重要设计理念</h3>
+<p><b>本工具是分析型安全工具，不是 IOC 查询工具。</b></p>
+<ul>
+<li>IP 不支持搜索框直接搜索，只能通过<b>规则扫描</b>发现</li>
+<li>IP 扫描基于历史数据快照，<b>非实时监控</b></li>
+<li>规则目标是发现"相同特征的可疑条目"，不进行自动定性</li>
+<li>最终判定需要人工确认</li>
+</ul>
+</div>
+
 <h3>一、基本格式</h3>
 <p>每条规则包含以下要素：</p>
 <ul>
@@ -554,7 +565,14 @@ class RuleManagerDialog(QDialog):
     <li><code>[::1]</code> (IPv6格式)</li>
     </ul>
 </li>
-<li><b>注意</b>：IP匹配会自动从文本中提取所有IP地址进行比对</li>
+<li><b>重要提示</b>：
+    <ul>
+    <li><b>搜索框不再支持直接搜索 IP</b> - IP 只能通过规则扫描发现</li>
+    <li>IP 扫描基于历史连接记录和已采集的数据快照，<b>非实时监控</b></li>
+    <li>IP 匹配结果会绑定到具体条目，作为"被规则命中的证据"呈现</li>
+    <li>扫描结果是辅助分析，<b>不代表最终定性</b></li>
+    </ul>
+</li>
 </ul>
 
 <h4>4. sha256 / md5 / hash (文件哈希)</h4>
@@ -1316,7 +1334,7 @@ class WorkspaceTab(QWidget):
         search_layout = QHBoxLayout()
         search_label = QLabel("全局搜索:")
         self.search_box = QLineEdit()
-        self.search_box.setPlaceholderText("支持 IP / 路径 / 命令行 / 关键字")
+        self.search_box.setPlaceholderText("支持路径 / 命令行 / 条目名 / 描述等关键字搜索 (IP 请使用规则扫描)")
         self.search_box.textChanged.connect(self._on_search_changed)
         
         # 搜索按钮
@@ -1358,6 +1376,11 @@ class WorkspaceTab(QWidget):
         rule_layout.addWidget(self.chk_rule_hash)
         rule_layout.addWidget(self.chk_rule_other)
         rule_layout.addStretch()
+
+        # 添加说明标签
+        note_label = QLabel("说明: IP 只能通过规则扫描发现，不支持搜索框直接搜索")
+        note_label.setStyleSheet("color: gray; font-size: 11px;")
+        layout.addWidget(note_label)
 
         layout.addLayout(rule_layout)
         
@@ -1468,12 +1491,13 @@ class WorkspaceTab(QWidget):
             self.cmb_preset.addItem(template.name, template.template_id)
 
     def _set_result_mode(self, mode: str):
-        """设置结果表格列"""
+        """设置结果表格列
+
+        注意: 移除了 "ip" 模式，IP 结果现在通过规则扫描呈现
+        """
         self.result_mode = mode
         if mode == "autorun":
             headers = ["Category", "Entry", "Description", "Publisher", "Image Path"]
-        elif mode == "ip":
-            headers = ["Type", "Matched", "Source", "PID", "进程名", "源IP:端口 -> 目的IP:端口", "路径"]
         else:
             # rule 模式：添加规则详情列显示匹配的规则和值
             headers = ["Type", "Matched", "Source", "Summary", "规则详情"]
@@ -1501,35 +1525,60 @@ class WorkspaceTab(QWidget):
         return ""
     
     def _perform_search(self):
-        """执行搜索"""
+        """执行搜索 - 仅支持关键字搜索，IP 请使用规则扫描"""
         try:
             if not self.search_service:
                 QMessageBox.warning(self, "警告", "搜索服务未初始化")
                 return
-            
+
             search_text = self.search_box.text().strip()
             if not search_text:
                 QMessageBox.warning(self, "警告", "请输入搜索内容")
                 return
 
+            # 检查是否为 IP 地址（给出提示）
+            if self._looks_like_ip(search_text):
+                QMessageBox.information(
+                    self,
+                    "提示",
+                    "搜索框不再支持直接搜索 IP 地址。\n\n"
+                    "如需扫描 IP，请：\n"
+                    "1. 点击'规则管理'添加 IP 规则\n"
+                    "2. 点击'规则扫描'执行扫描\n\n"
+                    "IP 只能通过规则扫描发现，作为'被规则命中的证据'呈现。"
+                )
+                return
+
             results_bundle = self.search_service.search(search_text)
 
-            if results_bundle.mode == "keyword":
-                if not self.search_service.has_autoruns_data():
-                    QMessageBox.warning(self, "警告", "暂无持久化数据，请先在持久化检测中扫描")
-                    return
-                self._set_result_mode("autorun")
-            else:
-                if not self.search_service.has_autoruns_data() and not self.search_service.has_network_data():
-                    QMessageBox.warning(self, "警告", "暂无可搜索的数据，请先扫描/刷新")
-                    return
-                self._set_result_mode("ip")
+            # 搜索只返回 keyword 模式
+            if not self.search_service.has_autoruns_data():
+                QMessageBox.warning(self, "警告", "暂无持久化数据，请先在持久化检测中扫描")
+                return
+            self._set_result_mode("autorun")
 
             self.matched_results = results_bundle.results
             self._update_results_table()
         except Exception as e:
             QMessageBox.warning(self, "错误", f"搜索失败: {str(e)}")
-    
+
+    def _looks_like_ip(self, value: str) -> bool:
+        """检查值是否看起来像 IP 地址"""
+        if not value:
+            return False
+        if ":" in value:
+            return True
+        parts = value.split(".")
+        if len(parts) != 4:
+            return False
+        for part in parts:
+            if not part.isdigit():
+                return False
+            num = int(part)
+            if num < 0 or num > 255:
+                return False
+        return True
+
     def _scan_rules(self):
         """执行规则扫描"""
         try:
@@ -1580,6 +1629,16 @@ class WorkspaceTab(QWidget):
                     entry_location = entry.get('location', 'Unknown')
                     summary = f"[{entry_location}] {entry_name} 命中 {len(matched_rules)} 条规则"
                     
+                    # 构建 matched_value：显示命中的字段和规则家族
+                    matched_rules_text = ', '.join([r.get('family', r.get('id', '')) for r in matched_rules])
+                    # 获取命中的字段信息
+                    hit_fields = []
+                    for rule in matched_rules:
+                        for match in rule.get('match', []):
+                            hit_fields.append(match.get('field', ''))
+                    hit_fields_str = ','.join(set(hit_fields)) if hit_fields else ''
+                    matched_value = f"{hit_fields_str}:{entry_name} | {matched_rules_text}"
+
                     result = SearchResult(
                         result_type=ResultType.AUTORUN,
                         summary=summary,
@@ -1589,7 +1648,7 @@ class WorkspaceTab(QWidget):
                             'matched_rules': matched_rules,
                             'severity': max_severity
                         },
-                        matched_value=', '.join([r.get('family', r.get('id', '')) for r in matched_rules]),
+                        matched_value=matched_value,
                         related_entry=entry
                     )
                     self.matched_results.append(result)
@@ -1597,17 +1656,24 @@ class WorkspaceTab(QWidget):
             # 扫描网络连接数据（IP 规则）
             if "ip" in allowed_types:
                 network_data = self.search_service.get_network_connections()
+                print(f"[IP Rule Scan] 获取到 {len(network_data)} 条网络连接")
                 for conn in network_data:
                     # 将网络连接转换为条目格式
+                    # 注意：IP 规则匹配时会检查 command_line/launch_string/image_path 中的 IP
+                    local_addr = conn.get('local_address', '')
+                    remote_addr = conn.get('remote_address', '')
+                    # 将 IP 地址放入 command_line 以便规则引擎能匹配到
+                    ip_text = f"{local_addr} -> {remote_addr}"
                     entry = {
                         'location': 'Network',
                         'entry': f"PID:{conn.get('pid', '')}",
                         'category': 'Network',
-                        'description': f"{conn.get('local_address', '')} -> {conn.get('remote_address', '')}",
+                        'description': ip_text,
                         'publisher': '',
                         'company': '',
                         'image_path': conn.get('process_path', ''),
                         'launch_string': '',
+                        'command_line': ip_text,  # 将 IP 放入 command_line 以便规则匹配
                         'timestamp': '',
                         'md5': '',
                         'sha256': '',
@@ -1620,8 +1686,10 @@ class WorkspaceTab(QWidget):
                         'file_exists': True,
                         'detail_data': conn
                     }
-                    
+
                     matched_rules = self.rule_engine.scan_entry(entry, allowed_types)
+                    if matched_rules:
+                        print(f"[IP Rule Scan] 命中: PID={conn.get('pid')}, {local_addr} -> {remote_addr}, rules={[r.get('id') for r in matched_rules]}")
                     if matched_rules:
                         # 获取最高严重级别
                         severity_order = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
@@ -1635,6 +1703,10 @@ class WorkspaceTab(QWidget):
                         remote_addr = conn.get('remote_address', '')
                         summary = f"[Network] {local_addr} -> {remote_addr} 命中 {len(matched_rules)} 条规则"
                         
+                        # 构建 matched_value：显示命中的 IP 和规则家族
+                        matched_rules_text = ', '.join([r.get('family', r.get('id', '')) for r in matched_rules])
+                        matched_value = f"IP:{remote_addr} | {matched_rules_text}"
+
                         result = SearchResult(
                             result_type=ResultType.IP_MATCH,
                             summary=summary,
@@ -1644,9 +1716,10 @@ class WorkspaceTab(QWidget):
                                 'matched_rules': matched_rules,
                                 'severity': max_severity,
                                 'kind': 'network',
-                                'connection': conn
+                                'connection': conn,
+                                'matched_ip': remote_addr  # 记录命中的 IP
                             },
-                            matched_value=', '.join([r.get('family', r.get('id', '')) for r in matched_rules]),
+                            matched_value=matched_value,
                             related_entry=None
                         )
                         self.matched_results.append(result)
@@ -1711,65 +1784,6 @@ class WorkspaceTab(QWidget):
                     self.results_table.setItem(idx, 2, QTableWidgetItem(entry.get('description', '')))
                     self.results_table.setItem(idx, 3, QTableWidgetItem(entry.get('publisher', '')))
                     self.results_table.setItem(idx, 4, QTableWidgetItem(entry.get('image_path', '')))
-            elif self.result_mode == "ip":
-                for idx, result in enumerate(self.matched_results):
-                    self.results_table.insertRow(idx)
-
-                    # Type
-                    detail_kind = result.detail.get('kind') if isinstance(result.detail, dict) else None
-                    if detail_kind == "network":
-                        type_text = "Network"
-                    elif detail_kind == "autorun":
-                        type_text = "Autorun"
-                    else:
-                        type_text = "IP" if result.result_type == ResultType.IP_MATCH else "Autorun"
-                    type_item = QTableWidgetItem(type_text)
-                    if result.result_type == ResultType.IP_MATCH:
-                        type_item.setBackground(QColor(200, 220, 255))
-                    self.results_table.setItem(idx, 0, type_item)
-
-                    # Matched
-                    self.results_table.setItem(idx, 1, QTableWidgetItem(result.matched_value))
-
-                    # Source
-                    source_text = result.source
-                    if result.source == 'command_line':
-                        source_text = 'Command Line'
-                    elif result.source == 'image_path':
-                        source_text = 'Image Path'
-                    elif result.source == 'rule_scan':
-                        source_text = 'Rule Scan'
-                    elif result.source == 'local_address':
-                        source_text = 'Local Address'
-                    elif result.source == 'remote_address':
-                        source_text = 'Remote Address'
-                    self.results_table.setItem(idx, 2, QTableWidgetItem(source_text))
-
-                    # PID / 进程名 / 流向
-                    pid_text = ""
-                    proc_name = ""
-                    flow_text = ""
-                    proc_path = ""
-                    if isinstance(result.detail, dict) and result.detail.get('kind') == "network":
-                        conn = result.detail.get('connection', {})
-                        pid_value = conn.get('pid', '')
-                        pid_text = str(pid_value) if pid_value is not None else ""
-                        proc_name = str(conn.get('process_name', '') or '')
-                        proc_path = str(conn.get('process_path', '') or '')
-                        local_addr = str(conn.get('local_address', '') or '')
-                        remote_addr = str(conn.get('remote_address', '') or '')
-                        local_port = conn.get('local_port', '')
-                        remote_port = conn.get('remote_port', '')
-                        local_display = f"{local_addr}:{local_port}" if local_addr else ""
-                        remote_display = f"{remote_addr}:{remote_port}" if remote_addr else ""
-                        if local_display or remote_display:
-                            flow_text = f"{local_display} -> {remote_display}"
-
-                    pid_item = NumericTableWidgetItem(pid_text, int(pid_text) if pid_text.isdigit() else None)
-                    self.results_table.setItem(idx, 3, pid_item)
-                    self.results_table.setItem(idx, 4, QTableWidgetItem(proc_name))
-                    self.results_table.setItem(idx, 5, QTableWidgetItem(flow_text))
-                    self.results_table.setItem(idx, 6, QTableWidgetItem(proc_path))
             else:
                 for idx, result in enumerate(self.matched_results):
                     self.results_table.insertRow(idx)
@@ -1812,6 +1826,7 @@ class WorkspaceTab(QWidget):
                     if result.source == 'rule_scan' and result.detail.get('matched_rules'):
                         for rule in result.detail['matched_rules']:
                             match_list = rule.get('match', [])
+                            rule_note = rule.get('note', '')
                             if match_list:
                                 match = match_list[0]
                                 field = match.get('field', '')
@@ -1820,7 +1835,10 @@ class WorkspaceTab(QWidget):
                                 # 简化显示
                                 if len(value) > 30:
                                     value = value[:27] + "..."
-                                rule_details.append(f"{field}({match_type})={value}")
+                                detail_str = f"{field}({match_type})={value}"
+                                if rule_note:
+                                    detail_str += f" [{rule_note}]"
+                                rule_details.append(detail_str)
                     rule_detail_text = "; ".join(rule_details) if rule_details else ""
                     self.results_table.setItem(idx, 4, QTableWidgetItem(rule_detail_text))
 

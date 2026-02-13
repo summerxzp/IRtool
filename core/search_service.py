@@ -1,17 +1,14 @@
 from dataclasses import dataclass
 from typing import List, Dict, Any
-import ipaddress
-import re
 
 from utils.search_result import SearchResult, ResultType
 
 
 @dataclass
 class SearchResults:
-    mode: str  # "keyword" | "ip"
+    mode: str  # "keyword" only (IP direct search removed)
     results: List[SearchResult]
     query: str
-    ip_candidates: List[str]
 
 
 class SearchService:
@@ -38,20 +35,18 @@ class SearchService:
         return len(self.get_network_connections()) > 0
 
     def search(self, text: str) -> SearchResults:
+        """搜索功能 - 仅支持关键字搜索，IP 搜索已通过规则扫描实现
+        
+        注意: 搜索框不再接受 IP 字符串进行直接搜索。
+        IP 的发现与定位全部通过【规则扫描】完成。
+        """
         text = (text or "").strip()
         if not text:
-            return SearchResults(mode="keyword", results=[], query=text, ip_candidates=[])
-
-        ip_candidates = self._extract_ip_candidates(text)
-        if ip_candidates:
-            results: List[SearchResult] = []
-            results.extend(self._search_autoruns_by_ip(ip_candidates))
-            results.extend(self._search_network_by_ip(ip_candidates))
-            return SearchResults(mode="ip", results=results, query=text, ip_candidates=ip_candidates)
+            return SearchResults(mode="keyword", results=[], query=text)
 
         keyword = text.lower()
         results = self._search_autoruns_by_keyword(keyword)
-        return SearchResults(mode="keyword", results=results, query=text, ip_candidates=[])
+        return SearchResults(mode="keyword", results=results, query=text)
 
     def _normalize_entry(self, entry: Any) -> Dict[str, Any]:
         if isinstance(entry, dict):
@@ -128,123 +123,6 @@ class SearchService:
                 results.append(result)
         return results
 
-    def _search_autoruns_by_ip(self, ip_candidates: List[str]) -> List[SearchResult]:
-        results: List[SearchResult] = []
-        if not ip_candidates:
-            return results
-
-        seen = set()
-        for entry in self.get_autoruns_entries():
-            search_fields = [
-                ("command_line", self._get_entry_command_line(entry)),
-                ("image_path", self._get_entry_field_value(entry, "image_path")),
-            ]
-            entry_key = entry.get("entry", "")
-            for ip_address in ip_candidates:
-                ip_lower = ip_address.lower()
-                for field_name, field_value in search_fields:
-                    if not field_value:
-                        continue
-                    if ip_lower in field_value.lower():
-                        dedup_key = (entry_key, ip_address, field_name)
-                        if dedup_key in seen:
-                            continue
-                        seen.add(dedup_key)
-
-                        summary = f"Autorun 项 {entry.get('entry', 'Unknown')} 命中 IP"
-                        result = SearchResult(
-                            result_type=ResultType.IP_MATCH,
-                            summary=summary,
-                            source=field_name,
-                            detail={"entry": entry, "kind": "autorun"},
-                            matched_value=ip_address,
-                            related_entry=entry,
-                        )
-                        results.append(result)
-        return results
-
-    def _search_network_by_ip(self, ip_candidates: List[str]) -> List[SearchResult]:
-        results: List[SearchResult] = []
-        if not ip_candidates:
-            return results
-
-        connections = self.get_network_connections()
-        seen = set()
-        for conn in connections:
-            local_addr = str(conn.get("local_address", ""))
-            remote_addr = str(conn.get("remote_address", ""))
-            pid = str(conn.get("pid", ""))
-            process_name = str(conn.get("process_name", ""))
-
-            search_fields = [
-                ("local_address", local_addr),
-                ("remote_address", remote_addr),
-            ]
-            for ip_address in ip_candidates:
-                ip_lower = ip_address.lower()
-                for field_name, field_value in search_fields:
-                    if not field_value:
-                        continue
-                    if ip_lower in field_value.lower():
-                        dedup_key = (pid, local_addr, remote_addr, ip_address, field_name)
-                        if dedup_key in seen:
-                            continue
-                        seen.add(dedup_key)
-
-                        local_port = conn.get("local_port", "")
-                        remote_port = conn.get("remote_port", "")
-                        local_display = f"{local_addr}:{local_port}" if local_addr else ""
-                        remote_display = f"{remote_addr}:{remote_port}" if remote_addr else ""
-                        summary = f"网络连接 PID {pid} {process_name} {local_display} -> {remote_display}"
-
-                        result = SearchResult(
-                            result_type=ResultType.IP_MATCH,
-                            summary=summary,
-                            source=field_name,
-                            detail={"connection": conn, "kind": "network"},
-                            matched_value=ip_address,
-                            related_entry=None,
-                        )
-                        results.append(result)
-        return results
-
-    def _is_ip_address(self, text: str) -> bool:
-        try:
-            ipaddress.ip_address(text)
-            return True
-        except ValueError:
-            return False
-
-    def _extract_ip_candidates(self, text: str) -> List[str]:
-        candidates: List[str] = []
-        if not text:
-            return candidates
-
-        ipv4_pattern = r"(?<!\d)(?:\d{1,3}\.){3}\d{1,3}(?!\d)"
-        for match in re.finditer(ipv4_pattern, text):
-            ip = match.group(0)
-            if self._is_ip_address(ip):
-                candidates.append(ip)
-
-        ipv6_bracket_pattern = r"\[([0-9a-fA-F:]+)\]"
-        for match in re.finditer(ipv6_bracket_pattern, text):
-            ip = match.group(1)
-            if self._is_ip_address(ip):
-                candidates.append(ip)
-
-        cleaned = text.strip()
-        if cleaned:
-            if cleaned.count(":") == 1 and cleaned.rsplit(":", 1)[1].isdigit():
-                cleaned = cleaned.rsplit(":", 1)[0]
-            if cleaned.startswith("[") and "]" in cleaned:
-                cleaned = cleaned[1:cleaned.index("]")]
-            if self._is_ip_address(cleaned):
-                candidates.append(cleaned)
-
-        seen = set()
-        unique: List[str] = []
-        for ip in candidates:
-            if ip not in seen:
-                seen.add(ip)
-                unique.append(ip)
-        return unique
+    # 注意: 直接 IP 搜索功能已移除
+    # IP 的发现与定位全部通过【规则扫描】完成
+    # 保留以下方法供规则引擎内部使用

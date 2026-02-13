@@ -222,5 +222,19 @@
     "severity": "medium",
     "date": "2026/02/10",
     "note": ""
+  },
+  {
+    "id": "rule_5bc4500d",
+    "family": "ceshii",
+    "match": [
+      {
+        "field": "ip",
+        "type": "contains",
+        "value": "124.220.58.129"
+      }
+    ],
+    "severity": "critical",
+    "date": "",
+    "note": "假装是银狐"
   }
 ]
