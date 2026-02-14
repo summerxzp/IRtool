@@ -31,6 +31,8 @@ from .skill_scan import (
     SkillScanResult,
     SkillScanScanner,
     BUILTIN_PATH_DEFINITIONS,
+    DEFAULT_KNOWN_SKILL_FILES,
+    SUSPICIOUS_EXTENSIONS,
 )
 
 __all__ = [
@@ -64,4 +66,6 @@ __all__ = [
     'SkillScanResult',
     'SkillScanScanner',
     'BUILTIN_PATH_DEFINITIONS',
+    'DEFAULT_KNOWN_SKILL_FILES',
+    'SUSPICIOUS_EXTENSIONS',
 ]

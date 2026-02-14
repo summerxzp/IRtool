@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from PyQt6.QtGui import QGuiApplication
+from PyQt6.QtGui import QGuiApplication, QColor
 from PyQt6.QtWidgets import (
     QAbstractItemView,
     QCheckBox,
@@ -130,23 +130,23 @@ class SkillScanTab(QWidget):
         layout.addWidget(QLabel("说明：该功能用于可疑文件发现，不做自动判恶，结果需人工确认。"))
 
         checkbox_layout = QHBoxLayout()
-        self.chk_appdata = QCheckBox("AppData (%AppData%)")
-        self.chk_localappdata = QCheckBox("LocalAppData (%LocalAppData%)")
-        self.chk_programdata = QCheckBox("ProgramData")
-        self.chk_temp = QCheckBox("Temp (%Temp%)")
-        self.chk_downloads = QCheckBox("Downloads (C:\\Users\\*\\Downloads)")
+        self.chk_claude_home = QCheckBox("Claude (%USERPROFILE%\\.claude)")
+        self.chk_openclaw_home = QCheckBox("OpenClaw (%USERPROFILE%\\.openclaw)")
+        self.chk_codex_home = QCheckBox("Codex (%USERPROFILE%\\.codex)")
+        self.chk_claude_config = QCheckBox("Claude Config (%USERPROFILE%\\.config\\claude)")
+        self.chk_openclaw_config = QCheckBox("OpenClaw Config (%USERPROFILE%\\.config\\openclaw)")
 
-        self.chk_appdata.setChecked(True)
-        self.chk_localappdata.setChecked(True)
-        self.chk_programdata.setChecked(True)
-        self.chk_temp.setChecked(True)
-        self.chk_downloads.setChecked(False)
+        self.chk_claude_home.setChecked(True)
+        self.chk_openclaw_home.setChecked(True)
+        self.chk_codex_home.setChecked(True)
+        self.chk_claude_config.setChecked(False)
+        self.chk_openclaw_config.setChecked(False)
 
-        checkbox_layout.addWidget(self.chk_appdata)
-        checkbox_layout.addWidget(self.chk_localappdata)
-        checkbox_layout.addWidget(self.chk_programdata)
-        checkbox_layout.addWidget(self.chk_temp)
-        checkbox_layout.addWidget(self.chk_downloads)
+        checkbox_layout.addWidget(self.chk_claude_home)
+        checkbox_layout.addWidget(self.chk_openclaw_home)
+        checkbox_layout.addWidget(self.chk_codex_home)
+        checkbox_layout.addWidget(self.chk_claude_config)
+        checkbox_layout.addWidget(self.chk_openclaw_config)
         checkbox_layout.addStretch()
         layout.addLayout(checkbox_layout)
 
@@ -177,11 +177,22 @@ class SkillScanTab(QWidget):
 
         self.chk_recursive = QCheckBox("递归子目录")
         self.chk_recursive.setChecked(True)
+        lbl_known_list = QLabel("已知 Skill 文件名清单（逗号分隔，可留空使用默认）")
+        self.edit_known_skill_files = QLineEdit()
+        self.edit_known_skill_files.setPlaceholderText("例如: SKILL.md,manifest.json,mcpservers.json")
+        lbl_malicious_hashes = QLabel("恶意 Hash 清单（每行一个 SHA256，可选）")
+        self.edit_malicious_hashes = QPlainTextEdit()
+        self.edit_malicious_hashes.setPlaceholderText("例如:\\n0123...abcd")
+        self.edit_malicious_hashes.setMaximumHeight(72)
 
         adv_layout.addWidget(lbl_custom)
         adv_layout.addWidget(self.edit_custom_paths)
         adv_layout.addLayout(filter_layout)
         adv_layout.addWidget(self.chk_recursive)
+        adv_layout.addWidget(lbl_known_list)
+        adv_layout.addWidget(self.edit_known_skill_files)
+        adv_layout.addWidget(lbl_malicious_hashes)
+        adv_layout.addWidget(self.edit_malicious_hashes)
 
         layout.addWidget(self.advanced_panel)
 
@@ -286,16 +297,16 @@ class SkillScanTab(QWidget):
 
     def _build_scan_config(self) -> SkillScanConfig:
         builtin_paths: List[str] = []
-        if self.chk_appdata.isChecked():
-            builtin_paths.append("appdata")
-        if self.chk_localappdata.isChecked():
-            builtin_paths.append("localappdata")
-        if self.chk_programdata.isChecked():
-            builtin_paths.append("programdata")
-        if self.chk_temp.isChecked():
-            builtin_paths.append("temp")
-        if self.chk_downloads.isChecked():
-            builtin_paths.append("downloads")
+        if self.chk_claude_home.isChecked():
+            builtin_paths.append("claude_home")
+        if self.chk_openclaw_home.isChecked():
+            builtin_paths.append("openclaw_home")
+        if self.chk_codex_home.isChecked():
+            builtin_paths.append("codex_home")
+        if self.chk_claude_config.isChecked():
+            builtin_paths.append("claude_config")
+        if self.chk_openclaw_config.isChecked():
+            builtin_paths.append("openclaw_config")
 
         custom_paths = []
         for line in self.edit_custom_paths.toPlainText().splitlines():
@@ -306,11 +317,15 @@ class SkillScanTab(QWidget):
         filters: List[str] = []
         filters.extend(self._split_csv_like_text(self.edit_exact_names.text()))
         filters.extend(self._split_csv_like_text(self.edit_wildcards.text()))
+        known_skill_files = self._split_csv_like_text(self.edit_known_skill_files.text())
+        malicious_hashes = self._split_lines(self.edit_malicious_hashes.toPlainText())
 
         return SkillScanConfig(
             builtin_paths=builtin_paths,
             custom_paths=custom_paths,
             filename_filters=filters,
+            known_skill_files=known_skill_files,
+            malicious_hashes=malicious_hashes,
             recursive=self.chk_recursive.isChecked(),
         )
 
@@ -323,13 +338,26 @@ class SkillScanTab(QWidget):
                 values.append(text)
         return values
 
+    @staticmethod
+    def _split_lines(raw_text: str) -> List[str]:
+        values: List[str] = []
+        for line in (raw_text or "").splitlines():
+            text = line.strip()
+            if text:
+                values.append(text)
+        return values
+
     def _on_scan_finished(self, result: SkillScanResult):
         self.scan_result = result
         self.entries_by_path = {entry.full_path: entry for entry in result.entries}
         self._render_result_table(result.entries)
-        self.lbl_scan_status.setText(
-            f"完成: {result.total_files} 文件 ({result.scan_time.strftime('%Y-%m-%d %H:%M:%S')})"
+        summary = (
+            f"完成: 输出 {result.total_files} / 扫描 {result.scanned_files} / 可疑 {result.suspicious_files} "
+            f"({result.scan_time.strftime('%Y-%m-%d %H:%M:%S')})"
         )
+        if result.errors:
+            summary += f" | 错误 {len(result.errors)}"
+        self.lbl_scan_status.setText(summary)
 
     def _on_scan_failed(self, error_text: str):
         self.lbl_scan_status.setText("扫描失败")
@@ -362,12 +390,39 @@ class SkillScanTab(QWidget):
             self.results_table.setItem(row, self.COL_SHA256, QTableWidgetItem(entry.sha256))
             self.results_table.setItem(row, self.COL_SOURCE, QTableWidgetItem(entry.path_category))
 
-            status_text = "已确认安全" if "confirmed_safe" in entry.tags else "本地"
+            status_text = self._status_text(entry)
             self.results_table.setItem(row, self.COL_STATUS, QTableWidgetItem(status_text))
+            self._style_row(row, entry)
 
         self.results_table.setUpdatesEnabled(True)
         self.results_table.setSortingEnabled(True)
         self._on_selection_changed()
+
+    @staticmethod
+    def _status_text(entry: SkillFileEntry) -> str:
+        if "confirmed_safe" in entry.tags:
+            return "已确认安全"
+        if entry.is_malicious_hash:
+            return "命中恶意Hash"
+        if entry.risk_flags:
+            return "可疑"
+        if entry.is_known_skill_file:
+            return "已知Skill文件"
+        return "待分析"
+
+    def _style_row(self, row: int, entry: SkillFileEntry):
+        if entry.is_malicious_hash:
+            bg = QColor(255, 226, 226)
+        elif entry.risk_flags:
+            bg = QColor(255, 245, 215)
+        elif "confirmed_safe" in entry.tags:
+            bg = QColor(227, 244, 227)
+        else:
+            return
+        for col in range(self.results_table.columnCount()):
+            item = self.results_table.item(row, col)
+            if item:
+                item.setBackground(bg)
 
     @staticmethod
     def _format_size(size: int) -> str:

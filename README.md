@@ -61,9 +61,10 @@
 
 ### 2.7 Skill Scan（`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/skill_scan_tab.py`）
 - 定位：文件级 IOC 发现能力（发现 + 归集 + 呈现），不自动判恶、不自动联网。
-- 扫描范围：内置路径（AppData/LocalAppData/ProgramData/Temp/Downloads）+ 自定义路径。
+- 扫描范围：高价值工具链路径（`%USERPROFILE%\\.claude` / `.openclaw` / `.codex`，可选 `.config\\claude` / `.config\\openclaw`）+ 自定义路径。
 - 扫描能力：支持递归开关、文件名精确匹配/通配符过滤、流式 SHA256 计算。
-- 结果展示：固定字段表格（文件名/路径/大小/时间/SHA256/来源类型/状态），支持按大小和时间排序。
+- 结果增强：支持“已知 Skill 清单”匹配、恶意 Hash 清单命中、风险标记（扩展名/命名特征/未知文件）。
+- 结果展示：固定字段表格（文件名/路径/大小/时间/SHA256/来源类型/状态），支持按大小和时间排序与风险高亮。
 - 右键动作：复制 SHA256、打开文件所在目录、标记“已确认安全”（本地标签）。
 - 情报联动：选中结果后手动触发 VirusTotal/微步 hash 查询（仅提交 hash，不上传文件）。
 
@@ -111,6 +112,13 @@
 - UI 线程：渲染与交互。
 - 线程间通信：Qt signal/slot，避免直接跨线程操作 UI。
 
+## 3.4 目标分层（迁移中）
+- `data_layer`：统一结构化资产模型（PersistenceEntry / SkillEntry / RuleHit），不包含 UI 逻辑。
+- `scan_engine`：按模块产出标准化扫描结果（persistence_scan / skill_scan / rule_scan）。
+- `rule_engine`：规则定义与匹配核心（规则文件 + matcher），与 UI 解耦。
+- `ui`：只负责编排与展示，消费 scan/rule 结果，不内嵌扫描核心逻辑。
+- 当前状态：项目已完成 `Skill Scan` 独立化；其余模块按任务板分阶段迁移。
+
 ## 4. 当前已实现的性能关键点
 
 - Autoruns 列表使用 `QAbstractItemModel + QSortFilterProxyModel`，并有 `_search_blob` 缓存。
@@ -156,7 +164,7 @@ sectool_codex/
 │  ├─ search_service.py        # 工作台搜索服务
 │  ├─ threat_intel/            # IOC 情报接口抽象层
 │  ├─ skill_scan/              # Skill Scan 独立模型与扫描逻辑
-│  └─ skill_audit/             # Skill 路径体检与可疑文件检测
+│  └─ skill_audit/             # 旧版 Skill 体检模块（待收敛/迁移）
 ├─ ui/
 │  ├─ autoruns_tab.py          # 持久化检测主界面
 │  ├─ autoruns_scan_controller.py
@@ -246,3 +254,5 @@ set SECTOOL_VT_API_KEY=your_api_key
 - 2026-02-14：新增独立 `Skill Scan` 一级 Tab，完成配置区/结果区/情报动作区三段式结构。
 - 2026-02-14：新增 `core/skill_scan/`（`SkillFileEntry`、`SkillScanConfig`、`SkillScanResult`、`SkillScanScanner`），扫描按阶段解耦。
 - 2026-02-14：Workspace 移除 Skill 专属按钮，Skill 能力迁移到独立 Tab，避免职责继续耦合。
+- 2026-02-14：Skill Scan 改为高价值路径优先（`.claude/.openclaw/.codex`），不再默认扫 AppData/Temp。
+- 2026-02-14：Skill 结果新增结构化判定字段（已知清单/恶意 Hash 命中/风险标记）并接入列表高亮。

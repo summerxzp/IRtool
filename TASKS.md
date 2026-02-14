@@ -301,3 +301,54 @@ ThreatIntelProvider：
   - 与 Workspace 建立弱关联（例如标记来源）
 
 按以上要求完成 Skill Scan 的完整实现或重构。
+
+
+## Skill 重构任务分解（由“重构方向”拆分）
+
+21. `P0 DONE` Skill Scan 路径策略收敛（高价值路径优先）
+- 目标：从“大目录扫盘思路”收敛到工具链关键路径，减少噪音与扫描成本。
+- 影响文件：`core/skill_scan/scanner.py`、`ui/skill_scan_tab.py`
+- 验收标准：默认仅扫描 `%USERPROFILE%\\.claude`、`%USERPROFILE%\\.openclaw`、`%USERPROFILE%\\.codex`（可选 `.config` 路径），不再默认扫 AppData/Temp。
+- 实施结果（2026-02-14）：已完成。
+
+22. `P0 DONE` Skill 结果结构化增强（已知清单/恶意 Hash/风险标记）
+- 目标：让 Skill 结果可被规则与后续情报模块消费，不再只是一张“纯文件列表”。
+- 影响文件：`core/skill_scan/models.py`、`core/skill_scan/scanner.py`
+- 验收标准：`SkillFileEntry` 至少包含 `is_known_skill_file`、`is_malicious_hash`、`risk_flags`。
+- 实施结果（2026-02-14）：已完成。
+
+23. `P0 DONE` Skill Scan 结果高亮与状态语义
+- 目标：让分析员在列表中快速区分“命中恶意 Hash / 可疑 / 已知文件 / 已确认安全”。
+- 影响文件：`ui/skill_scan_tab.py`
+- 验收标准：状态列语义清晰，可疑与命中项可视化高亮。
+- 实施结果（2026-02-14）：已完成。
+
+24. `P0 TODO` Rule Engine 消费 Skill 结果（RuleHit）
+- 目标：支持规则引擎同时消费 Persistence + Skill 结果，形成统一命中模型。
+- 影响文件：`core/rule_engine.py`、`ui/workspace_tab.py`、`utils/search_result.py`
+- 验收标准：可产生 `target_type=skill` 的命中结果，并在工作台统一展示。
+
+25. `P1 TODO` 规则 explain 字段与 UI 帮助自动同步
+- 目标：避免规则定义与帮助文案分裂。
+- 影响文件：`data/rules.json`、`ui/workspace_rule_dialogs.py`
+- 验收标准：规则 `explain` 可在规则管理/帮助区自动显示。
+
+26. `P1 TODO` 规则类型分层（Persistence / Skill / Network / Mixed）
+- 目标：为跨模块规则和未来特征接入提供边界。
+- 影响文件：`core/rule_engine.py`、`data/rules.json`
+- 验收标准：规则定义可声明 `target_type` 或等价字段，并据此过滤扫描输入。
+
+27. `P1 TODO` 分层迁移蓝图落地（data_layer / scan_engine / rule_engine / ui）
+- 目标：将当前 `core/` 内混合职责逐步迁移到明确分层。
+- 影响文件：`core/`、`README.md`
+- 验收标准：完成目录迁移草案与第一批适配，不破坏现有功能。
+
+28. `P1 TODO` Skill 基线清单文件化
+- 目标：将“已知 Skill 清单”“恶意 Hash 清单”外置到 data 文件，便于协作维护。
+- 影响文件：`data/`、`core/skill_scan/scanner.py`、`ui/skill_scan_tab.py`
+- 验收标准：支持从本地清单加载（不存在则回退默认内置集合）。
+
+29. `P2 TODO` MCP / 工具链异常特征预留
+- 目标：为后续“非官方 server / 可疑配置”规则接入预留字段。
+- 影响文件：`core/skill_scan/models.py`、`core/rule_engine.py`
+- 验收标准：数据模型可容纳 MCP 相关元数据，不影响当前流程。
