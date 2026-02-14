@@ -91,8 +91,8 @@ class SkillScanTab(QWidget):
         self._init_ui()
 
     def _init_threat_intel(self):
-        api_key = os.getenv("SECTOOL_WEIBU_API_KEY", "").strip()
-        vt_api_key = os.getenv("SECTOOL_VT_API_KEY", "").strip()
+        api_key = os.getenv("IRTOOL_WEIBU_API_KEY", "").strip()
+        vt_api_key = os.getenv("IRTOOL_VT_API_KEY", "").strip()
 
         if not api_key or not vt_api_key:
             try:
@@ -596,8 +596,8 @@ class SkillScanTab(QWidget):
         if any((item.error or "") == "missing_api_key" for item in results):
             summary += (
                 "\n\n未配置 API Key：\n"
-                "- 微步: SECTOOL_WEIBU_API_KEY 或 config.json.weibu_api_key\n"
-                "- VT: SECTOOL_VT_API_KEY 或 config.json.virustotal_api_key"
+                "- 微步: IRTOOL_WEIBU_API_KEY 或 config.json.weibu_api_key\n"
+                "- VT: IRTOOL_VT_API_KEY 或 config.json.virustotal_api_key"
             )
 
         if fail_count > 0:

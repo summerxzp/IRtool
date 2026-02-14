@@ -1,4 +1,4 @@
-# 终端安全检测工具（Sectool）
+# 终端安全检测工具（IRtool）
 
 面向 Windows 终端应急响应场景的本地桌面工具，核心目标是帮助分析人员快速发现网络异常、持久化启动项异常，并在工作台进行规则化关联排查与处置辅助。
 
@@ -212,14 +212,14 @@ python main.py
 可选调试日志：
 
 ```bash
-set SECTOOL_DEBUG_LOG=1
+set IRTOOL_DEBUG_LOG=1
 python main.py
 ```
 
 微步 API Key（可选）：
 
 ```bash
-set SECTOOL_WEIBU_API_KEY=your_api_key
+set IRTOOL_WEIBU_API_KEY=your_api_key
 ```
 
 或写入 `config.json`：
@@ -233,7 +233,7 @@ set SECTOOL_WEIBU_API_KEY=your_api_key
 VirusTotal API Key（可选，预留）：
 
 ```bash
-set SECTOOL_VT_API_KEY=your_api_key
+set IRTOOL_VT_API_KEY=your_api_key
 ```
 
 或写入 `config.json`：

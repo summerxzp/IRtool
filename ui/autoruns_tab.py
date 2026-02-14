@@ -36,8 +36,8 @@ from ui.ui_style import (
 )
 
 
-LOGGER = logging.getLogger("sectool.autoruns_tab")
-DEBUG_LOG_ENABLED = os.getenv("SECTOOL_DEBUG_LOG", "0") == "1"
+LOGGER = logging.getLogger("IRtool.autoruns_tab")
+DEBUG_LOG_ENABLED = os.getenv("IRTOOL_DEBUG_LOG", "0") == "1"
 
 
 def _debug_log(msg: str):

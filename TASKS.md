@@ -47,7 +47,13 @@
   - 修改 `_import_ioc` 方法，打开新对话框而非直接选择文件
 - 时间：2026-02-14
 
-2. `P0 DOING` 拆分 `workspace_tab.py` 的职责
+2. `P0 DONE` 注释 Workspace "导出情报"按钮
+- 目标：暂时隐藏微步相关的"导出情报"功能按钮，待功能完善后再开放。
+- 影响文件：`d:\project\sectool_codex\ui\workspace_tab.py`
+- 实施结果：已注释"导出情报"按钮的创建和添加代码，保留实现供后续恢复。
+- 时间：2026-02-14
+
+3. `P0 DOING` 拆分 `workspace_tab.py` 的职责
 - 目标：将规则管理、结果展示、处置动作从单文件拆分到独立组件。
 - 影响文件：`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/workspace_tab.py`
 - 验收标准：主流程行为不变，文件体积明显下降，组件边界清晰。

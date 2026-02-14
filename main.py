@@ -36,7 +36,7 @@ from ui.workspace_tab import WorkspaceTab
 log_file = APP_DIR / "app.log"
 
 # 创建logger
-logger = logging.getLogger('sectool')
+logger = logging.getLogger('IRtool')
 logger.setLevel(logging.INFO)
 
 # 文件处理器
@@ -104,7 +104,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         
         self.is_admin_mode = is_admin_mode
-        title = "终端安全检测工具 v1.0"
+        title = "IRtool - v1.0.0"
         if not is_admin_mode:
             title += " (非管理员模式)"
         logger.info(f"[MainWindow] Setting title: {title}, is_admin_mode={is_admin_mode}")

@@ -74,8 +74,8 @@ class WorkspaceTab(QWidget):
 
     def _init_threat_intel(self):
         """初始化威胁情报服务（当前优先微步）。"""
-        api_key = os.getenv("SECTOOL_WEIBU_API_KEY", "").strip()
-        vt_api_key = os.getenv("SECTOOL_VT_API_KEY", "").strip()
+        api_key = os.getenv("IRTOOL_WEIBU_API_KEY", "").strip()
+        vt_api_key = os.getenv("IRTOOL_VT_API_KEY", "").strip()
         if not api_key:
             try:
                 config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config.json")
@@ -142,15 +142,15 @@ class WorkspaceTab(QWidget):
         self.btn_manage_rules = QPushButton("规则管理")
         self.btn_manage_rules.clicked.connect(self._manage_rules)
 
-        self.btn_export_intel = QPushButton("导出情报")
-        self.btn_export_intel.clicked.connect(self._export_last_threat_intel_results)
+        # self.btn_export_intel = QPushButton("导出情报")
+        # self.btn_export_intel.clicked.connect(self._export_last_threat_intel_results)
         
         search_layout.addWidget(search_label)
         search_layout.addWidget(self.search_box, 1)
         search_layout.addWidget(self.btn_search)
         search_layout.addWidget(self.btn_scan_rules)
         search_layout.addWidget(self.btn_manage_rules)
-        search_layout.addWidget(self.btn_export_intel)
+        # search_layout.addWidget(self.btn_export_intel)
         
         layout.addLayout(search_layout)
 
@@ -892,7 +892,7 @@ class WorkspaceTab(QWidget):
             summary += (
                 "\n\n当前未配置微步 API Key。\n"
                 "可通过以下方式配置：\n"
-                "1. 环境变量 `SECTOOL_WEIBU_API_KEY`\n"
+                "1. 环境变量 `IRTOOL_WEIBU_API_KEY`\n"
                 "2. `config.json` 中字段 `weibu_api_key`"
             )
 

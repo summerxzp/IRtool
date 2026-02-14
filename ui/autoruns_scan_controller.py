@@ -5,8 +5,8 @@ from typing import Optional
 
 from PyQt6.QtCore import QObject, QThread, pyqtSignal
 
-LOGGER = logging.getLogger("sectool.autoruns_scan")
-DEBUG_LOG_ENABLED = os.getenv("SECTOOL_DEBUG_LOG", "0") == "1"
+LOGGER = logging.getLogger("IRtool.autoruns_scan")
+DEBUG_LOG_ENABLED = os.getenv("IRTOOL_DEBUG_LOG", "0") == "1"
 
 
 def _debug_log(msg: str):
