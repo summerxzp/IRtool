@@ -98,9 +98,20 @@
 - 目标：体检后可直接对可疑 skill 文件 hash 发起微步批量查询。
 - 影响文件：`ui/workspace_tab.py`、`core/skill_audit/`、`core/threat_intel/`
 - 进展（2026-02-13）：已支持体检后即时触发微步批量查询，且可复用“最近一次体检结果”再次查询。
-- 下一步：将查询结果落表到 Workspace 结果列表，并支持导出。
+- 进展（2026-02-13）：已支持导出最近一次查询结果为 JSON。
+- 下一步：将查询结果落表到 Workspace 结果列表（统一检索与二次筛选）。
 
 17. `P2 DONE` VirusTotal Provider 骨架接入
 - 目标：提前铺设多情报源扩展接口，避免后续改动主链路。
 - 影响文件：`core/threat_intel/provider_virustotal.py`、`core/threat_intel/__init__.py`、`core/__init__.py`、`ui/workspace_tab.py`
 - 实施结果：已完成 VT provider 占位实现与服务注册（当前 UI 默认仍以微步链路为主）。
+
+18. `P0 DONE` 修复 Autoruns 右键“复制文件并加密压缩”闪退
+- 目标：避免因 `pyzipper` 缺失或非法文件名导致 UI 异常退出。
+- 影响文件：`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/autoruns_tab.py`
+- 实施结果：`pyzipper` 导入移入保护分支并新增 ImportError 提示；增加 Windows 文件名清洗函数。
+
+19. `P1 DONE` 情报查询结果导出（JSON）
+- 目标：支持导出最近一次微步查询结果，便于复盘与共享。
+- 影响文件：`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/workspace_tab.py`
+- 实施结果：新增“导出情报”按钮，可导出最近一次单条/批量查询结果为 JSON。
