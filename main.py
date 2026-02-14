@@ -29,7 +29,7 @@ from core.search_service import SearchService
 
 from ui.network_tab import NetworkTab
 from ui.autoruns_tab import AutorunsTab
-from ui.skill_scan_tab import SkillScanTab
+# from ui.skill_scan_tab import SkillScanTab  # 暂时隐藏 Skill Scan Tab
 from ui.workspace_tab import WorkspaceTab
 
 # 配置日志输出到文件（使用应用目录，而不是临时目录）
@@ -138,9 +138,9 @@ class MainWindow(QMainWindow):
         self.network_tab = NetworkTab(self.network_monitor, self.data_store)
         tabs.addTab(self.network_tab, "网络监控")
 
-        # Skill Scan 标签（独立于 Autoruns/Workspace）
-        self.skill_scan_tab = SkillScanTab()
-        tabs.addTab(self.skill_scan_tab, "Skill Scan")
+        # Skill Scan 标签（独立于 Autoruns/Workspace）- 暂时隐藏
+        # self.skill_scan_tab = SkillScanTab()
+        # tabs.addTab(self.skill_scan_tab, "Skill Scan")
 
         # 持久化检测标签
         if self.autoruns_parser:

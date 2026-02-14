@@ -59,13 +59,14 @@
 - 当前 UI：Workspace 结果右键支持“微步查询（当前条目）”与“微步批量查询（当前结果）”。
 - 当前 UI：支持导出最近一次情报查询结果（JSON）。
 
-### 2.7 Skill Scan（`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/skill_scan_tab.py`）
+### 2.7 Skill Scan (`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/skill_scan_tab.py`)
+- **状态：暂时隐藏（2026-02-14）** - 功能待完善后重新开放，代码保留在仓库中。
 - 定位：文件级 IOC 发现能力（发现 + 归集 + 呈现），不自动判恶、不自动联网。
 - 扫描范围：高价值工具链路径（`%USERPROFILE%\\.claude` / `.openclaw` / `.codex`，可选 `.config\\claude` / `.config\\openclaw`）+ 自定义路径。
 - 扫描能力：支持递归开关、文件名精确匹配/通配符过滤、流式 SHA256 计算。
-- 结果增强：支持“已知 Skill 清单”匹配、恶意 Hash 清单命中、风险标记（扩展名/命名特征/未知文件）。
+- 结果增强：支持"已知 Skill 清单"匹配、恶意 Hash 清单命中、风险标记（扩展名/命名特征/未知文件）。
 - 结果展示：固定字段表格（文件名/路径/大小/时间/SHA256/来源类型/状态），支持按大小和时间排序与风险高亮。
-- 右键动作：复制 SHA256、打开文件所在目录、标记“已确认安全”（本地标签）。
+- 右键动作：复制 SHA256、打开文件所在目录、标记"已确认安全"（本地标签）。
 - 情报联动：选中结果后手动触发 VirusTotal/微步 hash 查询（仅提交 hash，不上传文件）。
 
 ## 3. 技术架构

@@ -32,7 +32,6 @@ from ui.ui_style import (
     AUTORUNS_DETAIL_TITLE_STYLESHEET,
     AUTORUNS_DETAIL_PLACEHOLDER_STYLESHEET,
     AUTORUNS_SCROLL_AREA_STYLESHEET,
-    AUTORUNS_HELP_BUTTON_STYLESHEET,
     AUTORUNS_RISK_HELP_TEXT_STYLESHEET,
 )
 
@@ -894,6 +893,7 @@ class AutorunsTab(QWidget):
         text_height = font_metrics.height()
         self.status_frame.setFixedHeight(text_height + 20)  # 比字体高一点点
         status_inner_layout = QHBoxLayout()
+        status_inner_layout.setContentsMargins(8, 2, 8, 2)  # 减小上下边距，让按钮完整显示
         
         # 状态信息标签
         self.lbl_scan_status = QLabel("就绪")
@@ -909,10 +909,9 @@ class AutorunsTab(QWidget):
         
         # 添加帮助按钮
         self.btn_help = QPushButton("?")
-        self.btn_help.setFixedSize(22, 22)
+        self.btn_help.setFixedWidth(28)
         self.btn_help.setToolTip("风险等级说明")
         self.btn_help.clicked.connect(self._show_risk_help)
-        self.btn_help.setStyleSheet(AUTORUNS_HELP_BUTTON_STYLESHEET)
         status_inner_layout.addWidget(self.btn_help)
         
         self.status_frame.setLayout(status_inner_layout)

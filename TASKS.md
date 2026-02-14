@@ -5,7 +5,13 @@
 
 ## 当前任务
 
-1. `P0 DOING` 拆分 `workspace_tab.py` 的职责
+1. `P0 DONE` 隐藏 Skill Scan Tab（功能待完善后重新开放）
+- 目标：因 Skill Scan 功能尚未完善，暂时隐藏该 Tab，待后续功能成熟后再开放。
+- 影响文件：`d:\project\sectool_codex\main.py`
+- 实施结果：已注释 SkillScanTab 的导入和 Tab 添加代码，保留所有实现代码供后续使用。
+- 时间：2026-02-14
+
+2. `P0 DOING` 拆分 `workspace_tab.py` 的职责
 - 目标：将规则管理、结果展示、处置动作从单文件拆分到独立组件。
 - 影响文件：`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/workspace_tab.py`
 - 验收标准：主流程行为不变，文件体积明显下降，组件边界清晰。
