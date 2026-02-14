@@ -25,6 +25,13 @@ from .skill_audit import (
     SkillAuditScanner,
     DEFAULT_SKILL_ROOTS,
 )
+from .skill_scan import (
+    SkillFileEntry,
+    SkillScanConfig,
+    SkillScanResult,
+    SkillScanScanner,
+    BUILTIN_PATH_DEFINITIONS,
+)
 
 __all__ = [
     'AutorunsParser',
@@ -52,4 +59,9 @@ __all__ = [
     'SkillAuditOptions',
     'SkillAuditScanner',
     'DEFAULT_SKILL_ROOTS',
+    'SkillFileEntry',
+    'SkillScanConfig',
+    'SkillScanResult',
+    'SkillScanScanner',
+    'BUILTIN_PATH_DEFINITIONS',
 ]
