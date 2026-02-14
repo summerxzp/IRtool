@@ -68,18 +68,38 @@ class AutorunEntry:
 
 class AutorunsParser:
     """Autoruns解析器"""
-    
 
-    
     def __init__(self, autoruns_path: str = None):
         # 默认从程序目录下的tools文件夹查找
         if autoruns_path is None:
-            base_dir = Path(__file__).parent.parent
-            self.autoruns_path = str(base_dir / "tools" / "autorunsc64.exe")
+            base_dir = self._get_app_dir()
+            # 尝试多个路径: 1) 根目录/tools 2) _internal/tools (PyInstaller onedir)
+            possible_paths = [
+                base_dir / "tools" / "autorunsc64.exe",
+                base_dir / "_internal" / "tools" / "autorunsc64.exe",
+            ]
+            self.autoruns_path = None
+            for path in possible_paths:
+                if path.exists():
+                    self.autoruns_path = str(path)
+                    break
+            if self.autoruns_path is None:
+                # 使用第一个路径作为默认值(会报错提示)
+                self.autoruns_path = str(possible_paths[0])
         else:
             self.autoruns_path = autoruns_path
-        
+
         self._verify_autoruns()
+
+    def _get_app_dir(self) -> Path:
+        """获取应用根目录（支持源码运行和PyInstaller打包）"""
+        import sys
+        if getattr(sys, 'frozen', False):
+            # PyInstaller打包后，使用可执行文件所在目录
+            return Path(sys.executable).parent
+        else:
+            # 源码运行，使用脚本所在目录
+            return Path(__file__).parent.parent
     
     def _verify_autoruns(self):
         """验证autoruns是否存在"""

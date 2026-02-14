@@ -3,6 +3,7 @@ import sys
 import os
 import logging
 from pathlib import Path
+from datetime import datetime
 
 # 获取应用根目录（支持源码运行和PyInstaller打包）
 def get_app_dir():
@@ -26,14 +27,19 @@ from core.network_monitor import NetworkMonitor
 from core.autoruns_parser import AutorunsParser
 from core.data_store import DataStore
 from core.search_service import SearchService
+from core.constants import APP_NAME, APP_ID, APP_VERSION, BUILD_TYPE, BUILD_DATE
 
 from ui.network_tab import NetworkTab
 from ui.autoruns_tab import AutorunsTab
 # from ui.skill_scan_tab import SkillScanTab  # 暂时隐藏 Skill Scan Tab
 from ui.workspace_tab import WorkspaceTab
 
-# 配置日志输出到文件（使用应用目录，而不是临时目录）
-log_file = APP_DIR / "app.log"
+# 创建logs目录
+logs_dir = APP_DIR / "logs"
+logs_dir.mkdir(exist_ok=True)
+
+# 配置日志输出到文件（使用logs目录）
+log_file = logs_dir / f"IRtool_{datetime.now().strftime('%Y%m%d')}.log"
 
 # 创建logger
 logger = logging.getLogger('IRtool')
@@ -99,12 +105,12 @@ def is_admin():
 
 class MainWindow(QMainWindow):
     """主窗口"""
-    
+
     def __init__(self, is_admin_mode=True):
         super().__init__()
-        
+
         self.is_admin_mode = is_admin_mode
-        title = "IRtool - v1.0.0"
+        title = f"IRtool v{APP_VERSION}"
         if not is_admin_mode:
             title += " (非管理员模式)"
         logger.info(f"[MainWindow] Setting title: {title}, is_admin_mode={is_admin_mode}")
@@ -199,6 +205,14 @@ class MainWindow(QMainWindow):
         event.accept()
 
 def main():
+    # 输出启动信息
+    logger.info("[Startup] ========================================")
+    logger.info(f"[Startup] AppID: {APP_ID}")
+    logger.info(f"[Startup] Version: {APP_VERSION}")
+    logger.info(f"[Startup] Build: {BUILD_TYPE} ({BUILD_DATE})")
+    logger.info(f"[Startup] App Directory: {APP_DIR}")
+    logger.info("[Startup] ========================================")
+
     # 检查管理员权限
     is_admin_mode = is_admin()
     logger.info(f"[Main] Admin check: is_admin_mode={is_admin_mode}")

@@ -45,6 +45,28 @@ def _debug_log(msg: str):
         LOGGER.debug(msg)
 
 
+def get_app_dir():
+    """获取应用根目录（支持源码运行和PyInstaller打包）"""
+    import sys
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)
+    else:
+        return os.path.dirname(os.path.dirname(__file__))
+
+
+def get_sigcheck_path():
+    """获取sigcheck64.exe路径（支持源码和打包环境）"""
+    base_dir = get_app_dir()
+    possible_paths = [
+        os.path.join(base_dir, "tools", "sigcheck64.exe"),
+        os.path.join(base_dir, "_internal", "tools", "sigcheck64.exe"),
+    ]
+    for path in possible_paths:
+        if os.path.exists(path):
+            return path
+    return possible_paths[0]  # 返回默认路径(如果不存在会报错)
+
+
 
 
 class TreeNode:
@@ -1444,8 +1466,7 @@ class AutorunsTab(QWidget):
             QMessageBox.warning(self, "警告", "无法验证签名：条目ID缺失")
             return
 
-        base_dir = os.path.dirname(os.path.dirname(__file__))
-        sigcheck_path = os.path.join(base_dir, "tools", "sigcheck64.exe")
+        sigcheck_path = get_sigcheck_path()
         if not os.path.exists(sigcheck_path):
             QMessageBox.warning(self, "警告", f"sigcheck64.exe 不存在: {sigcheck_path}")
             return
