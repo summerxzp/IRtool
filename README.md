@@ -29,6 +29,7 @@
 - 支持单条 hash 计算、单条签名重验（异步线程）、删除条目、CSV 导出。
 - 对计划任务条目支持右键打开任务计划程序，并复制任务标识辅助定位。
 - `sigcheck` 输出增加多编码解码回退，降低中文路径/中文发布者乱码概率。
+- 右键“复制文件并加密压缩”已增加依赖缺失保护与文件名清洗，避免异常闪退。
 
 ### 2.3 工作台（`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/workspace_tab.py`）
 - 汇总搜索（当前以 Autoruns 关键字检索为主）。
@@ -56,6 +57,7 @@
 - 执行形态：右键单条查询 + 批量任务队列查询（含限流、失败重试、导出）。
 - 当前实现：`core/threat_intel/` 已提供 `IOCQuery/IOCQueryResult`、provider 抽象、批量查询服务与 `WeibuProvider`、`VirusTotalProvider` 占位实现。
 - 当前 UI：Workspace 结果右键支持“微步查询（当前条目）”与“微步批量查询（当前结果）”。
+- 当前 UI：支持导出最近一次情报查询结果（JSON）。
 
 ### 2.7 Skill 供应链排查（规划中）
 - 目标：支持 OpenClaw、ClaudeCode 等常见 skill 路径体检，识别可疑 skill 文件。
@@ -228,3 +230,5 @@ set SECTOOL_VT_API_KEY=your_api_key
 - 2026-02-13：新增 Skill 体检基础能力（常见路径扫描 + hash + 可疑清单），并在 Workspace 提供入口。
 - 2026-02-13：打通 Skill 体检结果到微步 Hash 批量查询链路。
 - 2026-02-13：新增 VirusTotal provider 骨架并完成服务注册（UI 默认仍使用微步）。
+- 2026-02-13：修复 Autoruns 右键压缩闪退问题（`pyzipper` 缺失保护 + 文件名清洗）。
+- 2026-02-13：新增情报查询结果 JSON 导出能力。

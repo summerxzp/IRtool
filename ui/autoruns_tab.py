@@ -1722,14 +1722,7 @@ class AutorunsTab(QWidget):
         工作台支持统一路径选择（self / directory / parent）和命令预览
         """
         import os
-        from datetime import datetime
-
-        try:
-            import pyzipper
-        except ImportError:
-            QMessageBox.critical(self, "错误", "pyzipper 库未安装\n\n请运行: pip install pyzipper")
-            return
-
+        
         image_path = data.get('image_path', '')
         entry_name = data.get('entry', '')
 
@@ -1739,12 +1732,15 @@ class AutorunsTab(QWidget):
             return
 
         try:
+            import pyzipper
+
             # 获取 SHA256 前三位
             sha256 = data.get('sha256', '')
             sha256_prefix = sha256[:3] if sha256 else '000'
             
             # 压缩包命名规则：<entry_name>_<sha256前三位>.zip
-            zip_filename = f"{entry_name}_{sha256_prefix}.zip"
+            safe_entry_name = self._sanitize_windows_filename(entry_name) or "sample"
+            zip_filename = f"{safe_entry_name}_{sha256_prefix}.zip"
             
             # 默认密码为 1
             password = "1"
@@ -1775,10 +1771,28 @@ class AutorunsTab(QWidget):
                 f"文件已加密压缩并保存到：\n{save_path}\n\n密码: {password}"
             )
             
+        except ImportError:
+            QMessageBox.critical(
+                self,
+                "错误",
+                "pyzipper 未安装或未打包，无法执行 AES 加密压缩。\n\n"
+                "建议在工作台使用统一压缩功能，或在构建时确保包含 pyzipper。"
+            )
         except PermissionError:
             QMessageBox.critical(self, "错误", "权限不足，无法访问文件")
         except Exception as e:
             QMessageBox.critical(self, "错误", f"压缩过程中发生错误: {str(e)}")
+
+    @staticmethod
+    def _sanitize_windows_filename(name: str) -> str:
+        text = str(name or "").strip()
+        if not text:
+            return ""
+        invalid = '<>:"/\\|?*'
+        for ch in invalid:
+            text = text.replace(ch, "_")
+        text = text.rstrip(". ").strip()
+        return text[:120]
     
     def _export_csv(self):
         """导出CSV"""

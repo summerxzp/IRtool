@@ -66,6 +66,7 @@ class WorkspaceTab(QWidget):
         self.current_data = []
         self.matched_results = []
         self.last_skill_audit_report = None
+        self.last_threat_intel_results = []
         self.selected_entry = None
         self.selected_scope = PathScope.SELF
         self.result_mode = "autorun"
@@ -148,6 +149,8 @@ class WorkspaceTab(QWidget):
         self.btn_skill_audit.clicked.connect(self._audit_skill_paths)
         self.btn_skill_weibu = QPushButton("Skill查微步")
         self.btn_skill_weibu.clicked.connect(self._query_weibu_from_last_skill_report)
+        self.btn_export_intel = QPushButton("导出情报")
+        self.btn_export_intel.clicked.connect(self._export_last_threat_intel_results)
         
         search_layout.addWidget(search_label)
         search_layout.addWidget(self.search_box, 1)
@@ -156,6 +159,7 @@ class WorkspaceTab(QWidget):
         search_layout.addWidget(self.btn_manage_rules)
         search_layout.addWidget(self.btn_skill_audit)
         search_layout.addWidget(self.btn_skill_weibu)
+        search_layout.addWidget(self.btn_export_intel)
         
         layout.addLayout(search_layout)
 
@@ -940,6 +944,7 @@ class WorkspaceTab(QWidget):
         if not results:
             QMessageBox.information(self, "提示", "无查询结果")
             return
+        self.last_threat_intel_results = list(results)
 
         success_count = sum(1 for r in results if r.success)
         failed = [r for r in results if not r.success]
@@ -977,6 +982,46 @@ class WorkspaceTab(QWidget):
             QMessageBox.warning(self, title, summary)
         else:
             QMessageBox.information(self, title, summary)
+
+    def _export_last_threat_intel_results(self):
+        if not self.last_threat_intel_results:
+            QMessageBox.information(self, "提示", "暂无可导出的情报查询结果")
+            return
+
+        default_name = "threat_intel_results.json"
+        save_path = PathResolver.save_file(
+            self,
+            "导出情报查询结果",
+            default_name,
+            "JSON 文件 (*.json)",
+        )
+        if not save_path:
+            return
+
+        payload = []
+        for item in self.last_threat_intel_results:
+            payload.append(
+                {
+                    "provider": item.provider,
+                    "ioc_type": item.query.ioc_type.value,
+                    "ioc_value": item.query.value,
+                    "success": item.success,
+                    "verdict": item.verdict,
+                    "severity": item.severity,
+                    "confidence": item.confidence,
+                    "summary": item.summary,
+                    "error": item.error,
+                    "raw": item.raw,
+                    "context": item.query.context,
+                }
+            )
+
+        try:
+            with open(save_path, "w", encoding="utf-8") as f:
+                json.dump(payload, f, ensure_ascii=False, indent=2)
+            QMessageBox.information(self, "导出成功", f"已导出 {len(payload)} 条结果：\n{save_path}")
+        except Exception as exc:
+            QMessageBox.warning(self, "导出失败", f"导出情报结果失败: {exc}")
     
     def _open_in_explorer(self, path):
         """在资源管理器中打开文件"""
