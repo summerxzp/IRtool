@@ -14,6 +14,7 @@ class SkillFileEntry:
     path_category: str
     is_known_skill_file: bool = False
     is_malicious_hash: bool = False
+    matched_rules: List[str] = field(default_factory=list)
     risk_flags: List[str] = field(default_factory=list)
     tags: List[str] = field(default_factory=list)
 
