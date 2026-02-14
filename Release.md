@@ -64,9 +64,13 @@ powershell -ExecutionPolicy Bypass -File package/build-with-7z.ps1 -Mode onedir-
 
 ```
 package/dist/
-├── IRtool-v{版本号}.exe    # onedir-7z 模式输出
-└── IRtool-v{版本号}/       # onedir 模式输出目录
+├── IRtool-v{版本号}-7z.exe    # onedir-7z 模式输出 (自解压包)
+└── IRtool-v{版本号}/          # onedir 模式输出目录
 ```
+
+**命名规范说明**:
+- 自解压包添加 `-7z` 后缀，避免与解压后的主程序同名
+- 解压后运行 `IRtool-v{版本号}.exe` (主程序)
 
 ---
 
@@ -203,6 +207,10 @@ def run_as_admin():
 
 #### Q: 自解压后程序无法启动
 **解决**: 检查 `sfx_config.txt` 中的 `GUIRunOnce` 路径是否正确
+
+#### Q: 自解压时出现"文件替换"弹窗
+**原因**: 打包文件和解压后的主程序同名  
+**解决**: 自解压包使用 `-7z` 后缀命名，如 `IRtool-v1.0.0-7z.exe`
 
 ### 2. 体积优化技巧
 

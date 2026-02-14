@@ -183,7 +183,7 @@ if ($LASTEXITCODE -eq 0) {
 
         # Paths for 7z creation
         $archivePath = Join-Path $here "dist\$outputName.7z"
-        $sfxPath = Join-Path $here "dist\$outputName.exe"
+        $sfxPath = Join-Path $here "dist\$outputName-7z.exe"    # 打包文件添加 -7z 后缀，避免与解压后的主程序同名
 
         # Clean up old files
         if (Test-Path $sfxPath) {
