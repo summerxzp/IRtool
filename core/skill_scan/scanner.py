@@ -240,6 +240,7 @@ class SkillScanScanner:
         sha256_value = ""
         tags: List[str] = []
         risk_flags: List[str] = []
+        matched_rules: List[str] = []
 
         try:
             sha256_value = self._hash_file(file_path)
@@ -253,18 +254,22 @@ class SkillScanScanner:
         ext = Path(file_path).suffix.lower()
         if ext in SUSPICIOUS_EXTENSIONS:
             risk_flags.append(f"high_risk_extension:{ext}")
+            matched_rules.append("R_EXT_HIGH_RISK: 高风险扩展名")
         for keyword in SUSPICIOUS_NAME_KEYWORDS:
             if keyword in file_name_lower:
                 risk_flags.append(f"name_keyword:{keyword}")
+                matched_rules.append(f"R_NAME_KEYWORD: 文件名包含 {keyword}")
 
         if is_known_skill_file:
             tags.append("known_skill_file")
         if is_malicious_hash:
             tags.append("malicious_hash_hit")
             risk_flags.append("hash_in_malicious_set")
+            matched_rules.append("R_HASH_BLOCKLIST: 命中恶意 Hash 清单")
 
         if not is_known_skill_file and self._path_looks_like_skill_dir(file_path):
             risk_flags.append("unknown_file_in_skill_path")
+            matched_rules.append("R_UNKNOWN_IN_SKILL: Skill 路径出现未知文件")
 
         return SkillFileEntry(
             file_name=file_name,
@@ -276,6 +281,7 @@ class SkillScanScanner:
             path_category=path_category,
             is_known_skill_file=is_known_skill_file,
             is_malicious_hash=is_malicious_hash,
+            matched_rules=matched_rules,
             risk_flags=risk_flags,
             tags=tags,
         )

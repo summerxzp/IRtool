@@ -74,7 +74,8 @@ class SkillScanTab(QWidget):
     COL_MTIME = 3
     COL_SHA256 = 4
     COL_SOURCE = 5
-    COL_STATUS = 6
+    COL_RULES = 6
+    COL_STATUS = 7
 
     def __init__(self):
         super().__init__()
@@ -217,7 +218,7 @@ class SkillScanTab(QWidget):
         layout.addWidget(title)
 
         self.results_table = QTableWidget()
-        self.results_table.setColumnCount(7)
+        self.results_table.setColumnCount(8)
         self.results_table.setHorizontalHeaderLabels(
             [
                 "文件名",
@@ -226,6 +227,7 @@ class SkillScanTab(QWidget):
                 "修改时间",
                 "SHA256",
                 "来源路径类型",
+                "命中规则",
                 "状态",
             ]
         )
@@ -240,6 +242,7 @@ class SkillScanTab(QWidget):
         self.results_table.setColumnWidth(self.COL_MTIME, 160)
         self.results_table.setColumnWidth(self.COL_SHA256, 380)
         self.results_table.setColumnWidth(self.COL_SOURCE, 120)
+        self.results_table.setColumnWidth(self.COL_RULES, 300)
         self.results_table.setColumnWidth(self.COL_STATUS, 110)
         self.results_table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.results_table.customContextMenuRequested.connect(self._show_context_menu)
@@ -259,6 +262,9 @@ class SkillScanTab(QWidget):
         actions = QHBoxLayout()
         self.btn_query_vt = QPushButton("查询 VirusTotal")
         self.btn_query_weibu = QPushButton("查询 微步")
+        self.btn_rule_help = QPushButton("?")
+        self.btn_rule_help.setFixedWidth(28)
+        self.btn_rule_help.clicked.connect(self._show_rule_help_dialog)
         self.btn_query_vt.setEnabled(False)
         self.btn_query_weibu.setEnabled(False)
 
@@ -268,6 +274,7 @@ class SkillScanTab(QWidget):
         actions.addWidget(self.btn_query_vt)
         actions.addWidget(self.btn_query_weibu)
         actions.addStretch()
+        actions.addWidget(self.btn_rule_help)
 
         layout.addLayout(actions)
         return panel
@@ -389,6 +396,11 @@ class SkillScanTab(QWidget):
 
             self.results_table.setItem(row, self.COL_SHA256, QTableWidgetItem(entry.sha256))
             self.results_table.setItem(row, self.COL_SOURCE, QTableWidgetItem(entry.path_category))
+            rules_text = self._format_rule_hits(entry.matched_rules)
+            rules_item = QTableWidgetItem(rules_text)
+            if entry.matched_rules:
+                rules_item.setToolTip("\n".join(entry.matched_rules))
+            self.results_table.setItem(row, self.COL_RULES, rules_item)
 
             status_text = self._status_text(entry)
             self.results_table.setItem(row, self.COL_STATUS, QTableWidgetItem(status_text))
@@ -423,6 +435,27 @@ class SkillScanTab(QWidget):
             item = self.results_table.item(row, col)
             if item:
                 item.setBackground(bg)
+
+    @staticmethod
+    def _format_rule_hits(matched_rules: List[str]) -> str:
+        if not matched_rules:
+            return "-"
+        if len(matched_rules) <= 2:
+            return " | ".join(matched_rules)
+        return " | ".join(matched_rules[:2]) + f" | +{len(matched_rules) - 2}"
+
+    def _show_rule_help_dialog(self):
+        text = (
+            "Skill Scan 判定标准（启发式，不等同于最终恶意结论）:\n\n"
+            "1. R_HASH_BLOCKLIST: 文件 SHA256 命中恶意 Hash 清单\n"
+            "2. R_EXT_HIGH_RISK: 文件扩展名属于高风险类型（如 .exe/.dll/.ps1 等）\n"
+            "3. R_NAME_KEYWORD: 文件名包含常见恶意关键词（loader/dropper/payload 等）\n"
+            "4. R_UNKNOWN_IN_SKILL: Skill 工具链路径中出现未归类的未知文件\n\n"
+            "说明:\n"
+            "- 命中规则用于快速筛查与排序，最终仍需人工复核。\n"
+            "- ‘已确认安全’仅为本地标记，不会修改文件本身。"
+        )
+        QMessageBox.information(self, "规则说明", text)
 
     @staticmethod
     def _format_size(size: int) -> str:
