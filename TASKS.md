@@ -11,6 +11,42 @@
 - 实施结果：已注释 SkillScanTab 的导入和 Tab 添加代码，保留所有实现代码供后续使用。
 - 时间：2026-02-14
 
+2. `P0 DONE` 注释 Workspace 右键微步查询功能
+- 目标：暂时禁用 Workspace Tab 右键菜单中的微步查询功能（单条和批量）。
+- 影响文件：`d:\project\sectool_codex\ui\workspace_tab.py`
+- 实施结果：已注释右键菜单中的"微步查询（当前条目）"和"微步批量查询（当前结果）"功能代码，保留实现供后续恢复。
+- 时间：2026-02-14
+
+3. `P0 DONE` Workspace 规则类型筛选优化
+- 目标：修改规则类型筛选默认只选 IP，并添加全选/全部取消按钮提升操作效率。
+- 影响文件：`d:\project\sectool_codex\ui\workspace_tab.py`
+- 实施结果：默认仅选中 IP 类型；新增"全选"和"全部取消"按钮及对应方法 `_select_all_rule_types` / `_deselect_all_rule_types`。
+- 时间：2026-02-14
+
+4. `P0 DONE` Workspace 规则扫描结果展示优化
+- 目标：优化规则扫描结果的显示方式，使 IP 扫描结果更清晰，规则名称更直观。
+- 影响文件：`d:\project\sectool_codex\ui\workspace_results_presenter.py`、`d:\project\sectool_codex\ui\workspace_rule_dialogs.py`
+- 实施结果：
+  - IP 匹配时 Matched 列只显示 IP 地址（从 detail.matched_ip 获取）
+  - Source 列显示规则名称（family）而非 "Rule Scan"
+  - 规则详情中的 Note 添加 "Note:" 前缀
+  - 规则管理对话框表头改为中文："规则名称"、"字段"、"匹配类型"、"匹配值"、"严重级别"、"发现日期"、"备注"
+  - 规则编辑对话框标签 "家族" 改为 "规则名称"，变量名 `edt_family` 改为 `edt_rule_name`
+- 时间：2026-02-14
+
+5. `P0 DONE` IOC 导入功能增强
+- 目标：优化 IOC 导入体验，支持直接粘贴文本内容。
+- 影响文件：`d:\project\sectool_codex\ui\workspace_rule_dialogs.py`
+- 实施结果：
+  - 新增 `IOCImportDialog` 对话框类，使用表格形式展示数据
+  - 表格列：值(必填)、类型、标签、动作、名称、时间、备注
+  - 支持从Excel复制后直接粘贴到表格
+  - 支持选择文件导入、清空、删除选中行
+  - 自动识别制表符、逗号、空格等多种分隔符
+  - 只提取关键字段：值、类型、名称、时间、备注
+  - 修改 `_import_ioc` 方法，打开新对话框而非直接选择文件
+- 时间：2026-02-14
+
 2. `P0 DOING` 拆分 `workspace_tab.py` 的职责
 - 目标：将规则管理、结果展示、处置动作从单文件拆分到独立组件。
 - 影响文件：`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/workspace_tab.py`

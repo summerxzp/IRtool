@@ -34,7 +34,7 @@
       {
         "field": "command_line",
         "type": "contains",
-        "value": "jnetpub\\\\wwwroot"
+        "value": "jnetpub"
       }
     ],
     "severity": "high",
@@ -48,12 +48,26 @@
       {
         "field": "image_path",
         "type": "contains",
-        "value": "\\\\inetpub\\\\"
+        "value": "MFG"
       }
     ],
     "severity": "medium",
     "date": "",
     "note": "inetpub 路径在普通终端不常见"
+  },
+  {
+    "id": "rule_a8757b5a",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "command_line",
+        "type": "contains",
+        "value": "MFG"
+      }
+    ],
+    "severity": "critical",
+    "date": "",
+    "note": "银狐常用路径"
   },
   {
     "id": "silverfox_wmp_music_dll",
@@ -62,7 +76,7 @@
       {
         "field": "command_line",
         "type": "contains",
-        "value": "Windows Media Player Music.dll"
+        "value": "Music.dll"
       }
     ],
     "severity": "high",
@@ -76,7 +90,7 @@
       {
         "field": "command_line",
         "type": "contains",
-        "value": "Windows Mail\\\\wab.dll"
+        "value": "wab.dll"
       }
     ],
     "severity": "high",
@@ -88,7 +102,7 @@
     "family": "PowerShell",
     "match": [
       {
-        "field": "command_line",
+        "field": "image_path",
         "type": "contains",
         "value": "-enc"
       }
@@ -98,77 +112,119 @@
     "note": "PowerShell 编码执行"
   },
   {
-    "id": "rule_0cb215fb",
-    "family": "ceshi_path",
-    "match": [
-      {
-        "field": "image_path",
-        "type": "contains",
-        "value": "c:\\\\program files (x86)\\\\diagnosis\\\\"
-      }
-    ],
-    "severity": "critical",
-    "date": "",
-    "note": ""
-  },
-  {
-    "id": "rule_f408107b",
-    "family": "test_hash",
+    "id": "ioc_fc4873e2",
+    "family": "恶意skill",
     "match": [
       {
         "field": "sha256",
-        "type": "contains",
-        "value": "35CEFE4BC4A98AD73DDA4444C700AAC9F749EFDE8F9DE6A643A57A5B605BD4E7"
+        "type": "equals",
+        "value": "d781d5cabaf5f305bbb8afcd9a54d7ba616bfa7aef5c4d16f6bce3d2bf3b4073"
       }
     ],
-    "severity": "critical",
-    "date": "",
-    "note": "everything"
+    "severity": "medium",
+    "date": "2026/02/13",
+    "note": "恶意skill"
   },
   {
-    "id": "rule_46837748",
-    "family": "test_IP",
+    "id": "ioc_f7673ce8",
+    "family": "恶意skill",
     "match": [
       {
-        "field": "ip",
-        "type": "contains",
-        "value": "47.96.16.191"
+        "field": "sha256",
+        "type": "equals",
+        "value": "95fb8f28d08e19090443bda8bd71bbb79f7c451288a2de6f1ca0ad6fee8b4569"
       }
     ],
-    "severity": "critical",
-    "date": "",
-    "note": ""
+    "severity": "medium",
+    "date": "2026/02/13",
+    "note": "恶意skill"
   },
   {
-    "id": "rule_46837748",
-    "family": "test_chongfu",
+    "id": "ioc_cd53ff6f",
+    "family": "恶意skill",
     "match": [
       {
-        "field": "ip",
-        "type": "contains",
-        "value": "47.96.16.192"
+        "field": "sha256",
+        "type": "equals",
+        "value": "6faef4d5d777fdcaa653766b0ac8b9ed32d0fd87f7dcd79f02ff524dd1b0eb69"
       }
     ],
-    "severity": "critical",
-    "date": "",
-    "note": ""
+    "severity": "medium",
+    "date": "2026/02/13",
+    "note": "恶意skill"
   },
   {
-    "id": "ioc_54b8770f",
+    "id": "ioc_f408cc5b",
+    "family": "恶意skill",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "45d8e56bd86960727bcaa4b5c9f7c3422a22723c23ea5b46b6aa9bc42ed1f9f1"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/13",
+    "note": "恶意skill"
+  },
+  {
+    "id": "ioc_eec48300",
     "family": "银狐",
     "match": [
       {
         "field": "sha256",
         "type": "equals",
-        "value": "c69c5603781ce894efb1055a53371c13d3510ccdcd1283473e5871cb9a8ce769"
+        "value": "a492b0dcb3ec1dda9f7b2b44848761bae1f84116abc86d21dfbded327a485b8b"
       }
     ],
     "severity": "medium",
-    "date": "2026/02/10",
-    "note": "H3tzd\\hemizINSP.exe"
+    "date": "2026/02/12",
+    "note": "Twulea\\C.JV"
   },
   {
-    "id": "ioc_8e2d5645",
+    "id": "ioc_03b29841",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "82.23.246.148"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/12",
+    "note": "lidar告警"
+  },
+  {
+    "id": "ioc_074aded1",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "598fea69136f072df1f0aefaa9949771eeb7cd21be4a64a4f07cf27914d0b497"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/12",
+    "note": "Twulea\\vujtc.exe"
+  },
+  {
+    "id": "ioc_39c1b616",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "161.248.87.175"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/12",
+    "note": "tdp告警"
+  },
+  {
+    "id": "ioc_fc9a2813",
     "family": "银狐",
     "match": [
       {
@@ -182,21 +238,21 @@
     "note": "H3tzd\\76ulASw1.3Yh"
   },
   {
-    "id": "ioc_ced78a51",
+    "id": "ioc_cce8e1fc",
     "family": "银狐",
     "match": [
       {
         "field": "sha256",
         "type": "equals",
-        "value": "03175ed8bb9c59f4ec623e385c2beae0b9ce5b2c20334cc95f390096be986c56"
+        "value": "c69c5603781ce894efb1055a53371c13d3510ccdcd1283473e5871cb9a8ce769"
       }
     ],
     "severity": "medium",
     "date": "2026/02/10",
-    "note": "H3tzd\\YT3h5.dll"
+    "note": "H3tzd\\hemizINSP.exe"
   },
   {
-    "id": "ioc_15b7ca78",
+    "id": "ioc_b3b68d29",
     "family": "银狐",
     "match": [
       {
@@ -210,31 +266,3489 @@
     "note": "SunloginCli5.31.exe"
   },
   {
-    "id": "ioc_37a97de4",
+    "id": "ioc_f7d13f43",
     "family": "银狐",
     "match": [
       {
-        "field": "command_line",
-        "type": "contains",
-        "value": "500ckaia5.com"
+        "field": "sha256",
+        "type": "equals",
+        "value": "03175ed8bb9c59f4ec623e385c2beae0b9ce5b2c20334cc95f390096be986c56"
       }
     ],
     "severity": "medium",
     "date": "2026/02/10",
-    "note": ""
+    "note": "H3tzd\\YT3h5.dll"
   },
   {
-    "id": "rule_5bc4500d",
-    "family": "ceshii",
+    "id": "ioc_babb252d",
+    "family": "银狐",
     "match": [
       {
         "field": "ip",
-        "type": "contains",
-        "value": "124.220.58.129"
+        "type": "equals",
+        "value": "202.79.169.50"
       }
     ],
-    "severity": "critical",
-    "date": "",
-    "note": "假装是银狐"
+    "severity": "medium",
+    "date": "2026/02/09",
+    "note": ""
+  },
+  {
+    "id": "ioc_19db743e",
+    "family": "黑产团伙",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "bfbccbbbf576c88b00a4c06b9db8fa0f605cca4149bfba0dfb8c111544c9b86c"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/05",
+    "note": "cloudflared_installer.exe"
+  },
+  {
+    "id": "ioc_37cfd5de",
+    "family": "黑产团伙",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "b772e4bb8ed2d42aabb28286ef29985e98497f490018567e02937495fd648e97"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/05",
+    "note": "Clash-for-windows1f5-x64.exe"
+  },
+  {
+    "id": "ioc_2bf7e6b8",
+    "family": "恶意skill",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "998c38b430097479b015a68d9435dc5b98684119739572a4dff11e085881187e"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/05",
+    "note": "dx2w5j5bka6qkwxi"
+  },
+  {
+    "id": "ioc_72dfc409",
+    "family": "恶意skill",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "91.92.242.30"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/05",
+    "note": "AI Agent失控，skill投毒"
+  },
+  {
+    "id": "ioc_1bc102cc",
+    "family": "恶意skill",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "54.91.154.110"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/05",
+    "note": "AI Agent失控，skill投毒"
+  },
+  {
+    "id": "ioc_0cac86d3",
+    "family": "恶意skill",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "30f97ae88f8861eeadeb54854d47078724e52e2ef36dd847180663b7f5763168"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/05",
+    "note": "AI Agent失控，skill投毒"
+  },
+  {
+    "id": "ioc_166b1d3f",
+    "family": "黑产团伙",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "22f07d36ad024a7ad90b52b681abd02620fe426a3d1226249eebf1c85b43acb6"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/05",
+    "note": "cloudflared_installer.exe"
+  },
+  {
+    "id": "ioc_f453e196",
+    "family": "恶意skill",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "216.150.1.65"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/05",
+    "note": "AI Agent失控，skill投毒"
+  },
+  {
+    "id": "ioc_cc08da3b",
+    "family": "恶意skill",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "202.161.50.59"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/05",
+    "note": "恶意skill"
+  },
+  {
+    "id": "ioc_8c4b5e40",
+    "family": "恶意skill",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "1e6d4b0538558429422b71d1f4d724c8ce31be92d299df33a8339e32316e2298"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/05",
+    "note": "AI Agent失控，skill投毒"
+  },
+  {
+    "id": "ioc_1a195dc8",
+    "family": "恶意skill",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "17703b3d5e8e1fe69d6a6c78a240d8c84b32465fe62bed5610fb29335fe42283"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/05",
+    "note": "AI Agent失控，skill投毒"
+  },
+  {
+    "id": "ioc_1ad28167",
+    "family": "钓鱼仿冒",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "143.244.135.178"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/05",
+    "note": ""
+  },
+  {
+    "id": "ioc_144e6d5b",
+    "family": "恶意skill",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "11.92.242.30"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/05",
+    "note": "恶意skill"
+  },
+  {
+    "id": "ioc_82d8a563",
+    "family": "恶意skill",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "0e52566ccff4830e30ef45d2ad804eefba4ffe42062919398bf1334aab74dd65"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/05",
+    "note": "AI Agent失控，skill投毒"
+  },
+  {
+    "id": "ioc_570b415f",
+    "family": "蠕虫",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "0D55A20EC275760255192AB9F704136F5EC1C4F2FEE35CFD690E4CE5227357C4"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/05",
+    "note": "acad.fas"
+  },
+  {
+    "id": "ioc_e4ab509f",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "c985a0ca51add5d2ac029aa770725b0dacc8f45bf2fb68bb3c6771198553a1d4"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/02",
+    "note": "oW3HZoL\\hB6nbwJx.dll"
+  },
+  {
+    "id": "ioc_a7e3ef5d",
+    "family": "钓鱼仿冒",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "bbc04049c76aa9513ad6c833e5e714d233e9ff9899681b3fa9a9847325593bfc"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/02",
+    "note": "钓鱼仿冒，钓鱼脚本getnotebook.sh"
+  },
+  {
+    "id": "ioc_bcfdaf8f",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "b91b2b022a52f7b74d2bcd8484d4184b59f8a305df91f89854b676309e2ceaf2"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/02",
+    "note": "oW3HZoL.zip"
+  },
+  {
+    "id": "ioc_2184d155",
+    "family": "恶意软件",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "b5c64259781bc6b15eb19c4141576ced326d8513e389188cfdc58dd3ab43d623"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/02",
+    "note": "proxy.exe"
+  },
+  {
+    "id": "ioc_d152d57c",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "4b5ed9eb81cad93f692884e0d358a0ae399507638d5dfafb0857a388f96660f1"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/02",
+    "note": "is-UH08G.tmp"
+  },
+  {
+    "id": "ioc_53f5f825",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "47.76.246.88"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/02/02",
+    "note": ""
+  },
+  {
+    "id": "ioc_54395341",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "615a895ea5107936825c9de161a20dc19727c007a3e7c539a289d450329c5182"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/30",
+    "note": "trvePath\\libexpat.dll"
+  },
+  {
+    "id": "ioc_2b59ff22",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "3092916c4b114dfde2ee7face03bec67aea1fdceb88a1a73bfdd8d6b271b24e5"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/30",
+    "note": "Clasfo.zip"
+  },
+  {
+    "id": "ioc_a6692e9d",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "202.95.16.13"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/30",
+    "note": ""
+  },
+  {
+    "id": "ioc_c6a10148",
+    "family": "远控木马",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "110.42.41.92"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/29",
+    "note": "tdp告警"
+  },
+  {
+    "id": "ioc_e75c4c0d",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "89.150.40.14"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "CNC"
+  },
+  {
+    "id": "ioc_82232dfe",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "83.243.121.150"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "CNC"
+  },
+  {
+    "id": "ioc_9e479bf3",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "66.42.48.189"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "毒云藤"
+  },
+  {
+    "id": "ioc_b748da6c",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "46.183.27.134"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "伪猎者"
+  },
+  {
+    "id": "ioc_71efcd46",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "46.183.186.25"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "CNC"
+  },
+  {
+    "id": "ioc_9c001166",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "45.76.177.25"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "肚脑虫"
+  },
+  {
+    "id": "ioc_bb07be37",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "216.245.184.8"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "肚脑虫"
+  },
+  {
+    "id": "ioc_491289e1",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "213.111.177.145"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "CNC"
+  },
+  {
+    "id": "ioc_1f1bfed6",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "212.192.6.96"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "海莲花"
+  },
+  {
+    "id": "ioc_cd287273",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "206.71.148.204"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "肚脑虫"
+  },
+  {
+    "id": "ioc_6e268d9c",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "2.56.10.86"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "透明部落"
+  },
+  {
+    "id": "ioc_730b6835",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "2.56.10.121"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "透明部落"
+  },
+  {
+    "id": "ioc_1a8a8e98",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "194.15.216.206"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "CNC"
+  },
+  {
+    "id": "ioc_0acf9864",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "193.149.190.162"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "肚脑虫"
+  },
+  {
+    "id": "ioc_2d5aa0df",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "193.149.190.11"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "肚脑虫"
+  },
+  {
+    "id": "ioc_b1bc2e0b",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "193.149.187.185"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "肚脑虫"
+  },
+  {
+    "id": "ioc_c7a01e72",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "193.149.180.79"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "肚脑虫"
+  },
+  {
+    "id": "ioc_bc9262ea",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "193.149.180.165"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "肚脑虫"
+  },
+  {
+    "id": "ioc_cad919bd",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "192.166.82.82"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "摩诃草"
+  },
+  {
+    "id": "ioc_6e144e54",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "188.190.4.40"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "CNC"
+  },
+  {
+    "id": "ioc_3097e2d3",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "185.106.102.68"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "CNC"
+  },
+  {
+    "id": "ioc_6798cba9",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "151.243.12.62"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "海莲花"
+  },
+  {
+    "id": "ioc_6c441383",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "149.3.170.72"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "透明部落"
+  },
+  {
+    "id": "ioc_866576eb",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "149.248.79.160"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "肚脑虫"
+  },
+  {
+    "id": "ioc_a5e7d7f9",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "149.248.78.84"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "肚脑虫"
+  },
+  {
+    "id": "ioc_220ea8d5",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "149.248.77.111"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "肚脑虫"
+  },
+  {
+    "id": "ioc_47e2d996",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "146.70.135.150"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "CNC"
+  },
+  {
+    "id": "ioc_fa6e8c85",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "146.19.173.32"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "透明部落"
+  },
+  {
+    "id": "ioc_debd92f1",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "139.180.222.70"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/27",
+    "note": "毒云藤"
+  },
+  {
+    "id": "ioc_ad8a1930",
+    "family": "代理工具",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "91.195.240.12"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/23",
+    "note": "快雷GO，网络代理工具，kuailei.info的解析IP，存在大量恶意标签，恶意软件、钓鱼、远控、垃圾邮件"
+  },
+  {
+    "id": "ioc_e4a65bec",
+    "family": "代理工具",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "5a63bd061eb1e02c2eb75fec1beb9c076183e1181cd6088a5d48e7922d68da35"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/23",
+    "note": "快雷GO，网络代理工具"
+  },
+  {
+    "id": "ioc_30a615fd",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "c1097eb29475fc24ca1663b09475ed139752945db3c595648cddcac35042490b"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/22",
+    "note": "LetsVPN.exe"
+  },
+  {
+    "id": "ioc_a912dabe",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "baa021c47e5373975e0df18fb337c81e5733cbf4cc84a3f97d968e3cc6740928"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/22",
+    "note": "Intel.zip"
+  },
+  {
+    "id": "ioc_d5ddb725",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "ad8b4ad77ff3997691ee9b7596f0767e16e7a57df06a3364206451366e5bf9a1"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/22",
+    "note": "ZH_OfficeWPS.exe"
+  },
+  {
+    "id": "ioc_2cdb6ee7",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "7cbd575c86798af0f0a14a93d2d82bb37339bf6211ea348a3d0ced85fb77ea37"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/22",
+    "note": "ZH_OfficeWPS.zip"
+  },
+  {
+    "id": "ioc_b5197a32",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "4126d14595d68a8c9f3daa93d3b2f608ef6dc104aafa544941aca6d249b57371"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/22",
+    "note": "zh_officewps6.38.exe"
+  },
+  {
+    "id": "ioc_ca496845",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "202.79.171.236"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/22",
+    "note": "情报社区"
+  },
+  {
+    "id": "ioc_a2097fbe",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "1da9bd30887b269531d43c5b46d67c432594ff5c2a25ade270ac812370817ce9"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/22",
+    "note": "config.dll"
+  },
+  {
+    "id": "ioc_2821fb96",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "1c60209905110559d0371a9ec6bb9aad084914f054e341a98c06559ccd724f2f"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/22",
+    "note": "Zh_OfficeWps6.38.zip"
+  },
+  {
+    "id": "ioc_2aa01fea",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "143.92.57.157"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/22",
+    "note": "情报社区"
+  },
+  {
+    "id": "ioc_1df50c8e",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "137.220.135.15"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/22",
+    "note": "XAgent木马"
+  },
+  {
+    "id": "ioc_71c28270",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "172.86.88.188"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/21",
+    "note": "APT利用利用VS Code、Cursor等IDE的json配置缺陷，投递恶意载体"
+  },
+  {
+    "id": "ioc_61c979d2",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "172.86.73.46"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/21",
+    "note": "APT利用利用VS Code、Cursor等IDE的json配置缺陷，投递恶意载体"
+  },
+  {
+    "id": "ioc_1debf477",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "172.86.117.52"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/21",
+    "note": "APT利用利用VS Code、Cursor等IDE的json配置缺陷，投递恶意载体"
+  },
+  {
+    "id": "ioc_ddf8b8f1",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "172.86.116.178"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/21",
+    "note": "APT利用利用VS Code、Cursor等IDE的json配置缺陷，投递恶意载体"
+  },
+  {
+    "id": "ioc_cb328839",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "167.88.165.222"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/21",
+    "note": "APT利用利用VS Code、Cursor等IDE的json配置缺陷，投递恶意载体"
+  },
+  {
+    "id": "ioc_412a7d24",
+    "family": "APT",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "167.88.165.214"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/21",
+    "note": "APT利用利用VS Code、Cursor等IDE的json配置缺陷，投递恶意载体"
+  },
+  {
+    "id": "ioc_8cfdd450",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "beddec0656305b63355b6276de6ffc0cadddb312565fb239affbd779e4aefbb3"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/19",
+    "note": "银狐，\\nBXrwBPO\\EXWv1QXoIGz.exe"
+  },
+  {
+    "id": "ioc_4b2d0cf8",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "8505aedf4764edda30334488333a609002d2d8b613adda1b215b275515fd003f"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/19",
+    "note": "银狐样本文件SxETCQ.zip"
+  },
+  {
+    "id": "ioc_a6df8339",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "24c8a2967c2bd015c0799c88ef74548e197d7f33cbe5ae5a487a3da735caac77"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/19",
+    "note": "银狐，\\nBXrwBPO\\YE3.dll"
+  },
+  {
+    "id": "ioc_30c136cd",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "206.238.115.137"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/19",
+    "note": "银狐"
+  },
+  {
+    "id": "ioc_593a41d5",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "185.203.39.50"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/19",
+    "note": "银狐"
+  },
+  {
+    "id": "ioc_bcc5c791",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "d21a0f744f304b36d4d6c72216696fcf60184540d6bcef94101ffe933227d62e"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/16",
+    "note": "黑猫，libcef.dll"
+  },
+  {
+    "id": "ioc_c4d8c2be",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "cdf92c4151397f89ca1ffec4e938c78059d9197f29895d1a9b6157013ab1ecc7"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/16",
+    "note": "黑猫，Notepad++.exe"
+  },
+  {
+    "id": "ioc_43ee1980",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "d12479b6420bff547664c90946b634e525afb2a0238f9e80e188ed49083641bc"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/15",
+    "note": "银狐样本"
+  },
+  {
+    "id": "ioc_f84b8920",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "a66d1ca87b08053218c209fd91c0b82b3e0489663dca4c9086c533e3798e2285"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/15",
+    "note": "银狐，C:\\Program Files\\Windows Mail\\wab.dll"
+  },
+  {
+    "id": "ioc_435faa74",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "a28ff52d8ea0ae502927739fd45c3dd9de1cf881530a18e0f59fe15fa4c683f4"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/15",
+    "note": "银狐后门，Gasmealdmylsge.exe"
+  },
+  {
+    "id": "ioc_74aef53a",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "968a6bf19ea07c31dd115f1760813cff09d0d864d2a6c8ddbcce6ed50fc7a297"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/15",
+    "note": "银狐后门，Python库压缩包篡改与Chrome伪装攻击分析，999999.msi，来源：https://mp.weixin.qq.com/s/A3eOfz9ka-g3pRZb90pcqA"
+  },
+  {
+    "id": "ioc_7474e87e",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "91a0997d7729ed8d091a789394eda1ecc0f923a8d21a6230dae98d9a8ed1f0d7"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/15",
+    "note": "银狐样本银狐病毒样本.7z"
+  },
+  {
+    "id": "ioc_bf6f8cf0",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "6bf935a0630ccf6423cc89815aceba70f0cb0fffa527d8034603c10943f4dd50"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/15",
+    "note": "银狐样本Chome-stallerrwin64.zip"
+  },
+  {
+    "id": "ioc_95372064",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "6374ec4c6055a101aba3c4733a96e7ccf372572bb0864b24beebc42c07a604e3"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/15",
+    "note": "银狐样本"
+  },
+  {
+    "id": "ioc_9d77dac4",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "5cabb58ab119cdbe38ac2a9c3c223aa3282aefe8e2f0ac0f3fa840f11670f217"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/15",
+    "note": "银狐样本uNRCtPC2.zip"
+  },
+  {
+    "id": "ioc_f4863ed0",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "49d7746565729a367df0b041d12830ee3c9abc1be4a0fa6c1bb2c28bf260005b"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/15",
+    "note": "银狐样本QqZiUkn2.zip"
+  },
+  {
+    "id": "ioc_dc290a7c",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "495fc5cfd86ab34025d2987b8c0e82dce074aef6a3717a12d3dd023a21dfecd8"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/15",
+    "note": "银狐，C:\\Program Files\\Windows Media Player\\Music.dll"
+  },
+  {
+    "id": "ioc_a565a2e3",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "47.242.90.146"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/15",
+    "note": "银狐"
+  },
+  {
+    "id": "ioc_3b81722f",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "31.57.51.149"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/15",
+    "note": "黑猫，xumeno.com解析ip"
+  },
+  {
+    "id": "ioc_3577cf0a",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "0a9f2c4acf18ee7bac1da63d9a5f98abb83fda5969df72433f014504c0d78af0"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/15",
+    "note": "银狐样本jietu.zip"
+  },
+  {
+    "id": "ioc_c59606aa",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "0948dd8a647cb1819a39db0d60990c331b477b5493cf1ea87ac3b35f11e98b6c"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/15",
+    "note": "银狐，chromeXX_64.exe"
+  },
+  {
+    "id": "ioc_1515e43f",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "c46dd7575eda91903be241f6db8967683b8b3d270b743ad905ee43194b7de6cc"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/14",
+    "note": "云枢告警-银狐，mf1Bj2l.bi"
+  },
+  {
+    "id": "ioc_4e41c44d",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "854b8e239320a2744e7d128e27c03ef0f1f61cb8d585f0f1a13e5cf4e4d4b3d6"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/14",
+    "note": "云枢告警-银狐，NLpUBTQw.exe"
+  },
+  {
+    "id": "ioc_a5679f09",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "7b09286ca1e11a186cfc71a5ad3e3342954606f9ec0445fd4bbcce9bc58d4cb8"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/14",
+    "note": "云枢告警-银狐，Gchrome.exe"
+  },
+  {
+    "id": "ioc_5d374045",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "43.248.173.112"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/14",
+    "note": "银狐"
+  },
+  {
+    "id": "ioc_2c8a83fc",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "31062e946168736cc932beb036670e0d5b54b63cbbc6e61ef7a26a343e13f0f1"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/14",
+    "note": "云枢告警-银狐，WLo.dll"
+  },
+  {
+    "id": "ioc_fb02991b",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "206.119.174.81"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/14",
+    "note": "云枢告警-银狐"
+  },
+  {
+    "id": "ioc_262e5930",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "206.119.174.15"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/14",
+    "note": "云枢告警-银狐"
+  },
+  {
+    "id": "ioc_4492ad5c",
+    "family": "木马",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "161.248.14.248"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/13",
+    "note": "Farfli后门木马下载器"
+  },
+  {
+    "id": "ioc_361da5fb",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "fa388a6cdd28ad5dd83acd674483828251f21cbefaa801e839ba39af24a6ac19"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "利用迅雷进行Dll劫持"
+  },
+  {
+    "id": "ioc_ce2cdc08",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "f74017b406e993bea5212615febe23198b09ecd73ab79411a9f6571ba1f94cfa"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "利用迅雷进行Dll劫持"
+  },
+  {
+    "id": "ioc_d0171272",
+    "family": "APT37",
+    "match": [
+      {
+        "field": "md5",
+        "type": "equals",
+        "value": "f3603f68aadc8bc1ea8939132f0d5252"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "基于HWP的DLL侧加载攻击"
+  },
+  {
+    "id": "ioc_f7fda3d8",
+    "family": "APT37",
+    "match": [
+      {
+        "field": "md5",
+        "type": "equals",
+        "value": "f13a4834e3e1613857b84a1203e2e182"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "基于HWP的DLL侧加载攻击"
+  },
+  {
+    "id": "ioc_1601c29c",
+    "family": "APT37",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "e8b89ed43fe5f86f228f5ab11b58502597eea9276a4a56de7aa6cb9b509afbfd"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "基于HWP的DLL侧加载攻击"
+  },
+  {
+    "id": "ioc_dc25a39e",
+    "family": "APT37",
+    "match": [
+      {
+        "field": "md5",
+        "type": "equals",
+        "value": "e726b59f96ab8360f323469d72b8b617"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "基于HWP的DLL侧加载攻击"
+  },
+  {
+    "id": "ioc_5567ea6a",
+    "family": "APT37",
+    "match": [
+      {
+        "field": "md5",
+        "type": "equals",
+        "value": "d2b2c6646535a62e4c005613d6a036f0"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "基于HWP的DLL侧加载攻击"
+  },
+  {
+    "id": "ioc_fb5b9a54",
+    "family": "APT37",
+    "match": [
+      {
+        "field": "md5",
+        "type": "equals",
+        "value": "d287dcaeaf17c9dae8a253994502ee58"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "基于HWP的DLL侧加载攻击"
+  },
+  {
+    "id": "ioc_1e05be1a",
+    "family": "APT37",
+    "match": [
+      {
+        "field": "md5",
+        "type": "equals",
+        "value": "c0cac70c93d213d113001e3410c24fd2"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "基于HWP的DLL侧加载攻击"
+  },
+  {
+    "id": "ioc_a72884b0",
+    "family": "APT37",
+    "match": [
+      {
+        "field": "md5",
+        "type": "equals",
+        "value": "ad3433f5f64abdec7868a52341f14196"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "基于HWP的DLL侧加载攻击"
+  },
+  {
+    "id": "ioc_a491f774",
+    "family": "APT37",
+    "match": [
+      {
+        "field": "md5",
+        "type": "equals",
+        "value": "a196fb11a423076f66f5e4b2d02813a9"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "基于HWP的DLL侧加载攻击"
+  },
+  {
+    "id": "ioc_8bf28997",
+    "family": "APT37",
+    "match": [
+      {
+        "field": "md5",
+        "type": "equals",
+        "value": "8e4a99315a3ef443928ef25d90f84a09"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "基于HWP的DLL侧加载攻击，来源：https://mp.weixin.qq.com/s/-7lHcf3AoRw-zcHrRAbxlQ"
+  },
+  {
+    "id": "ioc_fa0b3d81",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "8.217.9.165"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "利用迅雷进行Dll劫持"
+  },
+  {
+    "id": "ioc_85b1bb6d",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "77ea62ff74a66f61a511eb6b6edac20be9822fa9cc1e7354a8cd6379c7b9d2d2"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "利用迅雷进行Dll劫持，来源https://mp.weixin.qq.com/s/-7lHcf3AoRw-zcHrRAbxlQ"
+  },
+  {
+    "id": "ioc_5483363a",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "47.239.225.43"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "利用迅雷进行Dll劫持"
+  },
+  {
+    "id": "ioc_4bc3740e",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "45.207.231.94"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "利用迅雷进行Dll劫持"
+  },
+  {
+    "id": "ioc_11b991bd",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "45.207.231.107"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "利用迅雷进行Dll劫持"
+  },
+  {
+    "id": "ioc_a0875745",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "43.100.63.145"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "利用迅雷进行Dll劫持"
+  },
+  {
+    "id": "ioc_21c923d7",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "43.100.22.158"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "利用迅雷进行Dll劫持"
+  },
+  {
+    "id": "ioc_f356c323",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "43.100.123.207"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "利用迅雷进行Dll劫持"
+  },
+  {
+    "id": "ioc_c55f1c45",
+    "family": "APT37",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "3eda41bd736d75cbfe84da96a54d5eb17c33c6011f414d28f8fe8beb61ee8f1e"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "基于HWP的DLL侧加载攻击"
+  },
+  {
+    "id": "ioc_569f2752",
+    "family": "APT37",
+    "match": [
+      {
+        "field": "md5",
+        "type": "equals",
+        "value": "31662a24560b3fe1f34f0733e65509ff"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "基于HWP的DLL侧加载攻击"
+  },
+  {
+    "id": "ioc_883a5cce",
+    "family": "APT37",
+    "match": [
+      {
+        "field": "md5",
+        "type": "equals",
+        "value": "17171c644307b17d231ad404e25f08b1"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "基于HWP的DLL侧加载攻击"
+  },
+  {
+    "id": "ioc_a236664e",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "160.124.9.103"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "利用迅雷进行Dll劫持"
+  },
+  {
+    "id": "ioc_df95da27",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "103.20.195.147"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "利用迅雷进行Dll劫持"
+  },
+  {
+    "id": "ioc_c5d0a023",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "068e49e734c2c7be4fb3f01a40bb8beb2d5f4677872fabbced7741245a7ea97c"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "利用迅雷进行Dll劫持"
+  },
+  {
+    "id": "ioc_042251b3",
+    "family": "APT37",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "0620484d859bc9ca53bd5719432ca300db8d7e207c0ba251bb2a75f2d3ca2050"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/12",
+    "note": "基于HWP的DLL侧加载攻击"
+  },
+  {
+    "id": "ioc_11640abd",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "d99af783a4baf6e0009c98daa02c8553491b84a101d6494027ecc0495c388e0f"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/10",
+    "note": "仿冒向日葵，phqte7p5.exe"
+  },
+  {
+    "id": "ioc_5249b203",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "cea665f6886f35507850aa129ecee633882604d5f6e5d3c5657d580d26796726"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/10",
+    "note": "仿冒向日葵，rydfhrdh (1).zip"
+  },
+  {
+    "id": "ioc_b5e2d105",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "95.40.120.43"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/10",
+    "note": "仿冒向日葵，外连地址"
+  },
+  {
+    "id": "ioc_0eb3e19a",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "720b4bda3a3e548e03a35d019fe03cc57620751371fbeb09c9213bcc737f44c2"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/10",
+    "note": "仿冒向日葵，C:\\inetpub\\bac\\YlEw38N\\isNuAw.dll"
+  },
+  {
+    "id": "ioc_0469ec97",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "50080f6cb1f13915fd8acbb2c4d8b55bdc019cd16a2449e5c0cb701e160a0c4a"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/10",
+    "note": "仿冒向日葵，释放文件"
+  },
+  {
+    "id": "ioc_3c74b91f",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "4ced2f202c1e73fc34dc61f9e0f2f37e1741ed4f66a253757ad7368820bccb69"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/10",
+    "note": "仿冒向日葵，rydfhrdh (1).exe"
+  },
+  {
+    "id": "ioc_991b9562",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "f966ace85d1944afbd3b2484e0a5bc2889b3bae70223c1984635932177c4c876"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/09",
+    "note": "DualToy"
+  },
+  {
+    "id": "ioc_52550b3a",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "eb5313aaa9f987ce0fb2141657b4d66e40ee66f6ee822e5962625bd89f738315"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/09",
+    "note": "DualToy"
+  },
+  {
+    "id": "ioc_7a1b6a4d",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "c4447bf250401af902136896f615c52e5e42edf12bf55fb7f458eb61722a589a"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/09",
+    "note": "DualToy，41e2d331fc1a7812b5fd18818710a1fb2bb5031b.bin"
+  },
+  {
+    "id": "ioc_d253e617",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "b8553c0edd120d6207722a5e90989e2a1043f4d62de4035445e19d11e26edd8c"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/09",
+    "note": "DualToy"
+  },
+  {
+    "id": "ioc_19877616",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "b7fc1c5495e4758b1911e330e2a19c19f323dd088c6f45cb88d45c2b65fb0846"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/09",
+    "note": "DualToy"
+  },
+  {
+    "id": "ioc_a0068f5d",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "5c1ae29667dd46dbff9d78777bd721fbb7eaf21a8b484c98dfcc3cfca022086a"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/09",
+    "note": "DualToy"
+  },
+  {
+    "id": "ioc_cea3f836",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "5884d0fe52362d76ab11b087478f7c61ad19b631dec9cf95b873f2423aab0ccf"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/09",
+    "note": "DualToy，4438fdfcffe9f0e9bca7dfaa9c948ae74c88e5bc.bin"
+  },
+  {
+    "id": "ioc_1ea1e43f",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "2ea09d7d4150d71387a079cfd07d35525a1a6ed60018c3090f9bec7ab2f7da7c"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/09",
+    "note": "DualToy，412c0c106d014bd2aa48f146966c2b1ecc17c91e.bin"
+  },
+  {
+    "id": "ioc_ce7c9235",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "2109c34b9a6668b590143ad69ae6baa9f24759d6cc9efbc89f38832f9c120dec"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/09",
+    "note": "DualToy"
+  },
+  {
+    "id": "ioc_cd371a9c",
+    "family": "钓鱼仿冒",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "103.142.103.78"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/09",
+    "note": "TDP告警"
+  },
+  {
+    "id": "ioc_81186a0c",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "0d785b0d16f006df1dbfdb294f8279c3cc2c2df1d2512f208e4d7e83eee56d86"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/09",
+    "note": "DualToy"
+  },
+  {
+    "id": "ioc_ad1a8dea",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "b73a3ab21ec8a4e0faf9b9c8b48c2ddc2821652a594a3ee38d84306f28537f4d"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/08",
+    "note": "仿冒向日葵，通信样本Profiler.json"
+  },
+  {
+    "id": "ioc_5c8ac2e5",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "7199a3e0675770652950f93e195097a56536b05145f10291043780f12ab66515"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/08",
+    "note": "仿冒向日葵，通信样本Awesun_yuancheng_x64.3.8.1.exe"
+  },
+  {
+    "id": "ioc_e7740f04",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "44202da4e34864a762e4c1488934029f56de2b7cfcc542d29cd3035197803497"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/08",
+    "note": "仿冒向日葵，通信样本GPUCache.xml"
+  },
+  {
+    "id": "ioc_bc3e27fe",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "202.95.11.85"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/08",
+    "note": "仿冒向日葵，通信样本外连IP"
+  },
+  {
+    "id": "ioc_77400be0",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "0f373f7becde3e9000a547b97f2736e4d45f8421d825939b701f8395341fa062"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/08",
+    "note": "仿冒向日葵，通信样本AweSun_yuancheng_x64.1.2.zip"
+  },
+  {
+    "id": "ioc_fb80bebf",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "01657ffb57395af1ab36e394eecaa593ef93da0e16cf58c4a5c725cf49c21898"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/08",
+    "note": "仿冒向日葵，通信样本GPUCache2.xml"
+  },
+  {
+    "id": "ioc_177e7807",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "d420d7581b3e7d219987ac30bbfb4d41b5e2e2211c4109087b1559e62931bc62"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/07",
+    "note": "Office 助手投递恶意插件"
+  },
+  {
+    "id": "ioc_59c7f0dc",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "a8cf3ba7709a4162280c5d5fe286effa96e4da4228c47db61a9dd2f691a13889"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/07",
+    "note": "Office 助手投递恶意插件"
+  },
+  {
+    "id": "ioc_4cfb463f",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "a7bbff68720a38c2491bb0886a84331d765c6f6ed29f5658a73a7664f28765ae"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/07",
+    "note": "Office 助手投递恶意插件，OfficeTeam.Installer.dll"
+  },
+  {
+    "id": "ioc_b1901f33",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "71961f8bea2982d6157be9a1d36b5397f7d34629bd52dea8d62432c359e31ad6"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/07",
+    "note": "Office 助手投递恶意插件，OfficeTeamAddin64.dll"
+  },
+  {
+    "id": "ioc_2a8da4eb",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "56a94362289a5b7fc8c3fbee6f3b1a25fe7c9a20ebe2293858d40b9196d6f99d"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/07",
+    "note": "Office 助手投递恶意插件"
+  },
+  {
+    "id": "ioc_8c9ff14e",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "4b1f5dbfa5c785b4a703822b74209a458679c1f454887095b3f79d6fbc95dc14"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/07",
+    "note": "Office 助手投递恶意插件"
+  },
+  {
+    "id": "ioc_177d535e",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "32ad163e33c4902b1b0c70f903608d94e3faa63adca1a1358c6e7728a82e761a"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/07",
+    "note": "Office 助手投递恶意插件"
+  },
+  {
+    "id": "ioc_0b73efa1",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "a0210e318ece75e32e744b9e9aca98bb7930e7cfd39f37fe85f3ff6b53c669d9"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/04",
+    "note": "Xagent木马，Snipastex64-713scp.msi"
+  },
+  {
+    "id": "ioc_0e2194f3",
+    "family": "钓鱼仿冒",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "149.30.255.55"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/04",
+    "note": "金蝉，子域名www_44aa7c.ceemz.cn解析IP"
+  },
+  {
+    "id": "ioc_4de84dee",
+    "family": "木马",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "147.92.43.161"
+      }
+    ],
+    "severity": "medium",
+    "date": "2026/01/04",
+    "note": "Xagent木马"
+  },
+  {
+    "id": "ioc_340fd80c",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "d8985e9de781d879e51f15a155e389a9f798b4cfc1e4cedc4edf6e07c89e326c"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/31",
+    "note": "APT-Q-27(金眼狗)，crashreport.dll"
+  },
+  {
+    "id": "ioc_bc95f07e",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "A508358A0786DDF2AD9496BB9374D54E71C5044DF9C10FE686D43FC70484E54C"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/31",
+    "note": "APT-Q-27(金眼狗)，photo202512176896m.pif"
+  },
+  {
+    "id": "ioc_0c3facf1",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "7852e800743de092a28a2c49c3e10f26e94224090f4a13855c03bc5a429d4f7b"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/31",
+    "note": "APT-Q-27(金眼狗)，qr.dll"
+  },
+  {
+    "id": "ioc_e73c0857",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "32c49ba3ca279a42cec4724267ac58fd165eec7e2786df3cda3c3c73816510d0"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/31",
+    "note": "APT-Q-27(金眼狗)，libcurl.dll"
+  },
+  {
+    "id": "ioc_7557643c",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "154.12.87.24"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/31",
+    "note": "APT-Q-27(金眼狗)"
+  },
+  {
+    "id": "ioc_b06bfd9c",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "124E8F7CA958FD8CB2A3BAF91681513F93F73D9CFA4EFEA6F4A1F165D8CBC8D9"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/31",
+    "note": "APT-Q-27(金眼狗)，letsvpn-latest.exe"
+  },
+  {
+    "id": "ioc_5d2b1442",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "08b6b6648c87213de7de4454b5d9093360c1c4bfb5632daa2fc7f1b83a02be9f"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/31",
+    "note": "APT-Q-27(金眼狗)，Crash.ini"
+  },
+  {
+    "id": "ioc_eb10ad9a",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "b94c54290015ed751c84d0a9bfa6e63481c72c0d7528b4b65a2816f72ea5c994"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/30",
+    "note": "来源微步报告"
+  },
+  {
+    "id": "ioc_0944d34b",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "b0fcdb33e486ddbc0553f201cf6b9255ec22a12cb85dc9d12ebceb9c7308e51d"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/30",
+    "note": "来源微步报告"
+  },
+  {
+    "id": "ioc_96ec6d97",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "aa8e535d8576f0471a98865eb44e5e5ae3c3a279f15807e9a8317adb80bf8c9d"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/30",
+    "note": "来源微步报告"
+  },
+  {
+    "id": "ioc_8fbce50b",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "9868a6e020f35b8e55f6e2366feea72e617648ab7ebad1972d093642f3058f70"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/30",
+    "note": "来源微步报告"
+  },
+  {
+    "id": "ioc_f02e6e4d",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "8c6e135ea743c82d6f36facd293f5ddc01973ab0c5c52f42ed70e2885e838c4c"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/30",
+    "note": "来源微步报告"
+  },
+  {
+    "id": "ioc_1d637212",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "46c9e9e2003f92ea1aa06984b02d4827deae71631c5ecf2bed5e4f7f8d5d16c8"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/30",
+    "note": "来源微步报告"
+  },
+  {
+    "id": "ioc_a16e6c82",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "3fe9868b56cfbb4de67f65afece0ac95a16267e44d2f555c25263fd641ed7374"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/30",
+    "note": "来源微步报告"
+  },
+  {
+    "id": "ioc_bfc50580",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "38.55.16.61"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/30",
+    "note": "来源微步报告"
+  },
+  {
+    "id": "ioc_88c0aa2e",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "27.50.54.144"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/30",
+    "note": "来源微步报告"
+  },
+  {
+    "id": "ioc_c62c9f28",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "267f5bcedb5b1ebaa855b9b041351892868d0b4a9153517178ef02a55a6f17bd"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/30",
+    "note": "来源微步报告"
+  },
+  {
+    "id": "ioc_8c4ffe1a",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "206.119.64.108"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/30",
+    "note": "来源微步报告"
+  },
+  {
+    "id": "ioc_f4aa1ff5",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "154.213.190.46"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/30",
+    "note": "来源微步报告"
+  },
+  {
+    "id": "ioc_f6a6e048",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "137.220.252.82"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/30",
+    "note": "来源微步报告"
+  },
+  {
+    "id": "ioc_55a55f10",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "087ce894e139f281bd9ebd4b78d4451e458357cef38807e5b4b98ef3ba2fd35c"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/30",
+    "note": "来源微步报告"
+  },
+  {
+    "id": "ioc_0fcbd8be",
+    "family": "Xagent木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "d6bccc1e3c3df9578d27142b4adbab69bf0fd38d89f823d06ecbda6a62cfc791"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/29",
+    "note": "Xagent木马，BluTm_82jd\\edit.dll"
+  },
+  {
+    "id": "ioc_aff7ea7e",
+    "family": "Xagent木马",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "148.66.11.18"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/29",
+    "note": ""
+  },
+  {
+    "id": "ioc_e9406509",
+    "family": "Xagent木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "082c8396602fb5ba8b9e0f34c3c9fa5509c766136f4a505ba5481ea067f823ae"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/29",
+    "note": "Xagent木马，BluTm_82jd\\azophenylene.exe"
+  },
+  {
+    "id": "ioc_9820eca2",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "5697373f74a12a48ff2077c1ade877aee5818b5110556f4a0b8bce1fe9505111"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/27",
+    "note": "银狐，Sm5QDnj0\\QqZiUkn2.B"
+  },
+  {
+    "id": "ioc_1a00374f",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "47.238.158.120"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/27",
+    "note": "银狐"
+  },
+  {
+    "id": "ioc_07dc3e17",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "2c11ff0fcb3941a919abe101644726b5b4cc4819a019b09e78a971f38633ea8d"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/27",
+    "note": "银狐，Sm5QDnj0\\jAk.dll"
+  },
+  {
+    "id": "ioc_aefefeac",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "17f8ba9129e1c150bdcfe9b06d85e6c7fa63aaf4e00ea6ea89ef72d3653a3f56"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/27",
+    "note": "银狐，Sm5QDnj0\\ZWMrVTt.exe"
+  },
+  {
+    "id": "ioc_16a746d4",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "137.220.156.162"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/27",
+    "note": "银狐"
+  },
+  {
+    "id": "ioc_edc0f5e3",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "137.220.155.13"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/27",
+    "note": "银狐"
+  },
+  {
+    "id": "ioc_9f5fca07",
+    "family": "木马",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "5.101.82.118"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/25",
+    "note": "窃密特马，C2"
+  },
+  {
+    "id": "ioc_7d95688b",
+    "family": "木马",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "46.28.70.245"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/25",
+    "note": "窃密特马，C2"
+  },
+  {
+    "id": "ioc_8b6b1a19",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "161.248.14.228"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/25",
+    "note": "银狐"
+  },
+  {
+    "id": "ioc_201cbba2",
+    "family": "木马",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "147.45.50.54"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/25",
+    "note": "窃密特马，C2"
+  },
+  {
+    "id": "ioc_41d46fa7",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "223.26.63.103"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/24",
+    "note": "仿冒飞连"
+  },
+  {
+    "id": "ioc_1a1e263a",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "108.187.7.200"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/24",
+    "note": "仿冒wps"
+  },
+  {
+    "id": "ioc_79fd1a8b",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "01f3961d755a86307bd2f22b3ade00e80e2db3028ff6e385683ad9b5d08277b9"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/24",
+    "note": "仿冒飞连"
+  },
+  {
+    "id": "ioc_470af199",
+    "family": "黑产团伙",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "f88aca8ca0602896ad5e094d567d19ba6b6e4cd8e6b4b648e8e552b6c39c086e"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/23",
+    "note": "仿冒搜狗，shurufa15.12.msi"
+  },
+  {
+    "id": "ioc_83223d6a",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "de6744d04de996e4c053ab86e8015c86b4df15cb575dd412a58014590f2bbcf6"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/23",
+    "note": "仿冒chrome，wz5hmcFr.exe"
+  },
+  {
+    "id": "ioc_2f2d1a65",
+    "family": "恶意软件",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "ddf7b8bdc63d4e428fefdef9ed68b49a18b6a62fa86a0c9ee4c32031ad4d5524"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/23",
+    "note": "仿冒chrome-2，Chrome安装.exe"
+  },
+  {
+    "id": "ioc_1233ac2d",
+    "family": "恶意软件",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "6dd235ba08e55b48a8f6d239b0d65f6e0aebb8c3c4e51e71f0f1ce7dc3d55e54"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/23",
+    "note": "仿冒chrome-2，vmBD.exe"
+  },
+  {
+    "id": "ioc_8b39141e",
+    "family": "黑产团伙",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "60604687da3fca1fb8ceb6f0e79b0fe4b2a19686c72237f77291da8708d907fa"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/23",
+    "note": "仿冒搜狗，dfjgdfjtdjdtjk.exe"
+  },
+  {
+    "id": "ioc_6e06e8b4",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "51ae8d9734b383db6279307acb52b7cc26a7b5090b92650729a6ff73dc0bd817"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/23",
+    "note": "仿冒chrome，kK.dll"
+  },
+  {
+    "id": "ioc_eadce894",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "4737addcf7dc9b6c72bc23a2b9ecbf2236601c17c597ecd0517cb57d56f3f00d"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/23",
+    "note": "仿冒chrome，g3KDNTBk.sP"
+  },
+  {
+    "id": "ioc_a54b532d",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "38.181.2.47"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/23",
+    "note": "仿冒chrome"
+  },
+  {
+    "id": "ioc_1bf73f1b",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "143.92.43.130"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/23",
+    "note": "仿冒chrome"
+  },
+  {
+    "id": "ioc_fc645dac",
+    "family": "黑产团伙",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "134.122.162.126"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/23",
+    "note": "仿冒搜狗，外连地址"
+  },
+  {
+    "id": "ioc_b95abe06",
+    "family": "Gh0stRAT木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "efaa90bf781c879269ceb635d0bd13db8d067eac05bb0c2ff032dd224a186a73"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/16",
+    "note": "xH8ZW.exe"
+  },
+  {
+    "id": "ioc_4c9c9d8d",
+    "family": "Gh0stRAT木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "be8551dea5e3a81facf694cdbe2f3f398fa17e53ea5de1a257c10ed2fafdae95"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/16",
+    "note": "9uq7r6b.QH"
+  },
+  {
+    "id": "ioc_650bcb32",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "69e7e2f452f882b878ae3115a3b90e873d35c7a432a42a14e7cae75748560c92"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/16",
+    "note": "cchhrococ.zip"
+  },
+  {
+    "id": "ioc_8f1a8876",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "65521ba6bd6a67a03f57bdb59671cb66ac0cf5ecb896fddb2c31e8af33eb11d9"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/16",
+    "note": "iusb3mon.exe"
+  },
+  {
+    "id": "ioc_4f1429d2",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "27.124.20.159"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/16",
+    "note": ""
+  },
+  {
+    "id": "ioc_b74c8c6b",
+    "family": "Gh0stRAT木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "22dc82f9956ca128a6462a7c515c9e45b2b72fa783e1ec4918143d4691e1f498"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/16",
+    "note": "ZCvM.dll"
+  },
+  {
+    "id": "ioc_7388abfe",
+    "family": "Gh0stRAT木马",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "154.91.66.19"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/16",
+    "note": ""
+  },
+  {
+    "id": "ioc_e668b56f",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "da2c58308e860e57df4c46465fd1cfc68d41e8699b4871e9a9be3c434283d50b"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/12",
+    "note": ""
+  },
+  {
+    "id": "ioc_299d19c9",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "d343afcc667e00800836d48327701106b1266e122ae0e41e799d49fb8ba655cf"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/12",
+    "note": ""
+  },
+  {
+    "id": "ioc_329b36f6",
+    "family": "黑产团伙",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "9c6c69d7672fe942acff0f9b8c377f3a2b2da2c22f36a27ef7b3aea4cbc08b46"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/12",
+    "note": ""
+  },
+  {
+    "id": "ioc_543bca21",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "74db9032c2a517ca187cf1b50f0f9e3fb43f0065854c7546c78624c88b276a78"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/12",
+    "note": ""
+  },
+  {
+    "id": "ioc_4fee005d",
+    "family": "黑产团伙",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "7416cceb70622b1a56ef95a35a0ea3399db8a9f8a00ef9c08ad3aeaa83c50f7d"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/12",
+    "note": ""
+  },
+  {
+    "id": "ioc_ad34a8f3",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "5302eed822932341d9f9b6378924c39d37095db45205c4659e9d887dcb272126"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/12",
+    "note": ""
+  },
+  {
+    "id": "ioc_6bb0c509",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "31.57.10.243"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/12",
+    "note": ""
+  },
+  {
+    "id": "ioc_e0a775db",
+    "family": "黑产团伙",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "2b0b3c73a08057fb07d4ad5a61ea8352f1e53df04f8c95eec536c85dc914e644"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/12",
+    "note": ""
+  },
+  {
+    "id": "ioc_32c79b1f",
+    "family": "黑产团伙",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "18.138.221.246"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/12",
+    "note": ""
+  },
+  {
+    "id": "ioc_f9855d71",
+    "family": "黑产团伙",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "161.248.14.99"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/12",
+    "note": ""
+  },
+  {
+    "id": "ioc_e2eee22f",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "149.88.81.151"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/12",
+    "note": ""
+  },
+  {
+    "id": "ioc_1a6f7dca",
+    "family": "黑产团伙",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "02337369123363cf8937d9d5c35e8de43ec21a7b79b5aeebeb8f170f6d7ae25d"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/12",
+    "note": ""
+  },
+  {
+    "id": "ioc_316e5fe4",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "b15e63310e724d32899eac7239f4ef349e72f3739b13fc215b38503d07c2c7c1"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/10",
+    "note": ""
+  },
+  {
+    "id": "ioc_8913e33a",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "9683c036f27ad260abdb261cde35bfff2d6c067f8d2c3d2e4892b8d4cc6ebf4a"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/10",
+    "note": ""
+  },
+  {
+    "id": "ioc_97b51093",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "855ef4fa86768572913dd413939f4ca0d839368a49ab7556e31efb22f824a3cd"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/10",
+    "note": ""
+  },
+  {
+    "id": "ioc_50f57390",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "48bf3019407cc98ee7dd94be65ef72879cd9e1b69b9906498d7308ffc4cff590"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/10",
+    "note": ""
+  },
+  {
+    "id": "ioc_44d85105",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "47.83.157.247"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/10",
+    "note": ""
+  },
+  {
+    "id": "ioc_43f580d8",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "c2ac49fc590493ef55b4967059ccae3c7d3b5037d768bd4d1fc9f821cc916659"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/09",
+    "note": "仿冒Snipaste"
+  },
+  {
+    "id": "ioc_bc21d759",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "00e63362daed7a7e9cb5e84017bc55ee918e8083c70ce96741e96bf035bf13f1"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/09",
+    "note": "仿冒Snipaste"
+  },
+  {
+    "id": "ioc_94722816",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "1e77e88ac05d9cf0c549dca2dae10f165e628cac05b52f2991fb6d1ac92d5b2a"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/07",
+    "note": "Chome-stallerwin.exe"
+  },
+  {
+    "id": "ioc_72b7f715",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "091b86a8b1b2f14277c05da5115ce6ac615420fbb82a83007a7b4a4d58886c08"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/07",
+    "note": "e0khtjfiver8.exe"
+  },
+  {
+    "id": "ioc_c839e2d1",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "a6123e13e12a1a1d4c4a4eb034769bfe8e229c3a9877e0dd173b422e700a26ac"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/04",
+    "note": "fle1A9.exe"
+  },
+  {
+    "id": "ioc_c1953ef1",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "9e7d1cd6eb4317adb99bf9b69f461b09e294d7593b55c9e08d35eacdf7c9227e"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/04",
+    "note": "OwW.dll"
+  },
+  {
+    "id": "ioc_4c08061f",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "745b1b861f0841b0f655981efa8752f983b3522d941c04ee660bc1827cb67af4"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/04",
+    "note": "SG-pinyin.exe"
+  },
+  {
+    "id": "ioc_c9087c32",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "5fab59d3aa7b593683d55a1da38b5092b21554c3e1db5cb644cf325949699349"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/04",
+    "note": "phxjm.exe"
+  },
+  {
+    "id": "ioc_8620bd68",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "143.92.58.138"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/04",
+    "note": ""
+  },
+  {
+    "id": "ioc_c8d476f7",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "06f52664023f15113c43ebb246cbe9cb2083b0283e694474bed731d8db85e864"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/04",
+    "note": "eToken.dll"
+  },
+  {
+    "id": "ioc_7507512f",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "b75ad8f58bf0a308b5236738955911580bbba08b795691caa3f74610b793a63b"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/01",
+    "note": ""
+  },
+  {
+    "id": "ioc_f6233f8c",
+    "family": "木马",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "39.108.134.10"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/01",
+    "note": ""
+  },
+  {
+    "id": "ioc_879e60bf",
+    "family": "黑猫",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "27.50.63.118"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/01",
+    "note": ""
+  },
+  {
+    "id": "ioc_be1b08b0",
+    "family": "木马",
+    "match": [
+      {
+        "field": "sha256",
+        "type": "equals",
+        "value": "1afbda8220ba19ca84498f41b2b28350fce419c080082b3817dcfc4efc103b72"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/01",
+    "note": ""
+  },
+  {
+    "id": "ioc_20907051",
+    "family": "银狐",
+    "match": [
+      {
+        "field": "ip",
+        "type": "equals",
+        "value": "118.107.43.202"
+      }
+    ],
+    "severity": "medium",
+    "date": "2025/12/01",
+    "note": ""
   }
 ]

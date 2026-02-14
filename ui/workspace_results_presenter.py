@@ -56,8 +56,20 @@ class WorkspaceResultsPresenter:
                 type_item.setBackground(QColor(200, 220, 255))
             self.table.setItem(idx, 0, type_item)
 
-            self.table.setItem(idx, 1, QTableWidgetItem(result.matched_value))
-            self.table.setItem(idx, 2, QTableWidgetItem(self._normalize_source(result.source)))
+            # IP匹配时只显示IP地址
+            if result.result_type == ResultType.IP_MATCH:
+                display_matched = result.detail.get('matched_ip', result.matched_value)
+            else:
+                display_matched = result.matched_value
+            self.table.setItem(idx, 1, QTableWidgetItem(display_matched))
+
+            # Source显示规则名称(family)
+            source_text = self._normalize_source(result.source)
+            if result.source == "rule_scan" and result.detail.get("matched_rules"):
+                # 获取第一个匹配规则的family作为source显示
+                first_rule = result.detail["matched_rules"][0]
+                source_text = first_rule.get("family", first_rule.get("id", "Rule Scan"))
+            self.table.setItem(idx, 2, QTableWidgetItem(source_text))
 
             summary_item = QTableWidgetItem(result.summary)
             if result.source == "rule_scan" and result.detail.get("severity"):
@@ -95,6 +107,6 @@ class WorkspaceResultsPresenter:
                     value = value[:27] + "..."
                 detail_str = f"{field}({match_type})={value}"
                 if rule_note:
-                    detail_str += f" [{rule_note}]"
+                    detail_str += f" [Note: {rule_note}]"
                 rule_details.append(detail_str)
         return "; ".join(rule_details) if rule_details else ""

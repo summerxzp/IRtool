@@ -163,8 +163,20 @@ class WorkspaceTab(QWidget):
         self.chk_rule_hash = QCheckBox("Hash")
         self.chk_rule_other = QCheckBox("其他")
 
-        for chk in [self.chk_rule_command, self.chk_rule_path, self.chk_rule_ip, self.chk_rule_hash, self.chk_rule_other]:
-            chk.setChecked(True)
+        # 默认只选中 IP
+        self.chk_rule_command.setChecked(False)
+        self.chk_rule_path.setChecked(False)
+        self.chk_rule_ip.setChecked(True)
+        self.chk_rule_hash.setChecked(False)
+        self.chk_rule_other.setChecked(False)
+
+        # 全选/取消按钮
+        self.btn_select_all_rules = QPushButton("全选")
+        self.btn_select_all_rules.setFixedWidth(50)
+        self.btn_select_all_rules.clicked.connect(self._select_all_rule_types)
+        self.btn_deselect_all_rules = QPushButton("全部取消")
+        self.btn_deselect_all_rules.setFixedWidth(70)
+        self.btn_deselect_all_rules.clicked.connect(self._deselect_all_rule_types)
 
         rule_layout.addWidget(rule_label)
         rule_layout.addWidget(self.chk_rule_command)
@@ -172,6 +184,8 @@ class WorkspaceTab(QWidget):
         rule_layout.addWidget(self.chk_rule_ip)
         rule_layout.addWidget(self.chk_rule_hash)
         rule_layout.addWidget(self.chk_rule_other)
+        rule_layout.addWidget(self.btn_select_all_rules)
+        rule_layout.addWidget(self.btn_deselect_all_rules)
         rule_layout.addStretch()
 
         # 添加说明标签
@@ -542,6 +556,22 @@ class WorkspaceTab(QWidget):
             types.add("other")
         return types
 
+    def _select_all_rule_types(self):
+        """全选所有规则类型"""
+        self.chk_rule_command.setChecked(True)
+        self.chk_rule_path.setChecked(True)
+        self.chk_rule_ip.setChecked(True)
+        self.chk_rule_hash.setChecked(True)
+        self.chk_rule_other.setChecked(True)
+
+    def _deselect_all_rule_types(self):
+        """取消全选所有规则类型"""
+        self.chk_rule_command.setChecked(False)
+        self.chk_rule_path.setChecked(False)
+        self.chk_rule_ip.setChecked(False)
+        self.chk_rule_hash.setChecked(False)
+        self.chk_rule_other.setChecked(False)
+
     def _has_hash_rules(self, allowed_types=None) -> bool:
         if allowed_types and "hash" not in allowed_types:
             return False
@@ -718,17 +748,17 @@ class WorkspaceTab(QWidget):
                 action_copy_cmd = menu.addAction("复制命令")
                 action_copy_cmd.triggered.connect(lambda: self._copy_to_clipboard(launch_string))
 
-            iocs = self._extract_iocs_for_result(result, entry)
-            if iocs:
-                menu.addSeparator()
-                action_weibu_single = menu.addAction("微步查询（当前条目）")
-                action_weibu_single.triggered.connect(
-                    lambda: self._query_weibu_single(result, entry)
-                )
+            # iocs = self._extract_iocs_for_result(result, entry)
+            # if iocs:
+            #     menu.addSeparator()
+            #     action_weibu_single = menu.addAction("微步查询（当前条目）")
+            #     action_weibu_single.triggered.connect(
+            #         lambda: self._query_weibu_single(result, entry)
+            #     )
 
-            if self.matched_results:
-                action_weibu_batch = menu.addAction("微步批量查询（当前结果）")
-                action_weibu_batch.triggered.connect(self._query_weibu_batch_from_results)
+            # if self.matched_results:
+            #     action_weibu_batch = menu.addAction("微步批量查询（当前结果）")
+            #     action_weibu_batch.triggered.connect(self._query_weibu_batch_from_results)
             
             menu.exec(self.results_table.viewport().mapToGlobal(pos))
         except Exception as e:
