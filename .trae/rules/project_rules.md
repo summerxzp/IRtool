@@ -1,41 +1,48 @@
 # Project Rules (AI Development)
 
 ## Project Position
-This is a long-term endpoint security analysis tool, not a demo or generic GUI app.
-Design priority: correctness > maintainability > extensibility > UI appearance.
+Long-term endpoint security analysis tool. Design priority: correctness > maintainability > extensibility > UI.
 
 ## Architecture Rules
-- Strict layered architecture: core / modules / ui / utils
-- UI is view-only, never the source of truth
+- Layered architecture: core / modules / ui / utils
 - Data model is the single source of truth (SSOT)
-- Modules provide structured data, not UI logic
-- UI objects shall never be directly referenced between Tabs.
+- UI is view-only, updates via model notifications only
+- Modules provide structured data, no UI logic
+- No direct UI object references between Tabs
 
 ## Data & State
-- Each security item is an Entry with static fields and dynamic states
-- Dynamic states include: hash, signature, timestamp, threat, etc.
+- Each security item is an Entry with static fields and dynamic states (hash, signature, timestamp, threat, etc.)
 - All state changes must be written back to the data model
-- UI must update only via model notifications
 
 ## UI Rules (Qt)
 - Use Qt Model/View (QAbstractItemModel + View)
-- All displayed data must come from model.data()
+- All displayed data from model.data()
 - No business logic in View or Delegate
 
-## Forbidden (Strict)
+## Forbidden
 - setIndexWidget or embedding QWidget in views
 - QStandardItemModel
-- UI-level state storage (hash/signature/time)
+- UI-level state storage
 - Silent refactor or cross-module modification
-- Introducing new frameworks or UI paradigms
+- New frameworks or UI paradigms
 
 ## Module Extension Rules
-- New modules must follow existing data model concepts
+- Follow existing data model concepts
 - No private or incompatible state definitions
-- Modules must not depend on other modules’ UI
+- Modules must not depend on other modules' UI
 
 ## Work Scope
 - Only modify explicitly specified files
-- Do not optimize or refactor beyond task scope
+- No optimization/refactor beyond task scope
 - If a rule must be broken, explain and wait for confirmation
-- New changes/features must be evaluated against specification standards and current project architecture for appropriateness
+
+## Documentation Rules
+
+| File | Update When | Required Content |
+|------|-------------|------------------|
+| README.md | New feature, architecture change, module refactor | Feature list with technical details: purpose, boundaries, UI path, core module path, data structures, data flow, cross-references |
+| TASKS.md | Every new task | Task ID, priority (P0/P1/P2), status (TODO/DOING/DONE), goal, acceptance criteria, affected files, progress with timestamps |
+
+**Change Synchronization:**
+- New Feature/Architecture Change/Module Refactor: Update README + Create TASK entry
+- Bug Fix: Optional TASK note if significant
