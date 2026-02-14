@@ -5,3 +5,4 @@ __pycache__/
 *.pyo
 package/
 app.log
+.venv_codex/
