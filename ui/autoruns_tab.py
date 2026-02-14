@@ -1722,17 +1722,22 @@ class AutorunsTab(QWidget):
         工作台支持统一路径选择（self / directory / parent）和命令预览
         """
         import os
-        import pyzipper
         from datetime import datetime
-        
+
+        try:
+            import pyzipper
+        except ImportError:
+            QMessageBox.critical(self, "错误", "pyzipper 库未安装\n\n请运行: pip install pyzipper")
+            return
+
         image_path = data.get('image_path', '')
         entry_name = data.get('entry', '')
-        
+
         # 校验文件是否存在
         if not image_path or not os.path.exists(image_path):
             QMessageBox.warning(self, "警告", "文件不存在，无法复制")
             return
-        
+
         try:
             # 获取 SHA256 前三位
             sha256 = data.get('sha256', '')
