@@ -431,29 +431,33 @@ class WorkspaceTab(QWidget):
                     # 获取最高严重级别
                     severity_order = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
                     max_severity = min(
-                        matched_rules, 
+                        matched_rules,
                         key=lambda r: severity_order.get(r.get('severity', 'low'), 99)
                     ).get('severity', 'low')
-                    
-                    # 构建更详细的摘要，包含条目的位置和名称
+
+                    # 获取条目信息
                     entry_name = entry.get('entry', 'Unknown')
-                    entry_location = entry.get('location', 'Unknown')
-                    summary = f"[{entry_location}] {entry_name} 命中 {len(matched_rules)} 条规则"
-                    
-                    # 构建 matched_value：显示命中的字段和规则家族
-                    matched_rules_text = ', '.join([r.get('family', r.get('id', '')) for r in matched_rules])
-                    # 获取命中的字段信息
-                    hit_fields = []
+                    command_line = entry.get('command_line', '')
+
+                    # Matched：显示命中的匹配值（从规则的match.value中提取）
+                    matched_values = []
                     for rule in matched_rules:
                         for match in rule.get('match', []):
-                            hit_fields.append(match.get('field', ''))
-                    hit_fields_str = ','.join(set(hit_fields)) if hit_fields else ''
-                    matched_value = f"{hit_fields_str}:{entry_name} | {matched_rules_text}"
+                            match_value = match.get('value', '')
+                            if match_value:
+                                matched_values.append(match_value)
+                    matched_value = ', '.join(set(matched_values)) if matched_values else entry_name
+
+                    # Summary：Entry | CommandLine
+                    summary = f"{entry_name} | command line: {command_line}"
+
+                    # Source：规则名称
+                    source = matched_rules[0].get('family', 'rule_scan')
 
                     result = SearchResult(
                         result_type=ResultType.AUTORUN,
                         summary=summary,
-                        source='rule_scan',
+                        source=source,
                         detail={
                             'entry': entry,
                             'matched_rules': matched_rules,

@@ -18,7 +18,9 @@ class WorkspaceResultsPresenter:
             headers = ["Type", "Matched", "Source", "Summary", "规则详情"]
         self.table.setColumnCount(len(headers))
         self.table.setHorizontalHeaderLabels(headers)
-        self.table.horizontalHeader().setStretchLastSection(True)
+        # 规则详情列（最后一列）自适应内容宽度，不拉伸
+        self.table.horizontalHeader().setStretchLastSection(False)
+        self.table.horizontalHeader().setSectionResizeMode(4, self.table.horizontalHeader().ResizeMode.ResizeToContents)
 
     def update_table(self, mode: str, matched_results: list) -> None:
         """刷新结果表格。"""
@@ -93,7 +95,8 @@ class WorkspaceResultsPresenter:
 
     def _build_rule_details(self, result) -> str:
         rule_details = []
-        if result.source == "rule_scan" and result.detail.get("matched_rules"):
+        # 检查是否有匹配的规则详情（不依赖source值，因为source现在显示规则名称）
+        if result.detail.get("matched_rules"):
             for rule in result.detail["matched_rules"]:
                 match_list = rule.get("match", [])
                 rule_note = rule.get("note", "")

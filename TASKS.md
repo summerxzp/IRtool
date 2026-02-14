@@ -53,7 +53,17 @@
 - 实施结果：已注释"导出情报"按钮的创建和添加代码，保留实现供后续恢复。
 - 时间：2026-02-14
 
-3. `P0 DOING` 拆分 `workspace_tab.py` 的职责
+3. `P0 DONE` 优化 Autorun 类型规则扫描结果展示
+- 目标：提升 Autorun 类型规则扫描结果的可读性，清晰展示原始持久化进程信息。
+- 影响文件：`d:\project\sectool_codex\ui\workspace_tab.py`
+- 实施结果：
+  - Matched 列：显示命中的匹配值（如 "rundll32"）
+  - Summary 列：显示 Entry | CommandLine
+  - Source 列：显示规则名称（如 "银狐"）
+  - 规则详情列：保持不变
+- 时间：2026-02-14
+
+4. `P0 DOING` 拆分 `workspace_tab.py` 的职责
 - 目标：将规则管理、结果展示、处置动作从单文件拆分到独立组件。
 - 影响文件：`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/workspace_tab.py`
 - 验收标准：主流程行为不变，文件体积明显下降，组件边界清晰。

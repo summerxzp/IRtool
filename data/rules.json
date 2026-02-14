@@ -6,7 +6,7 @@
       {
         "field": "command_line",
         "type": "regex",
-        "value": "\\\"{2,}u\\\"{2,}n\\\"{2,}d\\\"{2,}ll\\\"{2,}32"
+        "value": "\\\"{2,}u\\\"{2,}n\\\"{2,}d\\\"{2,}..."
       }
     ],
     "severity": "high",
@@ -20,7 +20,7 @@
       {
         "field": "image_path",
         "type": "contains",
-        "value": "jnetpub"
+        "value": "inetpub"
       }
     ],
     "severity": "high",
@@ -34,7 +34,7 @@
       {
         "field": "command_line",
         "type": "contains",
-        "value": "jnetpub"
+        "value": "inetpub"
       }
     ],
     "severity": "high",
