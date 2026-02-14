@@ -87,19 +87,22 @@
 - 目标：扫描常见 skill 安装路径，识别可疑新增文件、异常修改时间、异常执行脚本。
 - 影响文件建议：`core/skill_audit/` 与 `ui/workspace_tab.py`（触发入口）。
 - 验收标准：可输出可疑 skill 清单（路径、hash、首次发现时间、风险原因）。
-- 实施结果：已新增 `core/skill_audit/` 模块与 Workspace “Skill体检”入口，支持常见路径扫描、hash 计算、可疑清单弹窗输出。
+- 实施结果：已新增 `core/skill_audit/` 基础模块，完成首版 Skill 体检能力验证。
+- 进展（2026-02-14）：Skill 扫描主入口已迁移到独立 `Skill Scan` Tab（`ui/skill_scan_tab.py`），不再塞在 Workspace 搜索区。
 
-15. `P1 TODO` Skill 文件 Hash 联动情报查询（微步 + VirusTotal）
+15. `P1 DOING` Skill 文件 Hash 联动情报查询（微步 + VirusTotal）
 - 目标：对 skill 相关文件进行 hash 计算并联动情报平台查询，形成供应链侧风险辅助信号。
 - 依赖：任务 11、14。
 - 验收标准：支持单条右键查询与批量任务查询，查询结果可回写到工作台结果表。
+- 进展（2026-02-14）：`Skill Scan` 已支持选中结果后手动触发“查询 VirusTotal / 查询 微步”（仅提交 hash，不上传文件）。
+- 下一步：补充任务化查询进度、结果持久化与跨 Tab 联动视图。
 
-16. `P1 DOING` Skill Hash -> 微步查询链路
+16. `P1 DONE` Skill Hash -> 微步查询链路
 - 目标：体检后可直接对可疑 skill 文件 hash 发起微步批量查询。
 - 影响文件：`ui/workspace_tab.py`、`core/skill_audit/`、`core/threat_intel/`
 - 进展（2026-02-13）：已支持体检后即时触发微步批量查询，且可复用“最近一次体检结果”再次查询。
 - 进展（2026-02-13）：已支持导出最近一次查询结果为 JSON。
-- 下一步：将查询结果落表到 Workspace 结果列表（统一检索与二次筛选）。
+- 进展（2026-02-14）：查询入口已迁移至独立 `Skill Scan` Tab，避免 Workspace 职责持续膨胀。
 
 17. `P2 DONE` VirusTotal Provider 骨架接入
 - 目标：提前铺设多情报源扩展接口，避免后续改动主链路。
@@ -115,3 +118,186 @@
 - 目标：支持导出最近一次微步查询结果，便于复盘与共享。
 - 影响文件：`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/workspace_tab.py`
 - 实施结果：新增“导出情报”按钮，可导出最近一次单条/批量查询结果为 JSON。
+
+20. `P0 DONE` Skill Scan 独立模块化重构（独立 Tab + 独立模型 + 独立扫描链路）
+- 目标：将 Skill 相关扫描从 Workspace 解耦为一级 Tab，落实“发现 + 归集 + 呈现”边界。
+- 影响文件：`main.py`、`ui/skill_scan_tab.py`、`core/skill_scan/`、`ui/workspace_tab.py`、`core/__init__.py`
+- 实施结果：新增 `Skill Scan` 一级 Tab；新增 `SkillFileEntry/SkillScanConfig/SkillScanResult`；扫描按“路径构建→枚举→hash→归集”分阶段实现；默认手动触发 VT/微步查询且不自动联网。
+
+
+## Skill Scan 需求基线（实施约束）
+新增并实现一个【Skill Scan】功能模块。
+这是一个“文件级 IOC 扫描”能力，不是杀毒，也不是 Autoruns 的附属功能，请严格按以下设计目标实现和重构。
+
+====================
+一、功能定位（必须理解）
+====================
+Skill Scan 的目标是：
+- 扫描系统中“常见恶意 skill / 木马 / loader / dropper”容易落地的路径
+- 枚举可疑文件并计算 hash（以 SHA256 为主）
+- 为后续接入 VirusTotal / 微步 等威胁情报提供基础数据
+
+该模块：
+- 不直接判定恶意
+- 不自动联网
+- 只负责“发现 + 归集 + 呈现”
+
+====================
+二、UI 结构（新增 Tab）
+====================
+
+在主界面新增一个一级 Tab：
+- 名称：Skill Scan
+
+Skill Scan Tab 分为 3 个区域（自上而下）：
+
+--------------------------------
+【1】扫描配置区（Config Panel）
+--------------------------------
+- 扫描范围（Checkbox，可多选，默认勾选）：
+  [x] AppData (%AppData%)
+  [x] LocalAppData (%LocalAppData%)
+  [x] ProgramData
+  [x] Temp (%Temp%)
+  [ ] Downloads (C:\Users\*\Downloads)
+
+- 高级选项（折叠区域，默认收起）：
+  - 自定义扫描路径（支持多行，每行一个路径）
+  - 文件名过滤（可选）：
+    - 精确文件名（如 chrome.exe）
+    - 通配符（如 *.tmp, svchost*.exe）
+  - 是否递归子目录（Checkbox，默认开启）
+
+- 扫描按钮：
+  [ Start Scan ]
+
+--------------------------------
+【2】扫描结果区（Result Table）
+--------------------------------
+表格列字段（固定）：
+- 文件名
+- 完整路径
+- 文件大小
+- 修改时间
+- SHA256
+- 来源路径类型（AppData / Custom / Temp 等）
+- 状态（本地，默认值）
+
+表格行为：
+- 扫描完成后一次性填充
+- 支持排序（大小 / 时间）
+- 支持右键菜单：
+  - 复制 SHA256
+  - 打开文件所在目录
+  - 标记为已确认安全（仅本地标记）
+
+--------------------------------
+【3】威胁情报操作区（Action）
+--------------------------------
+- 当选中一行或多行时，启用按钮：
+  [ 查询 VirusTotal ]
+  [ 查询 微步 ]
+
+行为说明（UI 提示）：
+- 查询仅提交 hash，不上传文件
+- 默认不自动触发，必须人工点击
+
+====================
+三、数据结构设计（必须拆清）
+====================
+
+请新增独立的数据结构（不要复用 Workspace / Autoruns 的对象）：
+
+SkillFileEntry：
+- file_name: str
+- full_path: str
+- size: int
+- mtime: datetime
+- sha256: str
+- source_type: str   # builtin / custom
+- path_category: str # AppData / Temp / Custom
+- tags: list[str]    # 如 confirmed_safe
+
+SkillScanConfig：
+- builtin_paths: list[str]
+- custom_paths: list[str]
+- filename_filters: list[str]
+- recursive: bool
+
+SkillScanResult：
+- entries: list[SkillFileEntry]
+- scan_time: datetime
+- total_files: int
+
+====================
+四、扫描流程（必须分阶段）
+====================
+
+1. 构建扫描路径列表：
+   - 根据 UI 勾选的内置路径
+   - 合并自定义路径
+   - 去重
+
+2. 枚举文件：
+   - 遍历路径（按 recursive 选项）
+   - 应用文件名过滤（如果配置）
+   - 只处理普通文件（跳过目录 / symlink）
+
+3. 计算 hash：
+   - 使用流式读取
+   - 默认计算 SHA256
+   - 单文件失败不影响整体扫描
+
+4. 生成 SkillFileEntry 并收集
+
+5. 扫描完成后：
+   - 一次性更新 UI
+   - 不边扫边刷（避免 UI 卡顿）
+
+====================
+五、架构约束（非常重要）
+====================
+
+- Skill Scan 必须是一个独立模块：
+  - 独立 UI
+  - 独立数据模型
+  - 独立扫描逻辑
+
+- 严禁：
+  - 在扫描阶段自动联网
+  - 在 Workspace 搜索框中复用 IP / hash 搜索逻辑
+  - 将 Skill Scan 逻辑塞进 Autoruns 模块
+
+====================
+六、为未来预留的接口（先留空）
+====================
+
+请为威胁情报查询预留抽象接口，例如：
+
+ThreatIntelProvider：
+- query_hash(hash: str) -> dict
+
+当前实现：
+- 仅打印 / mock 返回
+- 不需要真实接入 VT / 微步
+
+====================
+七、帮助说明（同步更新）
+====================
+
+在 Skill Scan 页面帮助中说明：
+- 这是“可疑文件发现”功能，不是杀毒
+- hash 查询是人工触发
+- 结果需人工分析确认
+
+====================
+八、代码质量要求
+====================
+
+- 扫描逻辑与 UI 解耦
+- 所有路径与规则可配置
+- 保证未来可以：
+  - 接入 VT / 微步
+  - 与 Workspace 建立弱关联（例如标记来源）
+
+按以上要求完成 Skill Scan 的完整实现或重构。

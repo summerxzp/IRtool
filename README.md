@@ -59,11 +59,13 @@
 - 当前 UI：Workspace 结果右键支持“微步查询（当前条目）”与“微步批量查询（当前结果）”。
 - 当前 UI：支持导出最近一次情报查询结果（JSON）。
 
-### 2.7 Skill 供应链排查（规划中）
-- 目标：支持 OpenClaw、ClaudeCode 等常见 skill 路径体检，识别可疑 skill 文件。
-- 计划能力：路径扫描、hash 计算、微步/VirusTotal 联动查询、结果回写工作台。
-- 当前实现：Workspace 已增加 “Skill体检” 入口，调用 `core/skill_audit/` 对常见路径执行扫描与可疑清单输出。
-- 当前实现：可基于体检结果直接触发可疑 skill 文件 hash 的微步批量查询。
+### 2.7 Skill Scan（`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/skill_scan_tab.py`）
+- 定位：文件级 IOC 发现能力（发现 + 归集 + 呈现），不自动判恶、不自动联网。
+- 扫描范围：内置路径（AppData/LocalAppData/ProgramData/Temp/Downloads）+ 自定义路径。
+- 扫描能力：支持递归开关、文件名精确匹配/通配符过滤、流式 SHA256 计算。
+- 结果展示：固定字段表格（文件名/路径/大小/时间/SHA256/来源类型/状态），支持按大小和时间排序。
+- 右键动作：复制 SHA256、打开文件所在目录、标记“已确认安全”（本地标签）。
+- 情报联动：选中结果后手动触发 VirusTotal/微步 hash 查询（仅提交 hash，不上传文件）。
 
 ## 3. 技术架构
 
@@ -97,8 +99,15 @@
 3. 结果生成统一 `SearchResult`，显示于工作台结果表格。
 4. 可触发跳转、复制、执行处置命令等动作。
 
+### Skill Scan 流
+1. `SkillScanTab` 组装 `SkillScanConfig`（内置路径 + 自定义路径 + 过滤 + 递归开关）。
+2. `SkillScanWorker` 在后台线程调用 `SkillScanScanner.scan()`。
+3. 扫描器按阶段执行：路径构建 -> 文件枚举 -> SHA256 计算 -> `SkillFileEntry` 归集。
+4. 扫描结束后一次性刷新表格（不边扫边刷），降低大批量结果下的 UI 抖动。
+5. 分析员手动选择条目触发微步/VT 查询，结果通过统一 `ThreatIntelService` 返回。
+
 ## 3.3 并发模型
-- QThread：Autoruns 扫描、签名重验、网络刷新。
+- QThread：Autoruns 扫描、签名重验、网络刷新、Skill Scan 后台扫描。
 - UI 线程：渲染与交互。
 - 线程间通信：Qt signal/slot，避免直接跨线程操作 UI。
 
@@ -146,6 +155,7 @@ sectool_codex/
 │  ├─ data_store.py            # 内存数据仓库
 │  ├─ search_service.py        # 工作台搜索服务
 │  ├─ threat_intel/            # IOC 情报接口抽象层
+│  ├─ skill_scan/              # Skill Scan 独立模型与扫描逻辑
 │  └─ skill_audit/             # Skill 路径体检与可疑文件检测
 ├─ ui/
 │  ├─ autoruns_tab.py          # 持久化检测主界面
@@ -153,6 +163,7 @@ sectool_codex/
 │  ├─ autoruns_detail_renderer.py
 │  ├─ autoruns_entry_mapper.py
 │  ├─ network_tab.py           # 网络监控界面
+│  ├─ skill_scan_tab.py        # Skill Scan 独立界面
 │  ├─ workspace_tab.py         # 工作台与规则管理
 │  ├─ workspace_rule_dialogs.py # 规则编辑/规则管理对话框
 │  ├─ workspace_results_presenter.py # 工作台结果表格渲染器
@@ -232,3 +243,6 @@ set SECTOOL_VT_API_KEY=your_api_key
 - 2026-02-13：新增 VirusTotal provider 骨架并完成服务注册（UI 默认仍使用微步）。
 - 2026-02-13：修复 Autoruns 右键压缩闪退问题（`pyzipper` 缺失保护 + 文件名清洗）。
 - 2026-02-13：新增情报查询结果 JSON 导出能力。
+- 2026-02-14：新增独立 `Skill Scan` 一级 Tab，完成配置区/结果区/情报动作区三段式结构。
+- 2026-02-14：新增 `core/skill_scan/`（`SkillFileEntry`、`SkillScanConfig`、`SkillScanResult`、`SkillScanScanner`），扫描按阶段解耦。
+- 2026-02-14：Workspace 移除 Skill 专属按钮，Skill 能力迁移到独立 Tab，避免职责继续耦合。

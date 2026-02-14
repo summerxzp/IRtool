@@ -6,3 +6,4 @@ __pycache__/
 package/
 app.log
 .venv_codex/
+.DS_Store
