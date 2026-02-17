@@ -1,0 +1,18 @@
+2026-02-17 14:10:13,632 - INFO - [Startup] ========================================
+2026-02-17 14:10:13,633 - INFO - [Startup] AppID: com.internal.IRtool
+2026-02-17 14:10:13,633 - INFO - [Startup] Version: 1.0.0
+2026-02-17 14:10:13,634 - INFO - [Startup] Build: release (2026-02-14)
+2026-02-17 14:10:13,634 - INFO - [Startup] App Directory: D:\project\sectool_codex
+2026-02-17 14:10:13,634 - INFO - [Startup] ========================================
+2026-02-17 14:10:13,639 - INFO - [Main] Admin check: is_admin_mode=0
+2026-02-17 14:10:13,640 - INFO - [Main] Attempting to elevate privileges...
+2026-02-17 14:10:14,087 - INFO - [Main] ShellExecuteW result: 42
+2026-02-17 14:10:14,087 - INFO - [Main] Elevation requested, exiting current process
+2026-02-17 14:10:14,630 - INFO - [Startup] ========================================
+2026-02-17 14:10:14,630 - INFO - [Startup] AppID: com.internal.IRtool
+2026-02-17 14:10:14,630 - INFO - [Startup] Version: 1.0.0
+2026-02-17 14:10:14,630 - INFO - [Startup] Build: release (2026-02-14)
+2026-02-17 14:10:14,630 - INFO - [Startup] App Directory: D:\project\sectool_codex
+2026-02-17 14:10:14,630 - INFO - [Startup] ========================================
+2026-02-17 14:10:14,635 - INFO - [Main] Admin check: is_admin_mode=1
+2026-02-17 14:10:14,696 - INFO - [MainWindow] Setting title: IRtool v1.0.0, is_admin_mode=1

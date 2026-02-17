@@ -1,5 +1,6 @@
 # 核心依赖
 PyQt6==6.6.1
+PyQt6-Qt6==6.6.1
 psutil==5.9.7
 pyzipper==0.3.6
 
