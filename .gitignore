@@ -9,3 +9,4 @@ package/build/
 app.log
 .venv_codex/
 .DS_Store
+logs/
