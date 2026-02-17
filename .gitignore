@@ -1,5 +1,6 @@
 .venv/
 venv/
+.venv_codex/
 __pycache__/
 *.pyc
 *.pyo
@@ -7,6 +8,5 @@ package/.venv/
 package/dist/
 package/build/
 app.log
-.venv_codex/
 .DS_Store
 logs/
