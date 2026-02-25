@@ -4,8 +4,8 @@
 【重要】规则文件中的 value 字段必须按以下规则转义：
 
 1. contains 类型（路径匹配）
-   - 正常路径: C:\jnetpub\wwwroot
-   - JSON 填写: "C:\\jnetpub\\wwwroot"
+   - 正常路径: C:\inetpub\wwwroot
+   - JSON 填写: "C:\\inetpub\\wwwroot"
    - 规则: 每个 \ 需要写成 \\
 
 2. regex 类型（正则表达式）
@@ -92,100 +92,8 @@ class RuleEngine:
             # 源码运行，使用脚本所在目录
             return Path(__file__).parent.parent
 
-    def _default_rules(self):
-        return [
-            {
-                "id": "silverfox_rundll_obfuscation",
-                "family": "银狐",
-                "match": [
-                    {
-                        "field": "command_line",
-                        "type": "regex",
-                        "value": "\\\"{2,}u\\\"{2,}n\\\"{2,}d\\\"{2,}ll\\\"{2,}32"
-                    }
-                ],
-                "severity": "high",
-                "note": "rundll32双引号混淆调用检测 - 匹配如 r\"\"u\"\"n\"\"d\"\"ll\"\"32 形式"
-            },
-            {
-                "id": "silverfox_jnetpub_path",
-                "family": "银狐",
-                "match": [
-                    {
-                        "field": "image_path",
-                        "type": "contains",
-                        "value": "jnetpub"
-                    }
-                ],
-                "severity": "high",
-                "note": "银狐常见路径特征"
-            },
-            {
-                "id": "silverfox_jnetpub_cmd",
-                "family": "银狐",
-                "match": [
-                    {
-                        "field": "command_line",
-                        "type": "contains",
-                        "value": "jnetpub\\\\wwwroot"
-                    }
-                ],
-                "severity": "high",
-                "note": "命令行包含 jnetpub\\\\wwwroot"
-            },
-            {
-                "id": "silverfox_inetpub_path",
-                "family": "银狐",
-                "match": [
-                    {
-                        "field": "image_path",
-                        "type": "contains",
-                        "value": "\\inetpub\\"
-                    }
-                ],
-                "severity": "medium",
-                "note": "inetpub 路径在普通终端不常见"
-            },
-            {
-                "id": "silverfox_wmp_music_dll",
-                "family": "银狐",
-                "match": [
-                    {
-                        "field": "command_line",
-                        "type": "contains",
-                        "value": "Windows Media Player Music.dll"
-                    }
-                ],
-                "severity": "high",
-                "note": "疑似仿冒 Windows Media Player Music.dll"
-            },
-            {
-                "id": "silverfox_wab_dll",
-                "family": "银狐",
-                "match": [
-                    {
-                        "field": "command_line",
-                        "type": "contains",
-                        "value": "Windows Mail\\wab.dll"
-                    }
-                ],
-                "severity": "high",
-                "note": "疑似仿冒 Windows Mail\\wab.dll"
-            },
-            {
-                "id": "powershell_encoded",
-                "family": "PowerShell",
-                "match": [
-                    {
-                        "field": "command_line",
-                        "type": "contains",
-                        "value": "-enc "
-                    }
-                ],
-                "severity": "medium",
-                "note": "PowerShell 编码执行"
-            }
-        ]
+    def _get_rules_template(self):
+        return []
 
     def _load_rules(self):
         if self.rules_path.exists():
@@ -196,11 +104,11 @@ class RuleEngine:
                     self.rules = []
             except Exception:
                 self.rules = []
+        
         if not self.rules:
-            self.rules = self._default_rules()
+            self.rules = self._get_rules_template()
             self._ensure_rules_file()
         
-        # 加载后执行规则校验
         self._validate_all_rules()
 
     def _ensure_rules_file(self):

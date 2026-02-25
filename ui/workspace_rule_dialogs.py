@@ -561,23 +561,53 @@ class RuleManagerDialog(QDialog):
         self.search_input.clear()
 
     def _show_help(self):
-        help_text = (
-            "规则管理帮助\n\n"
-            "1. 新增规则：点击\"新增\"按钮，填写规则信息后保存\n"
-            "2. 编辑规则：双击表格单元格直接编辑\n"
-            "3. 删除规则：选中规则行后点击\"删除\"\n"
-            "4. 搜索规则：在搜索框输入关键字，支持规则名称/字段/匹配值/备注\n"
-            "5. 导入规则：支持导入JSON格式的规则文件\n"
-            "6. 导入IOC：支持CSV/TSV格式，自动识别IP/Hash等类型\n"
-            "7. 导出规则：将当前规则导出为JSON文件\n"
-            "8. 保存变更：点击\"保存\"将规则写入文件\n\n"
-            "规则字段说明：\n"
-            "- 规则名称：规则所属家族或分类\n"
-            "- 字段：要匹配的Autoruns字段\n"
-            "- 匹配类型：包含/正则/等于\n"
-            "- 匹配值：具体的匹配内容\n"
-            "- 严重级别：critical/high/medium/low"
-        )
+        help_text = """规则管理帮助
+
+【基本操作】
+1. 新增规则：点击"新增"按钮，填写规则信息后保存
+2. 编辑规则：双击表格单元格直接编辑
+3. 删除规则：选中规则行后点击"删除"
+4. 搜索规则：在搜索框输入关键字，支持规则名称/字段/匹配值/备注
+5. 导入规则：支持导入JSON格式的规则文件
+6. 导入IOC：支持CSV/TSV格式，自动识别IP/Hash等类型
+7. 导出规则：将当前规则导出为JSON文件
+8. 保存变更：点击"保存"将规则写入文件
+
+【规则字段说明】
+- 规则名称：规则所属家族或分类（如：银狐、PowerShell）
+- 字段：要匹配的Autoruns字段（command_line/image_path/entry/description/publisher/company/location/category/launch_string/ip/hash/sha256/md5）
+- 匹配类型：包含(contains)/正则(regex)/等于(equals)
+- 匹配值：具体的匹配内容
+- 严重级别：critical/high/medium/low
+
+【JSON规则格式】
+规则文件为JSON数组，每条规则结构如下：
+{
+    "id": "规则唯一ID",
+    "family": "规则家族/分类",
+    "match": [
+        {
+            "field": "command_line",
+            "type": "contains",
+            "value": "匹配值"
+        }
+    ],
+    "severity": "high",
+    "note": "备注说明"
+}
+
+【匹配类型说明】
+- contains: 包含匹配，value无需转义
+- equals: 精确匹配，value无需转义
+- regex: 正则匹配，value中的反斜杠需双写，如匹配\\使用"\\\\"
+
+【字段转义规则】
+- JSON文件中每个 \\ 需要写成 \\\\
+- 例如：匹配路径 C:\\jnetpub\\wwwroot，JSON中应写 "C:\\\\jnetpub\\\\wwwroot"
+- 正则中的双引号 " 需写成 \\"
+
+【可用字段】
+command_line, image_path, entry, description, publisher, company, location, category, launch_string, ip, hash, sha256, md5"""
         QMessageBox.information(self, "帮助", help_text)
 
     def _test_all_rules(self):
@@ -746,12 +776,8 @@ class RuleManagerDialog(QDialog):
         return mapping.get((value or "").strip(), "包含")
 
     def _display_rule_value(self, value, match_type):
-        """显示规则值，如果是正则则截断显示"""
-        if not value:
-            return ""
-        if match_type == "regex" and len(value) > 30:
-            return value[:27] + "..."
-        return value
+        """显示规则值"""
+        return value if value else ""
 
     def _normalize_match_type(self, value):
         mapping = {

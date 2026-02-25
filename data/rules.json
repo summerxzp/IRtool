@@ -6,7 +6,7 @@
       {
         "field": "command_line",
         "type": "regex",
-        "value": "\\\"{2,}u\\\"{2,}n\\\"{2,}d\\\"{2,}..."
+        "value": "rundll32.exe \"C:\\Program Files\\"
       }
     ],
     "severity": "high",
@@ -14,7 +14,7 @@
     "note": "rundll32双引号混淆调用检测 - 匹配如 r\"\"u\"\"n\"\"d\"\"ll\"\"32 形式"
   },
   {
-    "id": "silverfox_jnetpub_path",
+    "id": "silverfox_inetpub_path",
     "family": "银狐",
     "match": [
       {
@@ -28,7 +28,7 @@
     "note": "银狐常见路径特征"
   },
   {
-    "id": "silverfox_jnetpub_cmd",
+    "id": "silverfox_inetpub_cmd",
     "family": "银狐",
     "match": [
       {
@@ -39,7 +39,7 @@
     ],
     "severity": "high",
     "date": "",
-    "note": "命令行包含 jnetpub\\wwwroot"
+    "note": "命令行包含 inetpub\\wwwroot"
   },
   {
     "id": "silverfox_inetpub_path",
