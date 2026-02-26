@@ -6,12 +6,12 @@
       {
         "field": "command_line",
         "type": "regex",
-        "value": "rundll32.exe \"C:\\Program Files\\"
+        "value": "rundll32.exe\" \"C:\\Program Files\\"
       }
     ],
     "severity": "high",
     "date": "",
-    "note": "rundll32双引号混淆调用检测 - 匹配如 r\"\"u\"\"n\"\"d\"\"ll\"\"32 形式"
+    "note": "可疑利用rundll32程序"
   },
   {
     "id": "silverfox_inetpub_path",
