@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 
 # 获取路径
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$rootDir = Split-Path -Parent $scriptDir  # 项目根目录 (sectool_codex)
+$rootDir = Split-Path -Parent $scriptDir  # 项目根目录 (IRtool)
 Set-Location $scriptDir
 
 Write-Host "Project root: $rootDir" -ForegroundColor Cyan

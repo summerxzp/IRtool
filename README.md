@@ -16,13 +16,13 @@
 
 ## 2. 功能清单（防重复建设）
 
-### 2.1 网络监控（`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/network_tab.py`）
+### 2.1 网络监控（`ui/network_tab.py`）
 - 实时采集网络连接（TCP/UDP、PID、进程路径、状态）。
 - 支持状态过滤、关键词搜索、排序、自动刷新间隔。
 - 支持终止进程、CSV 导出、历史连接保留与清空。
 - 支持右键在资源管理器定位进程文件。
 
-### 2.2 持久化检测（`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/autoruns_tab.py`）
+### 2.2 持久化检测（`ui/autoruns_tab.py`）
 - 调用 Sysinternals Autoruns 命令行工具扫描自启动项。
 - 支持分类过滤、关键词过滤、仅显示可疑项。
 - 支持风险提示（颜色+图标角标）、详情面板、跳转联动。
@@ -31,7 +31,7 @@
 - `sigcheck` 输出增加多编码解码回退，降低中文路径/中文发布者乱码概率。
 - 右键“复制文件并加密压缩”已增加依赖缺失保护与文件名清洗，避免异常闪退。
 
-### 2.3 工作台（`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/workspace_tab.py`）
+### 2.3 工作台（`ui/workspace_tab.py`）
 - 汇总搜索（当前以 Autoruns 关键字检索为主）。
 - 规则扫描（Rule Engine 驱动，支持 IOC 导入、规则管理、规则测试）。
 - 处置辅助命令模板（解锁、取所有权、删除、压缩）与安全执行封装。
@@ -40,7 +40,7 @@
 - 结果表格渲染与命令执行流程已拆分到 `ui/workspace_results_presenter.py` / `ui/workspace_action_executor.py`。
 - 右键已支持微步单条查询与批量查询 UI 链路（IOC 自动提取 IP/Hash）。
 
-### 2.4 规则系统（`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/core/rule_engine.py`）
+### 2.4 规则系统（`core/rule_engine.py`）
 - 规则类型：`contains` / `regex` / `equals`。
 - 规则字段覆盖：命令行、路径、哈希、IP、发布者等。
 - 支持规则校验、批量测试、导入导出、默认规则兜底。
@@ -57,9 +57,9 @@
   - 数据模型字段名保持为 `family`（历史兼容），UI 层使用 `edt_rule_name` 变量。
 
 ### 2.5 数据与检索
-- `DataStore`（`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/core/data_store.py`）：
+- `DataStore`（`core/data_store.py`）：
   统一内存数据仓库，负责 Autoruns/Network 数据广播。
-- `SearchService`（`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/core/search_service.py`）：
+- `SearchService`（`core/search_service.py`）：
   负责对 DataStore 数据做归一化与关键词检索。
 
 ### 2.6 外部情报接口（骨架已落地）
@@ -70,7 +70,7 @@
 - 当前 UI：Workspace 结果右键支持“微步查询（当前条目）”与“微步批量查询（当前结果）”。
 - 当前 UI：支持导出最近一次情报查询结果（JSON）。
 
-### 2.7 Skill Scan (`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/skill_scan_tab.py`)
+### 2.7 Skill Scan (`ui/skill_scan_tab.py`)
 - **状态：暂时隐藏（2026-02-14）** - 功能待完善后重新开放，代码保留在仓库中。
 - 定位：文件级 IOC 发现能力（发现 + 归集 + 呈现），不自动判恶、不自动联网。
 - 扫描范围：高价值工具链路径（`%USERPROFILE%\\.claude` / `.openclaw` / `.codex`，可选 `.config\\claude` / `.config\\openclaw`）+ 自定义路径。
@@ -163,7 +163,7 @@
 ## 6. 目录速查
 
 ```text
-sectool_codex/
+IRtool/
 ├─ main.py                     # 应用入口与主窗口装配
 ├─ core/
 │  ├─ autoruns_parser.py       # Autoruns 扫描、解析、删除、hash

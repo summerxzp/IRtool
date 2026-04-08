@@ -6,6 +6,8 @@ from typing import Optional, Callable
 from dataclasses import dataclass
 from enum import Enum
 
+from core.constants import MAX_THREAD_COUNT
+
 
 class CommandStatus(Enum):
     """命令执行状态"""
@@ -139,7 +141,7 @@ class SafeExecutor(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.thread_pool = QThreadPool()
-        self.thread_pool.setMaxThreadCount(3)
+        self.thread_pool.setMaxThreadCount(MAX_THREAD_COUNT)
         self.current_tasks = []
     
     def execute(self, command: str, callback: Optional[Callable[[CommandResult], None]] = None,

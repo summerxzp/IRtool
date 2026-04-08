@@ -41,7 +41,7 @@
 在 Windows PowerShell 中执行：
 
 ```powershell
-cd d:\project\sectool_codex\package\package
+cd d:\project\IRtool\package\package
 powershell -ExecutionPolicy Bypass -File build-with-7z.ps1
 ```
 

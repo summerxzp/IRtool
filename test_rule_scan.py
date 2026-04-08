@@ -265,7 +265,7 @@ def test_rule_scan():
     print()
     
     # 初始化规则引擎 - 使用测试规则文件
-    test_rules_path = r"d:\project\sectool_codex\data\test_rules.json"
+    test_rules_path = r"d:\project\IRtool\data\test_rules.json"
     rule_engine = RuleEngine(rules_path=test_rules_path)
     print(f"已加载 {len(rule_engine.rules)} 条规则 (来自 test_rules.json)")
     print()

@@ -1,33 +1,37 @@
 # main.py
-import sys
-import os
-import logging
-from pathlib import Path
-from datetime import datetime
+"""IRtool 应用入口"""
 
-# 获取应用根目录（支持源码运行和PyInstaller打包）
+# 标准库
+import ctypes
+import logging
+import os
+import sys
+from datetime import datetime
+from pathlib import Path
+
+# 第三方库
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QApplication, QMainWindow, QTabWidget, QMessageBox
+
+# 本地模块（需要先确定 APP_DIR）
 def get_app_dir():
+    """获取应用根目录（支持源码运行和PyInstaller打包）"""
     if getattr(sys, 'frozen', False):
-        # PyInstaller打包后，使用可执行文件所在目录
         return Path(sys.executable).parent
     else:
-        # 源码运行，使用脚本所在目录
         return Path(__file__).parent
 
 APP_DIR = get_app_dir()
-
-# 添加项目路径
 sys.path.insert(0, str(APP_DIR))
-
-from PyQt6.QtWidgets import QApplication, QMainWindow, QTabWidget, QMessageBox
-from PyQt6.QtCore import Qt
-import ctypes
 
 from core.network_monitor import NetworkMonitor
 from core.autoruns_parser import AutorunsParser
 from core.data_store import DataStore
 from core.search_service import SearchService
-from core.constants import APP_NAME, APP_ID, APP_VERSION, BUILD_TYPE, BUILD_DATE
+from core.constants import (
+    APP_NAME, APP_ID, APP_VERSION, BUILD_TYPE, BUILD_DATE,
+    WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT, LOG_FORMAT, LOG_LEVEL
+)
 
 from ui.network_tab import NetworkTab
 from ui.autoruns_tab import AutorunsTab
@@ -43,12 +47,12 @@ log_file = logs_dir / f"IRtool_{datetime.now().strftime('%Y%m%d')}.log"
 
 # 创建logger
 logger = logging.getLogger('IRtool')
-logger.setLevel(logging.INFO)
+logger.setLevel(getattr(logging, LOG_LEVEL, logging.INFO))
 
 # 文件处理器
 file_handler = logging.FileHandler(log_file, encoding='utf-8')
 file_handler.setLevel(logging.INFO)
-file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_formatter = logging.Formatter(LOG_FORMAT)
 file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
 
@@ -115,7 +119,7 @@ class MainWindow(QMainWindow):
             title += " (非管理员模式)"
         logger.info(f"[MainWindow] Setting title: {title}, is_admin_mode={is_admin_mode}")
         self.setWindowTitle(title)
-        self.setMinimumSize(1200, 700)
+        self.setMinimumSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
         
         # 初始化核心模块
         self._init_modules()

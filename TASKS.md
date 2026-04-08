@@ -7,25 +7,25 @@
 
 1. `P0 DONE` 隐藏 Skill Scan Tab（功能待完善后重新开放）
 - 目标：因 Skill Scan 功能尚未完善，暂时隐藏该 Tab，待后续功能成熟后再开放。
-- 影响文件：`d:\project\sectool_codex\main.py`
+- 影响文件：`d:\project\IRtool\main.py`
 - 实施结果：已注释 SkillScanTab 的导入和 Tab 添加代码，保留所有实现代码供后续使用。
 - 时间：2026-02-14
 
 2. `P0 DONE` 注释 Workspace 右键微步查询功能
 - 目标：暂时禁用 Workspace Tab 右键菜单中的微步查询功能（单条和批量）。
-- 影响文件：`d:\project\sectool_codex\ui\workspace_tab.py`
+- 影响文件：`d:\project\IRtool\ui\workspace_tab.py`
 - 实施结果：已注释右键菜单中的"微步查询（当前条目）"和"微步批量查询（当前结果）"功能代码，保留实现供后续恢复。
 - 时间：2026-02-14
 
 3. `P0 DONE` Workspace 规则类型筛选优化
 - 目标：修改规则类型筛选默认只选 IP，并添加全选/全部取消按钮提升操作效率。
-- 影响文件：`d:\project\sectool_codex\ui\workspace_tab.py`
+- 影响文件：`d:\project\IRtool\ui\workspace_tab.py`
 - 实施结果：默认仅选中 IP 类型；新增"全选"和"全部取消"按钮及对应方法 `_select_all_rule_types` / `_deselect_all_rule_types`。
 - 时间：2026-02-14
 
 4. `P0 DONE` Workspace 规则扫描结果展示优化
 - 目标：优化规则扫描结果的显示方式，使 IP 扫描结果更清晰，规则名称更直观。
-- 影响文件：`d:\project\sectool_codex\ui\workspace_results_presenter.py`、`d:\project\sectool_codex\ui\workspace_rule_dialogs.py`
+- 影响文件：`d:\project\IRtool\ui\workspace_results_presenter.py`、`d:\project\IRtool\ui\workspace_rule_dialogs.py`
 - 实施结果：
   - IP 匹配时 Matched 列只显示 IP 地址（从 detail.matched_ip 获取）
   - Source 列显示规则名称（family）而非 "Rule Scan"
@@ -36,7 +36,7 @@
 
 5. `P0 DONE` IOC 导入功能增强
 - 目标：优化 IOC 导入体验，支持直接粘贴文本内容。
-- 影响文件：`d:\project\sectool_codex\ui\workspace_rule_dialogs.py`
+- 影响文件：`d:\project\IRtool\ui\workspace_rule_dialogs.py`
 - 实施结果：
   - 新增 `IOCImportDialog` 对话框类，使用表格形式展示数据
   - 表格列：值(必填)、类型、标签、动作、名称、时间、备注
@@ -49,13 +49,13 @@
 
 2. `P0 DONE` 注释 Workspace "导出情报"按钮
 - 目标：暂时隐藏微步相关的"导出情报"功能按钮，待功能完善后再开放。
-- 影响文件：`d:\project\sectool_codex\ui\workspace_tab.py`
+- 影响文件：`d:\project\IRtool\ui\workspace_tab.py`
 - 实施结果：已注释"导出情报"按钮的创建和添加代码，保留实现供后续恢复。
 - 时间：2026-02-14
 
 3. `P0 DONE` 优化 Autorun 类型规则扫描结果展示
 - 目标：提升 Autorun 类型规则扫描结果的可读性，清晰展示原始持久化进程信息。
-- 影响文件：`d:\project\sectool_codex\ui\workspace_tab.py`
+- 影响文件：`d:\project\IRtool\ui\workspace_tab.py`
 - 实施结果：
   - Matched 列：显示命中的匹配值（如 "rundll32"）
   - Summary 列：显示 Entry | CommandLine
@@ -65,7 +65,7 @@
 
 4. `P0 DOING` 拆分 `workspace_tab.py` 的职责
 - 目标：将规则管理、结果展示、处置动作从单文件拆分到独立组件。
-- 影响文件：`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/workspace_tab.py`
+- 影响文件：`/Users/xiazhipeng/Desktop/.../IRtool/ui/workspace_tab.py`
 - 验收标准：主流程行为不变，文件体积明显下降，组件边界清晰。
 - 进展（2026-02-13）：已完成阶段一，`RuleEditDialog` / `RuleManagerDialog` 已迁移到 `ui/workspace_rule_dialogs.py`。
 - 下一步：继续拆分结果表格渲染与处置动作执行逻辑。
@@ -101,24 +101,24 @@
 
 7. `P0 DONE` 修复 Autoruns 右键签名验证中文乱码
 - 目标：解决 `sigcheck` 输出中文显示为问号的问题。
-- 影响文件：`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/core/signature_parser.py`、`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/autoruns_tab.py`
+- 影响文件：`/Users/xiazhipeng/Desktop/.../IRtool/core/signature_parser.py`、`/Users/xiazhipeng/Desktop/.../IRtool/ui/autoruns_tab.py`
 - 实施结果：新增多编码自适应解码（优先系统编码 + UTF-16 + GBK/GB18030 等回退），签名验证线程已接入。
 
 8. `P1 DONE` Autoruns 计划任务条目增加右键快速定位入口
 - 目标：对 `Scheduled Tasks` 条目提供更直接的人工排查路径。
-- 影响文件：`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/autoruns_tab.py`
+- 影响文件：`/Users/xiazhipeng/Desktop/.../IRtool/ui/autoruns_tab.py`
 - 实施结果：新增“打开任务计划程序并复制任务标识”右键动作。
 
 9. `P0 DOING` 工作台拆分阶段二：结果渲染与处置动作解耦
 - 目标：将结果表格渲染和命令执行流程从 `WorkspaceTab` 继续拆分。
-- 影响文件：`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/workspace_tab.py`
+- 影响文件：`/Users/xiazhipeng/Desktop/.../IRtool/ui/workspace_tab.py`
 - 验收标准：`WorkspaceTab` 仅保留编排职责，渲染与执行逻辑模块化。
 - 进展（2026-02-13）：已新增 `ui/workspace_results_presenter.py` 和 `ui/workspace_action_executor.py`，并完成接线。
 - 下一步：将规则扫描组装逻辑继续下沉到独立服务，减少 `WorkspaceTab` 业务复杂度。
 
 10. `P1 DONE` 计划任务“精确定位”增强
 - 目标：在已有“打开任务计划程序”基础上补充任务路径提示与复制策略（Entry/Location/LaunchString 优先级）。
-- 影响文件：`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/autoruns_tab.py`
+- 影响文件：`/Users/xiazhipeng/Desktop/.../IRtool/ui/autoruns_tab.py`
 - 验收标准：常见任务命名冲突场景下，分析员仍能快速定位目标任务。
 - 实施结果：新增任务标识提取与候选列表展示，优先复制可定位标识。
 
@@ -169,12 +169,12 @@
 
 18. `P0 DONE` 修复 Autoruns 右键“复制文件并加密压缩”闪退
 - 目标：避免因 `pyzipper` 缺失或非法文件名导致 UI 异常退出。
-- 影响文件：`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/autoruns_tab.py`
+- 影响文件：`/Users/xiazhipeng/Desktop/.../IRtool/ui/autoruns_tab.py`
 - 实施结果：`pyzipper` 导入移入保护分支并新增 ImportError 提示；增加 Windows 文件名清洗函数。
 
 19. `P1 DONE` 情报查询结果导出（JSON）
 - 目标：支持导出最近一次微步查询结果，便于复盘与共享。
-- 影响文件：`/Users/xiazhipeng/Desktop/codex/0213/sectool_codex/ui/workspace_tab.py`
+- 影响文件：`/Users/xiazhipeng/Desktop/.../IRtool/ui/workspace_tab.py`
 - 实施结果：新增“导出情报”按钮，可导出最近一次单条/批量查询结果为 JSON。
 
 20. `P0 DONE` Skill Scan 独立模块化重构（独立 Tab + 独立模型 + 独立扫描链路）

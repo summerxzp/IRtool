@@ -10,3 +10,10 @@ package/build/
 app.log
 .DS_Store
 logs/
+
+# 临时测试文件
+test_*_fix*.py
+test_*_*.py
+debug_*.py
+*_backup.py
+*_backup/
