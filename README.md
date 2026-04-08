@@ -7,7 +7,6 @@
 - **网络监控** - 实时采集网络连接，支持过滤、搜索、终止进程、导出
 - **持久化检测** - 调用 Sysinternals Autoruns 扫描自启动项，支持风险提示、签名验证
 - **工作台** - 规则扫描引擎，支持 IOC 导入、规则管理、处置命令模板
-- **威胁情报** - 支持微步、VirusTotal 查询（需配置 API Key）
 
 ## 快速开始
 
@@ -27,20 +26,6 @@
 ```bash
 pip install -r requirements.txt
 python main.py
-```
-
-### 配置（可选）
-
-**微步 API Key**：
-```bash
-set IRTOOL_WEIBU_API_KEY=your_api_key
-```
-
-或创建 `config.json`：
-```json
-{
-  "weibu_api_key": "your_api_key"
-}
 ```
 
 ## 项目结构

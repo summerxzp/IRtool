@@ -115,24 +115,6 @@ def get_app_dir() -> Path:
         return Path(__file__).parent.parent
 ```
 
-## 配置
-
-### API Key 配置
-
-**环境变量方式**：
-```bash
-set IRTOOL_WEIBU_API_KEY=your_api_key
-set IRTOOL_VT_API_KEY=your_api_key
-```
-
-**配置文件方式**（`config.json`）：
-```json
-{
-  "weibu_api_key": "your_api_key",
-  "virustotal_api_key": "your_api_key"
-}
-```
-
 ## 打包发布
 
 详见 [Release.md](Release.md)。
@@ -159,12 +141,6 @@ powershell -ExecutionPolicy Bypass -File package/build-with-7z.ps1
 ### Q: 如何添加新的规则匹配类型？
 
 在 `core/rule_engine.py` 的 `_match_rule_with_debug()` 方法中添加新的匹配逻辑。
-
-### Q: 如何添加新的威胁情报源？
-
-1. 在 `core/threat_intel/` 创建 `provider_xxx.py`
-2. 继承 `ThreatIntelProvider` 并实现 `query()` 方法
-3. 在 `ThreatIntelService` 中注册 provider
 
 ### Q: 签名验证中文乱码？
 
