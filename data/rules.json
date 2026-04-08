@@ -3750,5 +3750,19 @@
     "severity": "medium",
     "date": "2025/12/01",
     "note": ""
+  },
+  {
+    "id": "rule_62783407",
+    "family": "木马远控",
+    "match": [
+      {
+        "field": "command_line",
+        "type": "contains",
+        "value": "cmd /c cd /d"
+      }
+    ],
+    "severity": "critical",
+    "date": "",
+    "note": "木马常用命令前缀"
   }
 ]

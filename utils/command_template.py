@@ -78,23 +78,23 @@ class CommandTemplateManager:
         self.templates = {
             "unlock_file": CommandTemplate(
                 template_id="unlock_file",
-                name="解锁文件",
+                name="取消隐藏",
                 command='attrib -h -s -r "{target}" /s /d',
-                description="移除文件的隐藏、系统、只读属性",
+                description="移除文件/目录的隐藏、系统、只读属性（递归）",
                 parameters={"target": "目标路径"}
             ),
             "take_ownership": CommandTemplate(
                 template_id="take_ownership",
                 name="获取所有权",
                 command='takeown /f "{target}" /r /d y',
-                description="获取文件或目录的所有权",
+                description="获取文件或目录的所有权（递归）",
                 parameters={"target": "目标路径"}
             ),
             "delete_file": CommandTemplate(
                 template_id="delete_file",
-                name="删除文件",
-                command='del /f /q "{target}"',
-                description="强制删除文件",
+                name="删除文件/目录",
+                command='rmdir /s /q "{target}"',
+                description="强制递归删除文件或目录",
                 parameters={"target": "目标路径"}
             ),
             "encrypt_compress": CommandTemplate(

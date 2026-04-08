@@ -82,7 +82,11 @@ class CommandTask(QRunnable):
             print(f"[SafeExecutor] 标准输出: {stdout}")
             print(f"[SafeExecutor] 标准错误: {stderr}")
             
-            if return_code == 0:
+            # 检查错误：返回码非零，或 stderr 包含错误关键词
+            error_keywords = ['拒绝访问', 'access denied', 'error', '失败', 'failed', 'cannot', '无法']
+            has_error_in_stderr = stderr and any(kw in stderr.lower() for kw in error_keywords)
+            
+            if return_code == 0 and not has_error_in_stderr:
                 status = CommandStatus.SUCCESS
             else:
                 status = CommandStatus.FAILED

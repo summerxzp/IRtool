@@ -1303,11 +1303,13 @@ class AutorunsTab(QWidget):
             action_open = menu.addAction("在资源管理器中打开")
             action_open.triggered.connect(lambda: self._open_in_explorer(image_path))
 
-        # 计划任务条目：快速打开任务计划程序，并复制任务名/路径
-        is_scheduled_task = category == "Scheduled Tasks" or "Tasks" in str(data.get("location", ""))
-        if is_scheduled_task:
-            action_task_scheduler = menu.addAction("打开任务计划程序并复制任务标识")
-            action_task_scheduler.triggered.connect(lambda: self._open_task_scheduler_for_entry(data))
+        # 跳转到目标位置（根据条目类型自动选择跳转方式）
+        location_str = str(data.get("location", ""))
+        can_jump = self._can_jump_to_location(data)
+        if can_jump:
+            jump_label = self._get_jump_action_label(data)
+            action_jump = menu.addAction(jump_label)
+            action_jump.triggered.connect(lambda: self._jump_to_entry_location(data))
         
         menu.addSeparator()
         
@@ -1385,7 +1387,11 @@ class AutorunsTab(QWidget):
     def _calculate_hash(self, data):
         """计算 Hash"""
         image_path = data.get('image_path', '')
+        entry_name = data.get('entry', '未知')
+        LOGGER.info(f"[Hash] 开始计算 - 条目: {entry_name}, 路径: {image_path}")
+        
         if not image_path or image_path.lower() == 'file not found':
+            LOGGER.warning(f"[Hash] 失败 - 文件路径无效: {image_path}")
             QMessageBox.warning(self, "警告", "无法计算哈希：文件路径无效")
             return
         
@@ -1393,6 +1399,8 @@ class AutorunsTab(QWidget):
             hash_result = self.parser.calculate_file_hash(image_path)
             md5 = hash_result.get('md5', '')
             sha256 = hash_result.get('sha256', '')
+            
+            LOGGER.info(f"[Hash] 成功 - MD5: {md5}, SHA256: {sha256[:32]}...")
             
             message = f"文件: {image_path}\n\n"
             if md5 and md5 != 'N/A':
@@ -1418,6 +1426,7 @@ class AutorunsTab(QWidget):
                     # 发出 entry_updated 信号，触发 Detail Pane 同步刷新
                     self.model.entry_updated.emit(entry_id)
         except Exception as e:
+            LOGGER.error(f"[Hash] 异常 - {e}")
             QMessageBox.critical(self, "错误", f"计算 Hash 失败: {str(e)}")
     
     def _update_signature_state(self, entry_id: str, signer_status: str, signature_detail: str, publisher: str = ""):
@@ -1457,25 +1466,35 @@ class AutorunsTab(QWidget):
     def _verify_signature(self, data):
         """重新验证签名"""
         image_path = data.get('image_path', '')
+        entry_name = data.get('entry', '未知')
+        entry_id = data.get('id')
+        
+        LOGGER.info(f"[Signature] 请求验证 - 条目: {entry_name}, 路径: {image_path}")
+        
         if not image_path or image_path.lower() == 'file not found':
+            LOGGER.warning(f"[Signature] 失败 - 文件路径无效: {image_path}")
             QMessageBox.warning(self, "警告", "无法验证签名：文件路径无效")
             return
 
-        entry_id = data.get('id')
         if not entry_id:
+            LOGGER.warning("[Signature] 失败 - 条目ID缺失")
             QMessageBox.warning(self, "警告", "无法验证签名：条目ID缺失")
             return
 
         sigcheck_path = get_sigcheck_path()
         if not os.path.exists(sigcheck_path):
+            LOGGER.error(f"[Signature] 失败 - sigcheck64.exe 不存在: {sigcheck_path}")
             QMessageBox.warning(self, "警告", f"sigcheck64.exe 不存在: {sigcheck_path}")
             return
 
         running_worker = self._signature_workers_by_entry_id.get(entry_id)
         if running_worker and running_worker.isRunning():
+            LOGGER.info(f"[Signature] 跳过 - 验证已在进行中: {entry_name}")
             QMessageBox.information(self, "提示", "该条目正在进行签名验证，请稍候。")
             return
 
+        LOGGER.info(f"[Signature] 开始验证 - 条目: {entry_name}")
+        
         # 使用 Windows 本地编码解码输出
         encoding = locale.getpreferredencoding(False)
         worker = SignatureVerifyWorker(entry_id, image_path, sigcheck_path, encoding)
@@ -1524,6 +1543,7 @@ class AutorunsTab(QWidget):
     
     def _open_in_explorer(self, path):
         """在资源管理器中打开文件（安全方式：打开目录并选中文件）"""
+        LOGGER.info(f"[Explorer] 打开路径: {path}")
         try:
             import os
             if os.path.exists(path):
@@ -1532,8 +1552,10 @@ class AutorunsTab(QWidget):
                 else:
                     subprocess.run(['explorer', '/select,', path], check=False)
             else:
+                LOGGER.warning(f"[Explorer] 路径不存在: {path}")
                 QMessageBox.warning(self, "警告", f"文件不存在: {path}")
         except Exception as e:
+            LOGGER.error(f"[Explorer] 异常: {e}")
             QMessageBox.critical(self, "错误", f"无法打开文件: {str(e)}")
     
     def _search_in_workspace(self, data):
@@ -1652,20 +1674,14 @@ class AutorunsTab(QWidget):
 
     def _delete_entry(self, data):
         """删除持久化条目"""
-        _debug_log("[DeleteEntry] 开始删除条目")
-        
         entry_name = data.get('entry', '')
         category = data.get('category', '')
         launch_string = data.get('launch_string', '')
         image_path = data.get('image_path', '')
         service_name = data.get('service_name', '')
+        location = data.get('location', '')
         
-        _debug_log("[DeleteEntry] 条目信息:")
-        _debug_log(f"  - entry_name: {entry_name}")
-        _debug_log(f"  - category: {category}")
-        _debug_log(f"  - launch_string: {launch_string}")
-        _debug_log(f"  - image_path: {image_path}")
-        _debug_log(f"  - service_name: {service_name}")
+        LOGGER.info(f"[Delete] 请求删除 - 条目: {entry_name}, 类型: {category}, 位置: {location}")
         
         # 确认删除
         reply = QMessageBox.question(
@@ -1678,15 +1694,16 @@ class AutorunsTab(QWidget):
         )
         
         if reply == QMessageBox.StandardButton.No:
-            _debug_log("[DeleteEntry] 用户取消删除")
+            LOGGER.info(f"[Delete] 用户取消删除 - 条目: {entry_name}")
             return
         
+        LOGGER.info(f"[Delete] 开始执行删除 - 条目: {entry_name}")
+        
         try:
-            _debug_log("[DeleteEntry] 创建 AutorunEntry 对象")
             # 创建 AutorunEntry 对象
             from core.autoruns_parser import AutorunEntry
             entry = AutorunEntry(
-                location=data.get('location', ''),
+                location=location,
                 entry=entry_name,
                 enabled=data.get('enabled', ''),
                 category=category,
@@ -1704,35 +1721,29 @@ class AutorunsTab(QWidget):
                 service_name=service_name
             )
             
-            _debug_log("[DeleteEntry] AutorunEntry 对象创建完成")
-            _debug_log("[DeleteEntry] 调用 parser.delete_entry")
-            
             # 根据类型删除
             success, message = self.parser.delete_entry(entry)
             
-            _debug_log(f"[DeleteEntry] 删除结果: success={success}, message={message}")
-            
             if success:
+                LOGGER.info(f"[Delete] 成功 - 条目: {entry_name}, 消息: {message}")
                 QMessageBox.information(self, "删除成功", message)
                 
-                _debug_log("[DeleteEntry] 从模型中移除条目")
                 # 从模型中移除该条目
                 entry_id = data.get('id')
                 removed = self.model.remove_node_by_id(entry_id) if entry_id else False
                 if removed:
-                    _debug_log("[DeleteEntry] 条目已从模型中移除")
+                    LOGGER.info(f"[Delete] 已从模型移除 - entry_id: {entry_id}")
                 
-                _debug_log("[DeleteEntry] 清空 Detail Pane")
                 # 清空 Detail Pane
                 self._show_detail_placeholder()
             else:
-                _debug_log("[DeleteEntry] 删除失败")
-                QMessageBox.warning(self, "删除失败", f"删除失败: {message}")
+                LOGGER.warning(f"[Delete] 失败 - 条目: {entry_name}, 原因: {message}")
+                self._show_delete_failure_dialog(data, message)
                 
         except Exception as e:
             import traceback
-            _debug_log(f"[DeleteEntry] 删除过程中发生错误: {e}")
-            _debug_log(f"[DeleteEntry] 错误堆栈:\n{traceback.format_exc()}")
+            LOGGER.error(f"[Delete] 异常 - 条目: {entry_name}, 错误: {e}")
+            LOGGER.error(f"[Delete] 堆栈:\n{traceback.format_exc()}")
             QMessageBox.critical(self, "删除错误", f"删除过程中发生错误: {str(e)}")
     
     def _copy_and_encrypt_file(self, data):
@@ -1922,59 +1933,129 @@ class AutorunsTab(QWidget):
         dialog.exec()
 
     def _open_task_scheduler_for_entry(self, data):
-        """打开任务计划程序，并复制任务标识到剪贴板，便于人工快速定位。"""
-        identifier, candidates = self._build_task_identifier(data)
+        """精准打开计划任务的 XML 文件位置，若文件不存在则提供备选方案。"""
+        xml_path = self._resolve_task_xml_path(data)
+        task_entry = data.get("entry", "") or "未知"
+        
+        if not xml_path:
+            # 无法解析路径，直接打开任务计划程序
+            self._open_task_scheduler_gui(task_entry)
+            return
+        
+        import os
+        if os.path.exists(xml_path):
+            try:
+                subprocess.run(['explorer', '/select,', xml_path], check=False)
+                return
+            except Exception as exc:
+                QMessageBox.warning(self, "打开失败", f"无法打开文件位置: {exc}")
+        else:
+            # XML 文件不存在，提供备选：打开任务计划程序 GUI
+            dialog = QMessageBox(self)
+            dialog.setWindowTitle("文件不存在")
+            dialog.setIcon(QMessageBox.Icon.Warning)
+            dialog.setText(
+                f"任务 XML 文件不存在:\n{xml_path}\n\n"
+                f"任务名: {task_entry}\n\n"
+                "可能原因:\n"
+                "- 任务存储在注册表中（旧版任务）\n"
+                "- 任务已被删除\n"
+                "- 权限不足"
+            )
+            
+            btn_close = dialog.addButton("关闭", QMessageBox.ButtonRole.RejectRole)
+            btn_open_gui = dialog.addButton("打开任务计划程序", QMessageBox.ButtonRole.ActionRole)
+            
+            dialog.exec()
+            
+            if dialog.clickedButton() == btn_open_gui:
+                self._open_task_scheduler_gui(task_entry)
+    
+    def _open_task_scheduler_gui(self, task_name=""):
+        """打开任务计划程序 GUI，可选复制任务名到剪贴板。"""
         try:
-            from PyQt6.QtGui import QGuiApplication
-
-            subprocess.run(["taskschd.msc"], check=False)
-            if identifier:
-                QGuiApplication.clipboard().setText(identifier)
-                candidate_text = "\n".join(f"- {item}" for item in candidates[:5])
+            subprocess.run(["mmc.exe", "taskschd.msc"], check=False, shell=False)
+            if task_name and task_name != "未知":
+                from PyQt6.QtGui import QGuiApplication
+                QGuiApplication.clipboard().setText(task_name)
                 QMessageBox.information(
                     self,
-                    "提示",
-                    "已打开任务计划程序。\n\n"
-                    f"已复制优先标识到剪贴板:\n{identifier}\n\n"
-                    "可用于定位的候选标识:\n"
-                    f"{candidate_text}",
+                    "已打开任务计划程序",
+                    f"任务计划程序已打开。\n\n任务名已复制到剪贴板:\n{task_name}\n\n"
+                    "您可以在任务计划程序中粘贴搜索。"
                 )
-            else:
-                QMessageBox.information(self, "提示", "已打开任务计划程序。")
         except Exception as exc:
             QMessageBox.warning(self, "错误", f"打开任务计划程序失败: {exc}")
 
-    def _build_task_identifier(self, data):
-        """构建计划任务定位标识，返回 (primary, candidates)。"""
+    def _resolve_task_xml_path(self, data):
+        """
+        解析计划任务名称到 XML 文件的物理路径
+        
+        Windows 计划任务的存储位置:
+        - 系统级: %SystemRoot%\\System32\\Tasks\\<task_name>.xml
+        - 用户级: %AppData%\\Microsoft\\Windows\\Tasks\\<task_name>.xml (仅根级)
+        
+        entry 字段格式示例:
+        - \\Track And Smooth          → Track And Smooth.xml
+        - \\Microsoft\\Windows\\Update\\Scheduled Start → Microsoft/Windows/Update/Scheduled Start.xml
+        """
+        import os
+        
         task_entry = (data.get("entry", "") or "").strip()
-        task_location = (data.get("location", "") or "").strip()
-        task_command = (data.get("launch_string", "") or "").strip()
-
+        _debug_log(f"[_resolve_task_xml_path] raw entry: {task_entry!r}")
+        
+        if not task_entry:
+            _debug_log("[_resolve_task_xml_path] entry is empty, return None")
+            return None
+        
+        # 移除前导反斜杠
+        task_name = task_entry.lstrip('\\')
+        _debug_log(f"[_resolve_task_xml_path] task_name after lstrip: {task_name!r}")
+        
+        if not task_name:
+            _debug_log("[_resolve_task_xml_path] task_name is empty after lstrip, return None")
+            return None
+        
+        # 如果 entry 已经包含 .xml 后缀，不再重复添加
+        if task_name.lower().endswith('.xml'):
+            xml_filename = task_name
+            _debug_log(f"[_resolve_task_xml_path] entry already has .xml suffix")
+        else:
+            xml_filename = task_name + ".xml"
+            _debug_log(f"[_resolve_task_xml_path] added .xml suffix: {xml_filename!r}")
+        
+        system_tasks_dir = os.path.join(
+            os.environ.get('SystemRoot', r'C:\Windows'),
+            'System32',
+            'Tasks'
+        )
+        
+        user_tasks_dir = os.path.join(
+            os.environ.get('APPDATA', ''),
+            'Microsoft',
+            'Windows',
+            'Tasks'
+        )
+        
         candidates = []
-
-        parsed_from_command = self._extract_task_name_from_command(task_command)
-        if parsed_from_command:
-            candidates.append(parsed_from_command)
-
-        # 常见 entry 为任务名，优先级高于 location。
-        if task_entry:
-            candidates.append(task_entry)
-        if task_location:
-            candidates.append(task_location)
-        if task_command:
-            candidates.append(task_command)
-
-        dedup = []
-        seen = set()
-        for item in candidates:
-            key = item.lower()
-            if key in seen:
-                continue
-            seen.add(key)
-            dedup.append(item)
-
-        primary = dedup[0] if dedup else ""
-        return primary, dedup
+        
+        system_path = os.path.join(system_tasks_dir, xml_filename.replace('\\', os.sep))
+        candidates.append(system_path)
+        _debug_log(f"[_resolve_task_xml_path] system candidate: {system_path}")
+        
+        if user_tasks_dir and os.path.isdir(os.path.dirname(user_tasks_dir)):
+            user_path = os.path.join(user_tasks_dir, xml_filename.replace('\\', os.sep))
+            if user_path != system_path:
+                candidates.append(user_path)
+                _debug_log(f"[_resolve_task_xml_path] user candidate: {user_path}")
+        
+        for path in candidates:
+            if os.path.exists(path):
+                _debug_log(f"[_resolve_task_xml_path] found existing file: {path}")
+                return path
+        
+        _debug_log(f"[_resolve_task_xml_path] no existing file found, return first candidate: {candidates[0]}")
+        return candidates[0] if candidates else None
 
     @staticmethod
     def _extract_task_name_from_command(command: str) -> str:
@@ -1999,3 +2080,118 @@ class AutorunsTab(QWidget):
 
         token = rest.split()[0] if rest.split() else ""
         return token.strip()
+
+    def _show_delete_failure_dialog(self, data, error_message):
+        """删除失败时显示带"跳转到位置"按钮的对话框"""
+        entry_name = data.get('entry', '') or '未知条目'
+        category = data.get('category', '')
+        
+        can_jump = self._can_jump_to_location(data)
+        jump_label = self._get_jump_action_label(data)
+        
+        msg = f"删除失败: {error_message}\n\n条目: {entry_name}\n类型: {category}"
+        
+        if can_jump:
+            dialog = QMessageBox(self)
+            dialog.setWindowTitle("删除失败")
+            dialog.setIcon(QMessageBox.Icon.Warning)
+            dialog.setText(msg)
+            
+            btn_close = dialog.addButton("关闭", QMessageBox.ButtonRole.RejectRole)
+            btn_jump = dialog.addButton(jump_label, QMessageBox.ButtonRole.ActionRole)
+            
+            dialog.exec()
+            
+            if dialog.clickedButton() == btn_jump:
+                self._jump_to_entry_location(data)
+        else:
+            QMessageBox.warning(self, "删除失败", msg)
+
+    @staticmethod
+    def _can_jump_to_location(data):
+        """判断该条目是否支持跳转到位置"""
+        location = str(data.get("location", ""))
+        category = data.get("category", "")
+        
+        if category in ("Scheduled Tasks", "Tasks") or "Task" in location:
+            return True
+        if location and ("HKLM" in location or "HKCU" in location):
+            return True
+        if category == "Services":
+            return True
+        
+        return False
+
+    @staticmethod
+    def _get_jump_action_label(data):
+        """根据条目类型返回跳转按钮的文字"""
+        location = str(data.get("location", ""))
+        category = data.get("category", "")
+        
+        if category in ("Scheduled Tasks", "Tasks") or "Task" in location:
+            return "跳转到任务文件"
+        if category == "Services":
+            return "打开服务管理器"
+        return "跳转到注册表位置"
+
+    def _jump_to_entry_location(self, data):
+        """根据条目类型，精准跳转到目标位置（删除失败后的手动兜底）"""
+        location = str(data.get("location", ""))
+        category = data.get("category", "")
+        entry_name = data.get("entry", "未知")
+        
+        LOGGER.info(f"[Jump] 请求跳转 - 条目: {entry_name}, 类型: {category}, 位置: {location}")
+        
+        try:
+            if category in ("Scheduled Tasks", "Tasks") or "Task" in location:
+                LOGGER.info(f"[Jump] 跳转到任务计划 - {entry_name}")
+                self._open_task_scheduler_for_entry(data)
+                return
+            
+            if category == "Services":
+                LOGGER.info(f"[Jump] 打开服务管理器 - {entry_name}")
+                subprocess.run(['services.msc'], check=False, shell=True)
+                return
+            
+            if location and ("HKLM" in location or "HKCU" in location):
+                LOGGER.info(f"[Jump] 跳转到注册表 - {location}")
+                self._open_regedit_to_key(location)
+                return
+            
+            LOGGER.warning(f"[Jump] 不支持的类型 - 条目: {entry_name}, 类型: {category}")
+            QMessageBox.information(self, "提示", "此类型的条目暂不支持自动定位")
+        except Exception as exc:
+            LOGGER.error(f"[Jump] 失败 - 条目: {entry_name}, 错误: {exc}")
+            QMessageBox.warning(self, "跳转失败", f"无法打开目标位置: {exc}")
+
+    def _open_regedit_to_key(self, registry_path):
+        """
+        打开注册表编辑器并导航到指定键路径
+        
+        通过创建临时 .reg 文件并导入的方式实现精确定位，
+        这是 Windows 上最可靠的 regedit 定位方法。
+        """
+        import tempfile
+        
+        escaped_path = registry_path.replace('\\', '\\\\')
+        reg_content = f'Windows Registry Editor Version 5.00\n\n[HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\Regedit]\n"LastKey"="{escaped_path}"\n'
+        
+        tmp_fd, tmp_path = tempfile.mkstemp(suffix='.reg')
+        try:
+            with os.fdopen(tmp_fd, 'w', encoding='utf-8') as f:
+                f.write(reg_content)
+            
+            subprocess.run(
+                ['regedit', '/s', tmp_path],
+                check=False,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+            
+            subprocess.run(['regedit'], check=False)
+        except Exception as exc:
+            raise RuntimeError(f"打开注册表失败: {exc}")
+        finally:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
