@@ -1,0 +1,7 @@
+;!@Install@!UTF-8!
+Title="IRtool v1.0.2 - Security Analysis Tool"
+BeginPrompt="Extract and run IRtool?"
+ExtractPath="."
+OverwriteMode=0
+GUIRunOnce="IRtool-v1.0.2\IRtool-v1.0.2.exe"
+;!@InstallEnd@!
