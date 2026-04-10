@@ -16,8 +16,9 @@ from PyQt6.QtCore import (
     pyqtSignal,
     QTimer,
     QThread,
+    QElapsedTimer,
 )
-from PyQt6.QtGui import QColor, QIcon
+from PyQt6.QtGui import QColor, QIcon, QPalette
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -38,6 +39,7 @@ from PyQt6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFileDialog,
+    QApplication,
 )
 
 # 本地模块

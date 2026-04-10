@@ -220,23 +220,23 @@ def main():
     # 检查管理员权限
     is_admin_mode = is_admin()
     logger.info(f"[Main] Admin check: is_admin_mode={is_admin_mode}")
+    
+    # 尝试申请管理员权限，但如果失败也能继续运行
     if not is_admin_mode:
-        # 尝试提权重启，但如果用户拒绝则继续以非管理员模式运行
-        logger.info("[Main] Attempting to elevate privileges...")
-        result = ctypes.windll.shell32.ShellExecuteW(
-            None, "runas", sys.executable, " ".join(sys.argv), None, 1
-        )
-        logger.info(f"[Main] ShellExecuteW result: {result}")
-        # 如果用户点击了"是"接受UAC，ShellExecuteW会返回一个大于32的值
-        # 如果用户点击"否"拒绝UAC，返回值为SE_ERR_ACCESSDENIED (5)
-        # 如果提权成功，当前进程应该退出，让新进程接管
-        # 如果提权失败或被拒绝，继续以非管理员模式运行
-        if result > 32:
-            # 提权请求已发送，退出当前进程
-            logger.info("[Main] Elevation requested, exiting current process")
-            sys.exit(0)
-        # 如果 result <= 32，表示提权失败，继续以非管理员模式运行
-        logger.info("[Main] Elevation failed or denied, continuing without admin")
+        try:
+            logger.info("[Main] Attempting to elevate privileges...")
+            result = ctypes.windll.shell32.ShellExecuteW(
+                None, "runas", sys.executable, " ".join(sys.argv), None, 1
+            )
+            logger.info(f"[Main] ShellExecuteW result: {result}")
+            # 如果提权成功（用户点击"是"），退出当前进程，让新进程接管
+            if result > 32:
+                logger.info("[Main] Elevation requested, exiting current process")
+                sys.exit(0)
+            # 如果提权失败或被拒绝，继续以非管理员模式运行
+            logger.info("[Main] Elevation failed or denied, continuing without admin")
+        except Exception as e:
+            logger.warning(f"[Main] Elevation attempt failed: {e}, continuing without admin")
     
     app = QApplication(sys.argv)
     app.setStyle('Fusion')  # 使用Fusion风格

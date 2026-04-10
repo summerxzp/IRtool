@@ -4,6 +4,33 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)。
 
+## [1.0.2] - 2026-04-10
+
+### 文档
+- 重构项目文档结构
+- 重写 README.md，按标准开源项目规范编写
+- 新增 CHANGELOG.md 记录版本变更历史
+- 新增 CONTRIBUTING.md 开发指南
+- 新增 docs/ARCHITECTURE.md 技术架构文档
+- 新增 docs/DESIGN-SKILL-SCAN.md Skill Scan 设计文档
+- 删除冗余的 TASKS.md（内容已迁移）
+
+### 重构
+- 重命名项目 sectool_codex -> IRtool，更新所有路径引用
+- 拆分 autoruns_tab.py (2197行) 为独立模块：
+  - autoruns_tree_model.py: 树形模型和过滤代理
+  - autoruns_signature_worker.py: 签名验证工作线程
+- 提取魔法数字为常量 (窗口尺寸、线程数、超时等)
+- 统一 import 顺序：标准库 → 第三方库 → 本地模块
+- 添加 `__all__` 定义，明确模块导出接口
+- 清理冗余文件：备份文件、临时测试脚本
+- 更新 .gitignore 规则
+
+### 修复
+- 修复 utils/__init__.py 中 DataExporter 导入错误
+- 修复 autoruns_tab.py 中 QElapsedTimer 和 QPalette 未定义错误
+- 修复管理员权限申请逻辑，确保无权限时也能正常运行
+
 ## [1.0.1] - 2026-02-26
 
 ### 新增
