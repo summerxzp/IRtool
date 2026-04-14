@@ -37,6 +37,7 @@ from ui.network_tab import NetworkTab
 from ui.autoruns_tab import AutorunsTab
 # from ui.skill_scan_tab import SkillScanTab  # 暂时隐藏 Skill Scan Tab
 from ui.workspace_tab import WorkspaceTab
+from ui.log_collector_tab import LogCollectorTab
 
 # 创建logs目录
 logs_dir = APP_DIR / "logs"
@@ -147,6 +148,10 @@ class MainWindow(QMainWindow):
         # 网络监控标签
         self.network_tab = NetworkTab(self.network_monitor, self.data_store)
         tabs.addTab(self.network_tab, "网络监控")
+        
+        # 日志采集标签
+        self.log_collector_tab = LogCollectorTab(self.data_store)
+        tabs.addTab(self.log_collector_tab, "日志采集")
 
         # Skill Scan 标签（独立于 Autoruns/Workspace）- 暂时隐藏
         # self.skill_scan_tab = SkillScanTab()
@@ -201,6 +206,10 @@ class MainWindow(QMainWindow):
         # 停止网络监控
         if hasattr(self, 'network_monitor'):
             self.network_monitor.stop_monitoring()
+        
+        # 停止日志采集
+        if hasattr(self, 'log_collector_tab') and self.log_collector_tab:
+            self.log_collector_tab.cleanup()
         
         # 停止autoruns扫描（如果正在进行）
         if hasattr(self, 'autoruns_tab') and self.autoruns_tab:

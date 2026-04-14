@@ -40,6 +40,7 @@ from PyQt6.QtWidgets import (
     QDialogButtonBox,
     QFileDialog,
     QApplication,
+    QHeaderView,
 )
 
 # 本地模块
@@ -636,8 +637,9 @@ class AutorunsTab(QWidget):
             self.tree_view.setColumnWidth(2, AUTORUNS_DESC_MAX_WIDTH)
             self.tree_view.setColumnWidth(3, AUTORUNS_PUBLISHER_MAX_WIDTH)
         
-        # Image Path：使用剩余空间
-        self.tree_view.header().setStretchLastSection(True)
+        # Image Path：完整显示内容，可横向滚动
+        self.tree_view.header().setStretchLastSection(False)
+        self.tree_view.header().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
     
     def _populate_tree(self, data):
         """填充树形视图"""

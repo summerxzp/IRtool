@@ -1,0 +1,66 @@
+<Sysmon schemaversion="4.90">
+  <!-- 
+    IRtool 专用配置：只记录 DNS 查询
+    其他所有事件类型全部禁用，避免日志风暴
+  -->
+  
+  <EventFiltering>
+    <!-- 进程创建 - 禁用 -->
+    <ProcessCreate onmatch="exclude"/>
+    
+    <!-- 文件创建时间修改 - 禁用 -->
+    <FileCreateTime onmatch="exclude"/>
+    
+    <!-- 网络连接 - 禁用 -->
+    <NetworkConnect onmatch="exclude"/>
+    
+    <!-- 进程终止 - 禁用 -->
+    <ProcessTerminate onmatch="exclude"/>
+    
+    <!-- 驱动加载 - 禁用 -->
+    <DriverLoad onmatch="exclude"/>
+    
+    <!-- DLL 加载 - 禁用 -->
+    <ImageLoad onmatch="exclude"/>
+    
+    <!-- 远程线程创建 - 禁用 -->
+    <CreateRemoteThread onmatch="exclude"/>
+    
+    <!-- 原始磁盘访问 - 禁用 -->
+    <RawAccessRead onmatch="exclude"/>
+    
+    <!-- 进程访问 - 禁用 -->
+    <ProcessAccess onmatch="exclude"/>
+    
+    <!-- 文件创建 - 禁用 -->
+    <FileCreate onmatch="exclude"/>
+    
+    <!-- 注册表事件 - 禁用 -->
+    <RegistryEvent onmatch="exclude"/>
+    
+    <!-- 文件流哈希 - 禁用 -->
+    <FileCreateStreamHash onmatch="exclude"/>
+    
+    <!-- 管道事件 - 禁用 -->
+    <PipeEvent onmatch="exclude"/>
+    
+    <!-- WMI 事件 - 禁用 -->
+    <WmiEvent onmatch="exclude"/>
+    
+    <!-- DNS 查询 - 启用（只记录，不过滤） -->
+    <DnsQuery onmatch="include"/>
+    
+    <!-- 文件删除 - 禁用 -->
+    <FileDelete onmatch="exclude"/>
+    
+    <!-- 剪贴板变化 - 禁用 -->
+    <ClipboardChange onmatch="exclude"/>
+    
+    <!-- 进程篡改 - 禁用 -->
+    <ProcessTampering onmatch="exclude"/>
+    
+    <!-- 文件删除检测 - 禁用 -->
+    <FileDeleteDetected onmatch="exclude"/>
+    
+  </EventFiltering>
+</Sysmon>

@@ -3,6 +3,7 @@ PyQt6==6.6.1
 PyQt6-Qt6==6.6.1
 psutil==5.9.7
 pyzipper==0.3.6
+pywin32==306
 
 # 数据处理
 # (SQLite3是Python内置的)
