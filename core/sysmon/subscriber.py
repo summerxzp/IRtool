@@ -6,7 +6,8 @@ import time
 import logging
 
 from .parser import SysmonEventParser
-from .models import SysmonEvent, DnsEvent, NetworkConnectEvent, CreateRemoteThreadEvent
+from .models import SysmonEvent, DnsEvent, NetworkConnectEvent, CreateRemoteThreadEvent, FileCreateEvent
+from .config_manager import EVENT_CONFIG, DEFAULT_ENABLED_EVENTS
 
 logger = logging.getLogger('IRtool')
 
@@ -18,15 +19,23 @@ class SysmonSubscriber(QThread):
 
     SYSMON_CHANNEL = 'Microsoft-Windows-Sysmon/Operational'
 
-    # 采集的事件ID: 3=网络连接, 8=远程线程创建, 22=DNS查询
-    EVENT_IDS = [3, 8, 22]
-
-    def __init__(self, parent=None, filter_external_only: bool = False):
+    def __init__(self, parent=None, filter_external_only: bool = False, enabled_events: Optional[List[str]] = None):
         super().__init__(parent)
         self._running = False
         self._last_record_id = 0
         self._poll_interval = 0.5
-        self._filter_external_only = filter_external_only  # 是否只采集外连IP
+        self._filter_external_only = filter_external_only
+        self._enabled_events = enabled_events or list(DEFAULT_ENABLED_EVENTS)
+        self._event_ids = self._compute_event_ids()
+
+    def _compute_event_ids(self) -> List[int]:
+        event_ids = []
+        for key in self._enabled_events:
+            if key in EVENT_CONFIG:
+                eid = EVENT_CONFIG[key]['event_id']
+                if eid not in event_ids:
+                    event_ids.append(eid)
+        return sorted(event_ids) if event_ids else [3, 8, 22]
 
     def is_sysmon_available(self) -> bool:
         try:
@@ -86,13 +95,15 @@ class SysmonSubscriber(QThread):
 
     def _build_xpath_query(self) -> str:
         """构建XPath查询，采集指定事件ID"""
-        event_ids_str = ' or '.join([f"EventID={eid}" for eid in self.EVENT_IDS])
-        
+        event_ids_str = ' or '.join([f"EventID={eid}" for eid in self._event_ids])
+
         if self._last_record_id <= 0:
             xpath = f'*[System[{event_ids_str}]]'
         else:
-            xpath = f"*[System[({event_ids_str}) and EventRecordID > {self._last_record_id}]]"
-        
+            # 注意：XPath条件需要用括号包裹，避免优先级问题
+            xpath = f"*[System[({event_ids_str}) and (EventRecordID > {self._last_record_id})]]"
+
+        logger.debug(f"[SysmonSubscriber] XPath query: {xpath}")
         return xpath
 
     def _poll_new_events(self) -> List[SysmonEvent]:
@@ -105,23 +116,27 @@ class SysmonSubscriber(QThread):
                 xpath
             )
         except Exception as e:
+            logger.error(f"[SysmonSubscriber] EvtQuery failed: {e}")
             if "找不到指定的信道" in str(e) or "channel" in str(e).lower():
                 return []
             raise
 
         parsed_events = []
+        batch_count = 0
         try:
             while True:
                 batch = win32evtlog.EvtNext(h, 100)
                 if not batch:
                     break
+                batch_count += 1
 
                 for event_handle in batch:
                     try:
                         xml_str = win32evtlog.EvtRender(event_handle, win32evtlog.EvtRenderEventXml)
                         parsed = SysmonEventParser.parse_event(xml_str)
-                        
+
                         if parsed:
+                            logger.debug(f"[SysmonSubscriber] Parsed event: ID={parsed.event_id}, Type={parsed.event_type}")
                             # 如果开启了外连IP过滤，只保留外连的网络连接事件
                             if self._filter_external_only and isinstance(parsed, NetworkConnectEvent):
                                 if not parsed.is_external:
@@ -136,6 +151,8 @@ class SysmonSubscriber(QThread):
         except Exception as e:
             logger.warning(f"[SysmonSubscriber] EvtNext error: {e}")
 
+        if parsed_events:
+            logger.debug(f"[SysmonSubscriber] Poll returned {len(parsed_events)} events from {batch_count} batches")
         return parsed_events
 
     def stop(self):
@@ -145,7 +162,7 @@ class SysmonSubscriber(QThread):
     def get_existing_events(self, limit: int = 500, filter_external_only: bool = False) -> List[SysmonEvent]:
         """获取历史事件"""
         try:
-            event_ids_str = ' or '.join([f"EventID={eid}" for eid in self.EVENT_IDS])
+            event_ids_str = ' or '.join([f"EventID={eid}" for eid in self._event_ids])
             xpath = f'*[System[{event_ids_str}]]'
             
             h = win32evtlog.EvtQuery(

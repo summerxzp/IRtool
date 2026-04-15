@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, Tuple
-from .models import SysmonEvent, DnsEvent, NetworkConnectEvent, CreateRemoteThreadEvent
+from .models import SysmonEvent, DnsEvent, NetworkConnectEvent, CreateRemoteThreadEvent, FileCreateEvent
 
 
 class SysmonEventParser:
@@ -10,6 +10,7 @@ class SysmonEventParser:
     EVENT_PARSERS = {
         3: '_parse_network_connect_event',
         8: '_parse_create_remote_thread_event',
+        11: '_parse_file_create_event',
         22: '_parse_dns_event',
     }
 
@@ -108,3 +109,7 @@ class SysmonEventParser:
     @classmethod
     def _parse_create_remote_thread_event(cls, event_data: Dict[str, Any], timestamp: datetime) -> CreateRemoteThreadEvent:
         return CreateRemoteThreadEvent.from_event_data(event_data, timestamp)
+
+    @classmethod
+    def _parse_file_create_event(cls, event_data: Dict[str, Any], timestamp: datetime) -> FileCreateEvent:
+        return FileCreateEvent.from_event_data(event_data, timestamp)

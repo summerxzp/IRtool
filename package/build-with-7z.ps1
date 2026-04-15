@@ -1,6 +1,6 @@
 # IRtool Release Build Script
 # Build Type: onedir + 7z SFX (self-extracting)
-# Version: 1.0.0
+# Version: 1.1.1
 
 param(
     [ValidateSet('onedir','onedir-7z')] [string]$Mode = 'onedir-7z'
@@ -15,9 +15,9 @@ Set-Location $here
 $appDir = Split-Path -Parent $here
 
 # Version info (must match core/constants.py)
-$appVersion = "1.0.0"
+$appVersion = "1.1.1"
 $buildType = "release"
-$buildDate = "2026-02-14"
+$buildDate = "2026-04-15"
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  IRtool Release Build" -ForegroundColor Cyan
@@ -46,16 +46,10 @@ if ($Mode -eq 'onedir-7z') {
     Write-Host "7-Zip found: $sevenZip" -ForegroundColor Green
 }
 
-# Create venv for build isolation
-$venv = Join-Path $here '.venv'
-if (-not (Test-Path $venv)) {
-    Write-Host "Creating virtual environment..." -ForegroundColor Yellow
-    python -m venv $venv
-}
-
-$python = Join-Path $venv 'Scripts\python.exe'
+# Use system Python directly (venv has issues in this environment)
+$python = 'python'
+Write-Host "Using system Python: $python" -ForegroundColor Yellow
 Write-Host "Installing dependencies..." -ForegroundColor Yellow
-& $python -m pip install -q -U pip
 & $python -m pip install -q -r (Join-Path $here 'requirements-build.txt')
 
 # Get PyQt6 Qt6 bin path for DLLs
@@ -87,6 +81,8 @@ $buildArgs = @(
     '--add-data', "$(Join-Path $appDir 'data\rules.json');data",
     '--add-data', "$(Join-Path $appDir 'tools\autorunsc64.exe');tools",
     '--add-data', "$(Join-Path $appDir 'tools\sigcheck64.exe');tools",
+    '--add-data', "$(Join-Path $appDir 'tools\Sysmon64.exe');tools",
+    '--add-data', "$(Join-Path $appDir 'tools\sysmon_config.xml');tools",
     '--exclude-module','matplotlib',
     '--exclude-module','numpy',
     '--exclude-module','pandas',
@@ -161,7 +157,9 @@ $buildArgs += (Join-Path $appDir 'main.py')
 
 Write-Host ""
 Write-Host "Building..." -ForegroundColor Cyan
-& $python @buildArgs
+# Set environment variable to auto-confirm PyInstaller cleanup
+$env:PYINSTALLER_CLEANUP_CONFIRM = 'yes'
+& $python @buildArgs --noconfirm
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""
@@ -193,10 +191,25 @@ if ($LASTEXITCODE -eq 0) {
             Remove-Item $archivePath -Force -ErrorAction SilentlyContinue
         }
 
-        # Create 7z archive - cd into dirPath and add all files
-        Push-Location $dirPath
+        # Create 7z archive with version folder structure
+        # First create a temp directory with the correct structure
+        $tempDir = Join-Path $here "dist\temp_7z"
+        if (Test-Path $tempDir) {
+            Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
+        
+        # Copy build output to temp dir with version folder name
+        $versionDir = Join-Path $tempDir $outputName
+        Copy-Item $dirPath $versionDir -Recurse -Force
+        
+        # Create 7z archive from temp dir
+        Push-Location $tempDir
         & $sevenZip a -t7z -m0=lzma2 -mx=9 "$archivePath" *
         Pop-Location
+        
+        # Clean up temp dir
+        Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
 
         if ($LASTEXITCODE -eq 0) {
             # Get 7z SFX module

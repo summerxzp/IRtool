@@ -62,6 +62,48 @@ class DnsEvent(SysmonEvent):
 
 
 @dataclass
+class FileCreateEvent(SysmonEvent):
+    """文件创建事件 (EventID 11)"""
+    event_id: int = 11
+    process_id: int = 0
+    process_name: str = ""
+    process_path: str = ""
+    user: str = ""
+    target_filename: str = ""
+    creation_utc_time: str = ""
+    rule_name: str = ""
+
+    @property
+    def event_type(self) -> str:
+        return 'file_create'
+
+    @property
+    def is_suspicious(self) -> bool:
+        suspicious_paths = [
+            '\\temp\\', '\\tmp\\', '\\appdata\\local\\temp\\',
+            '\\downloads\\', '\\programdata\\',
+        ]
+        target_lower = self.target_filename.lower()
+        return any(p in target_lower for p in suspicious_paths)
+
+    @classmethod
+    def from_event_data(cls, event_data: Dict[str, Any], timestamp: datetime) -> 'FileCreateEvent':
+        return cls(
+            event_id=11,
+            timestamp=timestamp.strftime("%Y/%m/%d %H:%M:%S"),
+            timestamp_epoch=timestamp.timestamp(),
+            process_id=int(event_data.get('ProcessId', 0)),
+            process_name=cls._extract_process_name(event_data.get('Image', '')),
+            process_path=event_data.get('Image', ''),
+            user=event_data.get('User', ''),
+            target_filename=event_data.get('TargetFilename', ''),
+            creation_utc_time=event_data.get('CreationUtcTime', ''),
+            rule_name=event_data.get('RuleName', ''),
+            raw_data=event_data
+        )
+
+
+@dataclass
 class NetworkConnectEvent(SysmonEvent):
     """网络连接事件 (EventID 3)"""
     event_id: int = 3

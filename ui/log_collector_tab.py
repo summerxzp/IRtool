@@ -14,8 +14,9 @@ import json
 
 from core.sysmon import (
     SysmonSubscriber, SysmonConfigManager,
-    DnsEvent, SysmonEvent, NetworkConnectEvent, CreateRemoteThreadEvent
+    DnsEvent, SysmonEvent, NetworkConnectEvent, CreateRemoteThreadEvent, FileCreateEvent
 )
+from core.sysmon.config_manager import EVENT_CONFIG, DEFAULT_ENABLED_EVENTS
 from ui.table_model import HighPerformanceTableModel
 from ui.ui_style import apply_flat_style
 
@@ -75,6 +76,7 @@ class EventFilterProxyModel(QSortFilterProxyModel):
                 "DNS查询": DnsEvent,
                 "网络连接": NetworkConnectEvent,
                 "远程线程": CreateRemoteThreadEvent,
+                "DLL创建": FileCreateEvent,
             }
             expected_type = event_type_map.get(self._event_type_filter)
             if expected_type and not isinstance(event, expected_type):
@@ -109,6 +111,7 @@ class LogCollectorTab(QWidget):
         self._is_collecting = False
         self._start_time = None
         self._sysmon_was_started_by_us = False
+        self._enabled_events = list(DEFAULT_ENABLED_EVENTS)
 
         self._init_ui()
         self._check_crash_recovery()
@@ -153,6 +156,36 @@ class LogCollectorTab(QWidget):
 
         layout.addLayout(toolbar)
 
+        config_frame = QFrame()
+        config_frame.setFrameShape(QFrame.Shape.Box)
+        config_frame.setObjectName("panel")
+        config_layout = QHBoxLayout(config_frame)
+        config_layout.setContentsMargins(10, 4, 10, 4)
+
+        config_layout.addWidget(QLabel("采集配置:"))
+
+        self.event_checkboxes = {}
+        for key, cfg in EVENT_CONFIG.items():
+            cb = QCheckBox(cfg['name'])
+            cb.setChecked(key in DEFAULT_ENABLED_EVENTS)
+            cb.setToolTip(f"EventID {cfg['event_id']}")
+            cb.stateChanged.connect(self._on_event_config_changed)
+            config_layout.addWidget(cb)
+            self.event_checkboxes[key] = cb
+
+        self.btn_apply_config = QPushButton("应用配置")
+        self.btn_apply_config.setToolTip("将当前勾选的采集配置应用到Sysmon")
+        self.btn_apply_config.clicked.connect(self._apply_event_config)
+        config_layout.addWidget(self.btn_apply_config)
+
+        self.btn_open_config = QPushButton("打开配置")
+        self.btn_open_config.setToolTip("打开配置文件所在目录")
+        self.btn_open_config.clicked.connect(self._open_config_location)
+        config_layout.addWidget(self.btn_open_config)
+
+        config_layout.addStretch()
+        layout.addWidget(config_frame)
+
         status_frame = QFrame()
         status_frame.setFrameShape(QFrame.Shape.Box)
         status_frame.setObjectName("panel")
@@ -179,7 +212,7 @@ class LogCollectorTab(QWidget):
 
         filter_layout.addWidget(QLabel("事件类型:"))
         self.event_type_filter = QComboBox()
-        self.event_type_filter.addItems(["全部", "DNS查询", "网络连接", "远程线程"])
+        self.event_type_filter.addItems(["全部", "DNS查询", "网络连接", "远程线程", "DLL创建"])
         self.event_type_filter.currentTextChanged.connect(self._on_event_type_changed)
         filter_layout.addWidget(self.event_type_filter)
 
@@ -267,12 +300,17 @@ class LogCollectorTab(QWidget):
         if info['installed']:
             if info['running']:
                 label = f"Sysmon: 运行中 ({info['service_name']})"
-                if info.get('started_by_irtool'):
+                if info.get('config_managed_by_irtool'):
+                    label += " [IRtool配置]"
+                elif info.get('started_by_irtool'):
                     label += " [由本软件启动]"
                 self.lbl_sysmon_status.setText(label)
                 self.lbl_sysmon_status.setStyleSheet("color: green;")
             else:
-                self.lbl_sysmon_status.setText("Sysmon: 已安装但未运行")
+                label = "Sysmon: 已安装但未运行"
+                if info.get('config_managed_by_irtool'):
+                    label += " [IRtool配置]"
+                self.lbl_sysmon_status.setText(label)
                 self.lbl_sysmon_status.setStyleSheet("color: orange;")
         else:
             self.lbl_sysmon_status.setText("Sysmon: 未安装")
@@ -322,7 +360,7 @@ class LogCollectorTab(QWidget):
             self.config_manager.mark_started_by_irtool()
 
         filter_external = self.chk_external_only.isChecked()
-        self.subscriber = SysmonSubscriber(filter_external_only=filter_external)
+        self.subscriber = SysmonSubscriber(filter_external_only=filter_external, enabled_events=self._enabled_events)
 
         if not self.subscriber.is_sysmon_available():
             QMessageBox.warning(
@@ -467,6 +505,30 @@ class LogCollectorTab(QWidget):
                 event.user.lower(),
                 event.source_process_path.lower(),
             ]
+        elif isinstance(event, FileCreateEvent):
+            suspicious_mark = " [可疑路径]" if event.is_suspicious else ""
+            display = [
+                event.timestamp,
+                f"DLL创建{suspicious_mark}",
+                str(event.event_id),
+                event.process_name,
+                str(event.process_id),
+                "",
+                event.target_filename,
+                event.user,
+                event.process_path,
+            ]
+            sort = [
+                event.timestamp_epoch,
+                "file_create",
+                event.event_id,
+                event.process_name.lower(),
+                event.process_id,
+                "",
+                event.target_filename.lower(),
+                event.user.lower(),
+                event.process_path.lower(),
+            ]
         else:
             content = str(event.raw_data)[:100] if event.raw_data else ""
             display = [
@@ -543,6 +605,50 @@ class LogCollectorTab(QWidget):
     def _on_external_only_changed(self, state):
         """仅外连筛选改变"""
         self._proxy_model.set_external_only(state == Qt.CheckState.Checked.value)
+
+    def _on_event_config_changed(self):
+        """采集配置复选框状态改变"""
+        self._enabled_events = [
+            key for key, cb in self.event_checkboxes.items() if cb.isChecked()
+        ]
+
+    def _apply_event_config(self):
+        """应用采集配置到Sysmon"""
+        enabled = [
+            key for key, cb in self.event_checkboxes.items() if cb.isChecked()
+        ]
+
+        if not enabled:
+            QMessageBox.warning(self, "提示", "至少需要启用一种事件类型")
+            return
+
+        if self._is_collecting:
+            QMessageBox.warning(self, "提示", "请先停止采集再修改配置")
+            return
+
+        success, msg = self.config_manager.apply_config(enabled)
+        if success:
+            self._enabled_events = enabled
+            QMessageBox.information(self, "成功", msg)
+        else:
+            QMessageBox.warning(self, "失败", msg)
+
+    def _open_config_location(self):
+        """打开配置文件所在目录"""
+        import subprocess
+        import os
+
+        config_path = self.config_manager.config_path
+
+        if not config_path.exists():
+            # 如果配置文件不存在，创建目录
+            config_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # 打开资源管理器并选中配置文件（如果存在）或目录
+        if config_path.exists():
+            subprocess.run(["explorer", "/select,", str(config_path)], check=False)
+        else:
+            subprocess.run(["explorer", str(config_path.parent)], check=False)
 
     def _deploy_sysmon(self):
         info = self.config_manager.get_status_info()
@@ -719,6 +825,10 @@ class LogCollectorTab(QWidget):
         elif isinstance(event, CreateRemoteThreadEvent):
             action_copy_source = menu.addAction("复制源进程路径")
             action_copy_target = menu.addAction("复制目标进程路径")
+        elif isinstance(event, FileCreateEvent):
+            action_copy_target_file = menu.addAction("复制文件路径")
+            menu.addSeparator()
+            action_open_target = menu.addAction("打开文件位置")
 
         action_copy_path = menu.addAction("复制进程路径")
         menu.addSeparator()
@@ -754,6 +864,13 @@ class LogCollectorTab(QWidget):
             if action == action_copy_target:
                 clipboard.setText(event.target_process_path)
                 return
+        elif isinstance(event, FileCreateEvent):
+            if action == action_copy_target_file:
+                clipboard.setText(event.target_filename)
+                return
+            if action == action_open_target:
+                self._open_file_location(event.target_filename)
+                return
 
         if action == action_copy_path:
             if event.process_path:
@@ -773,6 +890,8 @@ class LogCollectorTab(QWidget):
             clipboard.setText(f"{event.destination_ip}:{event.destination_port}")
         elif isinstance(event, CreateRemoteThreadEvent):
             clipboard.setText(f"{event.source_process_name} -> {event.target_process_name}")
+        elif isinstance(event, FileCreateEvent):
+            clipboard.setText(event.target_filename)
 
     def _on_selection_changed(self, selected, deselected):
         event, _ = self._get_selected_event()
@@ -835,6 +954,20 @@ class LogCollectorTab(QWidget):
                 ("源进程路径", event.source_process_path),
                 ("目标进程路径", event.target_process_path),
             ]
+        elif isinstance(event, FileCreateEvent):
+            suspicious_status = "是 (可疑路径)" if event.is_suspicious else "否"
+            fields = [
+                ("事件类型", "DLL文件创建 (EventID 11)"),
+                ("时间", event.timestamp),
+                ("事件ID", str(event.event_id)),
+                ("可疑标记", suspicious_status),
+                ("进程名", event.process_name),
+                ("PID", str(event.process_id)),
+                ("目标文件", event.target_filename),
+                ("创建时间(UTC)", event.creation_utc_time or ""),
+                ("用户", event.user),
+                ("进程路径", event.process_path),
+            ]
         else:
             fields = [
                 ("事件类型", f"其他 (EventID {event.event_id})"),
@@ -852,9 +985,7 @@ class LogCollectorTab(QWidget):
         return f"<table style='width:100%; border-collapse:collapse;'>{rows}</table>"
 
     def _open_process_location(self, event):
-        # 根据事件类型获取进程路径
         if isinstance(event, CreateRemoteThreadEvent):
-            # 对于远程线程事件，优先打开源进程
             path = event.source_process_path
         else:
             path = getattr(event, 'process_path', '')
@@ -869,6 +1000,18 @@ class LogCollectorTab(QWidget):
             subprocess.run(["explorer", path], check=False)
         else:
             QMessageBox.warning(self, "提示", f"路径不存在: {path}")
+
+    def _open_file_location(self, file_path: str):
+        if not file_path or file_path.startswith("["):
+            QMessageBox.warning(self, "提示", "文件路径不可用")
+            return
+
+        if os.path.isfile(file_path):
+            subprocess.run(["explorer", "/select,", file_path], check=False)
+        elif os.path.isdir(file_path):
+            subprocess.run(["explorer", file_path], check=False)
+        else:
+            QMessageBox.warning(self, "提示", f"路径不存在: {file_path}")
 
     def stop_sysmon_if_started_by_us(self):
         if self._sysmon_was_started_by_us and self.config_manager.is_running():
