@@ -4,7 +4,7 @@
 # 应用信息
 APP_NAME = "终端安全检测工具"
 APP_ID = "com.internal.IRtool"
-APP_VERSION = "1.1.1"
+APP_VERSION = "1.1.2"
 BUILD_TYPE = "release"  # release | dev
 BUILD_DATE = "2026-04-15"
 

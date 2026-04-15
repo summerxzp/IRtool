@@ -1,6 +1,6 @@
 # IRtool Release Build Script
 # Build Type: onedir + 7z SFX (self-extracting)
-# Version: 1.1.1
+# Version: 1.1.2
 
 param(
     [ValidateSet('onedir','onedir-7z')] [string]$Mode = 'onedir-7z'
@@ -15,7 +15,7 @@ Set-Location $here
 $appDir = Split-Path -Parent $here
 
 # Version info (must match core/constants.py)
-$appVersion = "1.1.1"
+$appVersion = "1.1.2"
 $buildType = "release"
 $buildDate = "2026-04-15"
 

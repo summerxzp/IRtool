@@ -155,9 +155,10 @@ class SysmonConfigManager:
         logger.info(f"Sysmon路径: {self.sysmon_exe_path}")
         logger.info(f"配置文件: {self.config_path}")
 
-        cmd = [str(self.sysmon_exe_path), '-i', str(self.config_path)]
+        cmd = [str(self.sysmon_exe_path)]
         if accept_eula:
             cmd.append('-accepteula')
+        cmd.extend(['-i', str(self.config_path)])
 
         logger.debug(f"执行命令: {' '.join(cmd)}")
 
@@ -199,7 +200,7 @@ class SysmonConfigManager:
             logger.info("Sysmon未安装，无需卸载")
             return True, "Sysmon 未安装"
 
-        cmd = [str(self.sysmon_exe_path), '-u']
+        cmd = [str(self.sysmon_exe_path), '-accepteula', '-u']
         logger.debug(f"执行命令: {' '.join(cmd)}")
 
         try:
@@ -318,6 +319,34 @@ class SysmonConfigManager:
         if started:
             logger.debug("Sysmon是由IRtool启动的")
         return started
+
+    def start_service(self) -> Tuple[bool, str]:
+        """启动Sysmon服务（已安装但未运行时）"""
+        service_name = self.get_service_name()
+        if not service_name:
+            error_msg = "未找到 Sysmon 服务"
+            logger.error(error_msg)
+            return False, error_msg
+
+        logger.info(f"启动Sysmon服务: {service_name}")
+        try:
+            win32serviceutil.StartService(service_name)
+            logger.info("Sysmon服务已启动")
+            return True, "Sysmon 服务已启动"
+        except win32service.error as e:
+            # 错误码 5 = 拒绝访问
+            if e.winerror == 5:
+                logger.error(f"启动Sysmon服务被拒绝访问: {e}")
+                return False, "启动服务失败: 拒绝访问（需要管理员权限）"
+            elif e.winerror == 1056:
+                logger.info("Sysmon服务已在运行中")
+                return True, "服务已在运行"
+            else:
+                logger.exception("启动Sysmon服务失败")
+                return False, f"启动服务失败: {e}"
+        except Exception as e:
+            logger.exception("启动Sysmon服务失败")
+            return False, f"启动服务失败: {e}"
 
     def stop_service(self) -> Tuple[bool, str]:
         service_name = self.get_service_name()

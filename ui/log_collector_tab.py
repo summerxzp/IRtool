@@ -133,6 +133,9 @@ class LogCollectorTab(QWidget):
         self.btn_deploy = QPushButton("部署 Sysmon")
         self.btn_deploy.clicked.connect(self._deploy_sysmon)
 
+        self.btn_uninstall = QPushButton("卸载 Sysmon")
+        self.btn_uninstall.clicked.connect(self._uninstall_sysmon)
+
         self.btn_load_history = QPushButton("加载历史")
         self.btn_load_history.clicked.connect(self._load_history_events)
 
@@ -144,6 +147,7 @@ class LogCollectorTab(QWidget):
 
         toolbar.addWidget(self.btn_start)
         toolbar.addWidget(self.btn_deploy)
+        toolbar.addWidget(self.btn_uninstall)
         toolbar.addWidget(self.btn_load_history)
         toolbar.addWidget(self.btn_clear)
         toolbar.addWidget(self.btn_export)
@@ -323,6 +327,16 @@ class LogCollectorTab(QWidget):
             self.btn_deploy.setEnabled(True)
             self.btn_deploy.setToolTip("")
 
+        if info['installed']:
+            self.btn_uninstall.setEnabled(True)
+            if info.get('started_by_irtool'):
+                self.btn_uninstall.setToolTip("卸载 Sysmon（由本工具安装）")
+            else:
+                self.btn_uninstall.setToolTip("卸载 Sysmon（非本工具安装，请确认后再卸载）")
+        else:
+            self.btn_uninstall.setEnabled(False)
+            self.btn_uninstall.setToolTip("Sysmon 未安装")
+
         if info['installed'] and info['running']:
             self.btn_start.setEnabled(True)
             self.btn_start.setText("启动采集")
@@ -337,7 +351,27 @@ class LogCollectorTab(QWidget):
             self._start_collection()
 
     def _start_collection(self):
-        if not self.config_manager.is_running():
+        # 检查是否已安装
+        if not self.config_manager.is_installed():
+            reply = QMessageBox.question(
+                self,
+                "需要安装 Sysmon",
+                "Sysmon 尚未安装，是否安装并启动采集？\n\n"
+                "Sysmon 是微软系统监控工具，用于采集网络连接、DNS查询等安全事件。\n"
+                "注意：退出软件时不会自动卸载 Sysmon。",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            if reply == QMessageBox.StandardButton.Yes:
+                success, msg = self.config_manager.install()
+                if not success:
+                    QMessageBox.warning(self, "安装失败", msg)
+                    return
+                self._sysmon_was_started_by_us = True
+                self._update_status_display()
+            else:
+                return
+        # 已安装但未运行
+        elif not self.config_manager.is_running():
             reply = QMessageBox.question(
                 self,
                 "Sysmon 未运行",
@@ -346,12 +380,12 @@ class LogCollectorTab(QWidget):
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
             if reply == QMessageBox.StandardButton.Yes:
-                success, msg = self.config_manager.install()
+                # 已安装的情况下，尝试启动服务
+                success, msg = self.config_manager.start_service()
                 if not success:
                     QMessageBox.warning(self, "启动失败", msg)
                     return
                 self._sysmon_was_started_by_us = True
-                self.config_manager.mark_started_by_irtool()
                 self._update_status_display()
             else:
                 return
@@ -674,6 +708,57 @@ class LogCollectorTab(QWidget):
                 QMessageBox.information(self, "成功", msg)
             else:
                 QMessageBox.warning(self, "失败", msg)
+
+        self._update_status_display()
+
+    def _uninstall_sysmon(self):
+        info = self.config_manager.get_status_info()
+
+        if not info['installed']:
+            QMessageBox.information(self, "提示", "Sysmon 未安装，无需卸载")
+            return
+
+        started_by_us = info.get('started_by_irtool', False)
+
+        if started_by_us:
+            msg = (
+                "检测到 Sysmon 是由本工具安装的。\n\n"
+                "卸载将：\n"
+                "  • 停止 Sysmon 服务和驱动\n"
+                "  • 移除 Sysmon 相关组件\n"
+                "  • 已采集的日志数据不受影响\n\n"
+                "是否确认卸载？"
+            )
+        else:
+            msg = (
+                "⚠ 检测到 Sysmon 非本工具安装，可能由其他安全软件或管理员部署。\n\n"
+                "卸载将：\n"
+                "  • 停止 Sysmon 服务和驱动\n"
+                "  • 移除 Sysmon 相关组件\n"
+                "  • 可能影响其他依赖 Sysmon 的安全工具\n\n"
+                "是否确认卸载？"
+            )
+
+        reply = QMessageBox.warning(
+            self,
+            "确认卸载 Sysmon",
+            msg,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+
+        if self._is_collecting:
+            self._stop_collection()
+
+        success, msg = self.config_manager.uninstall()
+        if success:
+            self._sysmon_was_started_by_us = False
+            QMessageBox.information(self, "卸载成功", msg)
+        else:
+            QMessageBox.warning(self, "卸载失败", msg)
 
         self._update_status_display()
 
