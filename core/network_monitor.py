@@ -1,10 +1,11 @@
 # core/network_monitor.py
 import psutil
 from dataclasses import dataclass, asdict
-from typing import List, Optional
+from typing import List, Optional, Dict, Tuple
 from datetime import datetime
 import json
 import socket
+import time
 
 
 @dataclass
@@ -36,16 +37,16 @@ class NetworkMonitor:
     ]
     
     def __init__(self):
-        self._process_cache = {}  # PID -> (name, path) 缓存
+        self._process_cache: Dict[int, Tuple[str, str, float]] = {}  # PID -> (name, path, timestamp) 缓存
         # 新增：连接归属缓存
         # Key: (local_ip, local_port, remote_ip, remote_port, protocol_type)
         # Value: process_name
         self._connection_owner_cache = {}
+        self._cache_ttl = 5.0
         
     def get_connections(self, status_filter: Optional[List[str]] = None) -> List[NetworkConnection]:
         """获取当前所有网络连接"""
-        # 【修复点1】：每次获取连接时强制清空进程缓存，防止PID复用导致的幽灵进程
-        self._process_cache.clear()
+        self._cleanup_expired_cache()
         
         connections = []
         
@@ -103,24 +104,39 @@ class NetworkMonitor:
             
         return connections
     
+    def _cleanup_expired_cache(self):
+        """清理过期缓存，防止PID复用问题"""
+        now = time.time()
+        expired_pids = [
+            pid for pid, (_, _, timestamp) in self._process_cache.items()
+            if now - timestamp > self._cache_ttl
+        ]
+        for pid in expired_pids:
+            del self._process_cache[pid]
+    
     def _get_process_info(self, pid: int) -> tuple:
-        """获取进程信息，带缓存，增强异常处理"""
-        # 检查缓存
+        """获取进程信息，带TTL缓存，增强异常处理"""
+        # 检查缓存及TTL
         if pid in self._process_cache:
-            return self._process_cache[pid]
+            name, path, timestamp = self._process_cache[pid]
+            if time.time() - timestamp < self._cache_ttl:
+                return name, path
+            else:
+                # 缓存过期，删除后重新获取
+                del self._process_cache[pid]
         
         try:
             proc = psutil.Process(pid)
             name = proc.name()
             path = proc.exe()
-            # 更新缓存
-            self._process_cache[pid] = (name, path)
+            # 更新缓存，带时间戳
+            self._process_cache[pid] = (name, path, time.time())
             return name, path
         except psutil.NoSuchProcess:
-            # 【修复点5】：进程已结束，返回特殊标记，而不是Unknown
+            # 进程已结束，返回特殊标记
             return "[已结束]", "[已结束]"
         except psutil.AccessDenied:
-            # 【修复点6】：权限不足，返回特殊标记
+            # 权限不足，返回特殊标记
             return "[权限不足]", "[权限不足]"
         except Exception as e:
             # 其他异常情况

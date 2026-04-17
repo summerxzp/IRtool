@@ -14,6 +14,7 @@ logger = logging.getLogger('IRtool')
 
 class SysmonSubscriber(QThread):
     event_received = pyqtSignal(object)
+    events_batch_received = pyqtSignal(list)
     error_occurred = pyqtSignal(str)
     status_changed = pyqtSignal(str)
 
@@ -59,6 +60,9 @@ class SysmonSubscriber(QThread):
             while self._running:
                 events = self._poll_new_events()
                 if events:
+                    # 批量发射信号，减少信号开销
+                    self.events_batch_received.emit(events)
+                    # 保持向后兼容的单个事件信号
                     for event in events:
                         if not self._running:
                             break
@@ -85,7 +89,7 @@ class SysmonSubscriber(QThread):
             events = win32evtlog.EvtNext(h, 1)
             if events:
                 xml_str = win32evtlog.EvtRender(events[0], win32evtlog.EvtRenderEventXml)
-                record_id = SysmonEventParser.extract_record_id(xml_str)
+                _, record_id = SysmonEventParser.parse_event_with_record_id(xml_str)
                 if record_id:
                     self._last_record_id = record_id
                     logger.info(f"[SysmonSubscriber] Starting after RecordID: {self._last_record_id}")
@@ -133,7 +137,7 @@ class SysmonSubscriber(QThread):
                 for event_handle in batch:
                     try:
                         xml_str = win32evtlog.EvtRender(event_handle, win32evtlog.EvtRenderEventXml)
-                        parsed = SysmonEventParser.parse_event(xml_str)
+                        parsed, record_id = SysmonEventParser.parse_event_with_record_id(xml_str)
 
                         if parsed:
                             logger.debug(f"[SysmonSubscriber] Parsed event: ID={parsed.event_id}, Type={parsed.event_type}")
@@ -143,7 +147,6 @@ class SysmonSubscriber(QThread):
                                     continue
                             parsed_events.append(parsed)
 
-                        record_id = SysmonEventParser.extract_record_id(xml_str)
                         if record_id and record_id > self._last_record_id:
                             self._last_record_id = record_id
                     except Exception as e:

@@ -35,15 +35,33 @@ class SysmonEventParser:
             return None
 
     @classmethod
-    def extract_record_id(cls, event_xml: str) -> Optional[int]:
+    def parse_event_with_record_id(cls, event_xml: str) -> Tuple[Optional[SysmonEvent], Optional[int]]:
+        """一次性解析事件和record_id，避免重复XML解析"""
         try:
             root = ET.fromstring(event_xml)
+            
+            # 提取record_id
             record_id_elem = root.find(f'.//{cls.NS}EventRecordID')
-            if record_id_elem is not None and record_id_elem.text:
-                return int(record_id_elem.text)
+            record_id = int(record_id_elem.text) if record_id_elem is not None and record_id_elem.text else None
+            
+            # 解析事件
+            event_id, timestamp = cls._parse_system_data(root)
+            event_data = cls._parse_event_data(root)
+
+            parser_method = cls.EVENT_PARSERS.get(event_id)
+            if parser_method:
+                event = getattr(cls, parser_method)(event_data, timestamp)
+            else:
+                event = SysmonEvent(
+                    event_id=event_id,
+                    timestamp=timestamp.strftime("%Y/%m/%d %H:%M:%S"),
+                    timestamp_epoch=timestamp.timestamp(),
+                    raw_data=event_data
+                )
+            
+            return event, record_id
         except Exception:
-            pass
-        return None
+            return None, None
 
     @classmethod
     def _parse_system_data(cls, root: ET.Element) -> Tuple[int, datetime]:

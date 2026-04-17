@@ -405,7 +405,7 @@ class LogCollectorTab(QWidget):
             self.subscriber = None
             return
 
-        self.subscriber.event_received.connect(self._on_event_received)
+        self.subscriber.events_batch_received.connect(self._on_events_batch_received)
         self.subscriber.status_changed.connect(self._on_status_changed)
         self.subscriber.error_occurred.connect(self._on_error)
 
@@ -432,7 +432,21 @@ class LogCollectorTab(QWidget):
 
         self._update_status_label("disconnected")
 
+    def _on_events_batch_received(self, events: list):
+        """批量接收事件，减少信号开销"""
+        for event in events:
+            self.all_events.append(event)
+            if self.data_store:
+                self.data_store.add_sysmon_event(event)
+            self._pending_events.append(event)
+
+        if self._pending_events and not self._batch_update_timer.isActive():
+            self._batch_update_timer.start(200)
+
+        self.lbl_events_count.setText(f"事件数: {len(self.all_events)}")
+
     def _on_event_received(self, event):
+        """兼容单个事件信号（保留用于向后兼容）"""
         self.all_events.append(event)
 
         if self.data_store:
@@ -484,12 +498,12 @@ class LogCollectorTab(QWidget):
                 event.timestamp_epoch,
                 "dns",
                 event.event_id,
-                event.process_name.lower(),
+                event._sort_process_name,
                 event.process_id,
                 "",
-                event.query_name.lower(),
-                event.user.lower(),
-                event.process_path.lower(),
+                event._sort_query_name,
+                event._sort_user,
+                event._sort_process_path,
             ]
         elif isinstance(event, NetworkConnectEvent):
             external_mark = " [外连]" if event.is_external else ""
@@ -508,12 +522,12 @@ class LogCollectorTab(QWidget):
                 event.timestamp_epoch,
                 "network",
                 event.event_id,
-                event.process_name.lower(),
+                event._sort_process_name,
                 event.process_id,
                 "",
-                f"{event.destination_ip}:{event.destination_port}".lower(),
-                event.user.lower(),
-                event.process_path.lower(),
+                event._sort_destination,
+                event._sort_user,
+                event._sort_process_path,
             ]
         elif isinstance(event, CreateRemoteThreadEvent):
             suspicious_mark = " [可疑]" if event.is_suspicious else ""
@@ -526,24 +540,23 @@ class LogCollectorTab(QWidget):
                 f"{event.target_process_name} (PID:{event.target_process_id})",
                 f"线程ID:{event.new_thread_id} 地址:{event.start_address}",
                 event.user,
-                f"源:{event.source_process_path}\n目标:{event.target_process_path}",
+                event.source_process_path,
             ]
             sort = [
                 event.timestamp_epoch,
                 "remote_thread",
                 event.event_id,
-                event.source_process_name.lower(),
+                event._sort_source_process_name,
                 event.source_process_id,
-                event.target_process_name.lower(),
-                event.start_address.lower(),
-                event.user.lower(),
-                event.source_process_path.lower(),
+                event._sort_target_process_name,
+                f"{event.new_thread_id} {event.start_address}".lower(),
+                event._sort_user,
+                event._sort_source_process_path,
             ]
         elif isinstance(event, FileCreateEvent):
-            suspicious_mark = " [可疑路径]" if event.is_suspicious else ""
             display = [
                 event.timestamp,
-                f"DLL创建{suspicious_mark}",
+                "DLL创建",
                 str(event.event_id),
                 event.process_name,
                 str(event.process_id),
@@ -556,12 +569,12 @@ class LogCollectorTab(QWidget):
                 event.timestamp_epoch,
                 "file_create",
                 event.event_id,
-                event.process_name.lower(),
+                event._sort_process_name,
                 event.process_id,
                 "",
-                event.target_filename.lower(),
-                event.user.lower(),
-                event.process_path.lower(),
+                event._sort_target_filename,
+                event._sort_user,
+                event._sort_process_path,
             ]
         else:
             content = str(event.raw_data)[:100] if event.raw_data else ""
