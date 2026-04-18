@@ -470,7 +470,7 @@ class WorkspaceTab(QWidget):
             
             # 扫描网络连接数据（IP 规则）
             if "ip" in allowed_types:
-                network_data = self.search_service.get_network_connections()
+                network_data = self.search_service.get_network_connections(include_history=True)
                 print(f"[IP Rule Scan] 获取到 {len(network_data)} 条网络连接")
                 for conn in network_data:
                     # 将网络连接转换为条目格式
@@ -516,7 +516,11 @@ class WorkspaceTab(QWidget):
                         # 构建摘要
                         local_addr = conn.get('local_address', '')
                         remote_addr = conn.get('remote_address', '')
-                        summary = f"[Network] {local_addr} -> {remote_addr} 命中 {len(matched_rules)} 条规则"
+                        current_flag = "当前连接" if conn.get("is_current", True) else "历史连接"
+                        summary = (
+                            f"[Network/{current_flag}] {local_addr} -> {remote_addr} "
+                            f"命中 {len(matched_rules)} 条规则"
+                        )
                         
                         # 构建 matched_value：显示命中的 IP 和规则家族
                         matched_rules_text = ', '.join([r.get('family', r.get('id', '')) for r in matched_rules])

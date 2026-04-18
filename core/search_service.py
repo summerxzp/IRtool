@@ -23,16 +23,16 @@ class SearchService:
         entries = self.data_store.get_autoruns_entries() or []
         return [self._normalize_entry(e) for e in entries]
 
-    def get_network_connections(self) -> List[Dict[str, Any]]:
+    def get_network_connections(self, include_history: bool = False) -> List[Dict[str, Any]]:
         if not self.data_store:
             return []
-        return self.data_store.get_network_connections() or []
+        return self.data_store.get_network_connections(include_history=include_history) or []
 
     def has_autoruns_data(self) -> bool:
         return len(self.get_autoruns_entries()) > 0
 
-    def has_network_data(self) -> bool:
-        return len(self.get_network_connections()) > 0
+    def has_network_data(self, include_history: bool = False) -> bool:
+        return len(self.get_network_connections(include_history=include_history)) > 0
 
     def search(self, text: str) -> SearchResults:
         """搜索功能 - 仅支持关键字搜索，IP 搜索已通过规则扫描实现

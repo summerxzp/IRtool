@@ -14,6 +14,7 @@ class AutorunsDetailRenderer:
         self.placeholder_style = placeholder_style
         self.current_entry_id = None
         self.detail_labels = {}
+        self._path_exists_cache = {}
 
     def _clear_layout(self):
         while self.detail_layout.count():
@@ -117,6 +118,22 @@ class AutorunsDetailRenderer:
         if label.toolTip() != tooltip:
             label.setToolTip(tooltip)
 
+    def _should_probe_path_synchronously(self, image_path: str) -> bool:
+        if not image_path:
+            return False
+        if image_path.startswith("\\\\"):
+            return False
+        drive, _ = os.path.splitdrive(image_path)
+        return bool(drive)
+
+    def _path_exists(self, image_path: str) -> bool:
+        cached = self._path_exists_cache.get(image_path)
+        if cached is not None:
+            return cached
+        exists = os.path.exists(image_path)
+        self._path_exists_cache[image_path] = exists
+        return exists
+
     def render_detail(self, data: dict, format_file_size):
         self._ensure_widgets()
         self.splitter.setSizes([700, 300])
@@ -136,8 +153,12 @@ class AutorunsDetailRenderer:
 
         image_path = detail_data.get("image_path", "")
         file_not_found = False
-        if image_path and image_path.lower() != "file not found":
-            file_not_found = not os.path.exists(image_path)
+        if (
+            image_path
+            and image_path.lower() != "file not found"
+            and self._should_probe_path_synchronously(image_path)
+        ):
+            file_not_found = not self._path_exists(image_path)
         image_path_display = f"{image_path} (File not found)" if file_not_found else image_path
 
         hash_value = detail_data.get("hash", "")

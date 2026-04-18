@@ -259,7 +259,11 @@ class AutorunsTab(QWidget):
         self.tree_view.setAlternatingRowColors(False)
         
         # 设置样式：显示行分隔线（不覆盖 Model 的 BackgroundRole）
-        self.tree_view.setStyleSheet(AUTORUNS_TREE_STYLESHEET)
+        self.tree_view.setStyleSheet(
+            AUTORUNS_TREE_STYLESHEET +
+            "\nQTreeView { font-size: 13px; }"
+            "\nQTreeView::item { min-height: 22px; padding-top: 1px; padding-bottom: 1px; }"
+        )
         self.tree_view.setTextElideMode(Qt.TextElideMode.ElideMiddle)
         self.tree_view.header().setFixedHeight(AUTORUNS_HEADER_HEIGHT)
         
@@ -1328,15 +1332,15 @@ class AutorunsTab(QWidget):
 <li>发布者为空或未知</li>
 <li>无有效数字签名</li>
 </ul>
-<p style="color: #b8860b;">UI 表现：Entry 列浅黄色强调，深金色字体，图标右下角黄色标记</p>
+<p style="color: #b8860b;">UI 表现：整行浅黄色强调，深金色字体，图标右下角黄色标记</p>
 
 <p><b>🔴 高风险 (HIGH_RISK)</b></p>
 <ul>
-<li>文件不存在 (已被删除或移动)</li>
+<li>Unsigned / 未验证签名条目</li>
 <li>无签名 + 位于用户可写目录 (AppData / Temp / Downloads 等)</li>
 <li>典型的恶意软件驻留路径</li>
 </ul>
-<p style="color: #8b0000;">UI 表现：Entry 列浅红色强调，深红色字体，图标右下角红色标记</p>
+<p style="color: #8b0000;">UI 表现：整行浅红色强调，深红色字体，图标右下角红色标记</p>
 
 <p><b>💡 提示</b></p>
 <ul>

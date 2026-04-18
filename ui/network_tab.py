@@ -57,6 +57,10 @@ class NetworkTab(QWidget):
         self.all_data = []
         self.auto_refresh = True
         self.current_worker = None
+        self._refresh_pending = False
+        self._refresh_generation = 0
+        self._ui_refresh_paused = False
+        self._paused_refresh_payload = None
 
         self.refresh_interval = 1000
         self._has_auto_resized = False
@@ -219,19 +223,34 @@ class NetworkTab(QWidget):
             self._toggle_auto_refresh(2)
 
     def refresh_data(self):
+        if self._ui_refresh_paused:
+            self._refresh_pending = True
+            return
+
         if self.current_worker and self.current_worker.isRunning():
-            self.current_worker.quit()
-            self.current_worker.wait()
+            self._refresh_pending = True
+            return
 
         status_filter = None
         if self.cmb_status.currentIndex() > 0:
             status_filter = [self.cmb_status.currentText()]
 
+        self._refresh_generation += 1
         self.current_worker = NetworkRefreshWorker(self.monitor, status_filter)
-        self.current_worker.finished.connect(self._on_data_received)
+        request_generation = self._refresh_generation
+        self.current_worker.finished.connect(
+            lambda data, generation=request_generation: self._on_data_received(data, generation)
+        )
         self.current_worker.start()
 
-    def _on_data_received(self, data):
+    def _on_data_received(self, data, generation=None):
+        if generation is not None and generation != self._refresh_generation:
+            return
+        if self._ui_refresh_paused:
+            self._paused_refresh_payload = data
+            self.current_worker = None
+            return
+
         now = datetime.now()
 
         current_keys = set()
@@ -267,11 +286,20 @@ class NetworkTab(QWidget):
         self.current_data = current_connections
         self.all_data = list(self._connection_cache.values())
         if self.data_store:
-            self.data_store.set_network_connections(self.current_data)
+            self.data_store.set_network_connections(
+                current_connections=self.current_data,
+                history_connections=self.all_data,
+            )
 
         self._apply_filters_and_update()
 
+        self.current_worker = None
+        if self._refresh_pending:
+            self._refresh_pending = False
+            QTimer.singleShot(0, self.refresh_data)
+
     def _apply_filters_and_update(self):
+        selected_row = self._get_selected_proxy_row()
         text = self.search_box.text().strip().lower()
         data = self.all_data
 
@@ -293,6 +321,7 @@ class NetworkTab(QWidget):
 
         self._update_model(data)
         self._update_statistics(data)
+        self._restore_selection(selected_row)
 
     def _filter_table(self, text):
         self._apply_filters_and_update()
@@ -366,21 +395,62 @@ class NetworkTab(QWidget):
                                   backgrounds=backgrounds,
                                   foregrounds=foregrounds,
                                   tooltips=tooltips)
-
         if not self._has_auto_resized:
             self._resize_timer.start(100)
             self._has_auto_resized = True
+
+    def _get_selected_proxy_row(self):
+        indexes = self.table.selectionModel().selectedRows()
+        if not indexes:
+            return None
+        return indexes[0].row()
+
+    def _restore_selection(self, selected_row):
+        if selected_row is None:
+            return
+        if selected_row < 0 or selected_row >= self._proxy_model.rowCount():
+            return
+
+        proxy_index = self._proxy_model.index(selected_row, 0, QModelIndex())
+        if not proxy_index.isValid():
+            return
+        self.table.selectRow(proxy_index.row())
+        self.table.scrollTo(proxy_index, QTableView.ScrollHint.EnsureVisible)
+
+    def _set_ui_refresh_paused(self, paused: bool):
+        was_paused = self._ui_refresh_paused
+        self._ui_refresh_paused = paused
+        if paused or was_paused == paused:
+            return
+
+        if self._paused_refresh_payload is not None:
+            payload = self._paused_refresh_payload
+            self._paused_refresh_payload = None
+            self._on_data_received(payload, self._refresh_generation)
+            return
+
+        if self._refresh_pending:
+            self._refresh_pending = False
+            QTimer.singleShot(0, self.refresh_data)
 
     def _show_context_menu(self, pos):
         indexes = self.table.selectionModel().selectedRows()
         if not indexes:
             return
 
+        was_auto_refresh = self.refresh_timer.isActive()
+        self._set_ui_refresh_paused(True)
+        self.refresh_timer.stop()
+
         menu = QMenu(self)
         action_open = menu.addAction("在资源管理器中打开")
         action_kill = menu.addAction("终止进程")
 
         action = menu.exec(self.table.viewport().mapToGlobal(pos))
+        self._set_ui_refresh_paused(False)
+        if was_auto_refresh and self.auto_refresh:
+            self._toggle_auto_refresh(2)
+
         if action == action_open:
             self._open_selected_in_explorer()
         elif action == action_kill:

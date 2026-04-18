@@ -8,6 +8,7 @@ from dataclasses import dataclass, asdict
 from typing import List, Optional, Dict, Tuple
 from pathlib import Path
 import shutil
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Windows API for hiding console window
@@ -90,6 +91,8 @@ class AutorunsParser:
             self.autoruns_path = autoruns_path
 
         self._verify_autoruns()
+        self._active_process = None
+        self._process_lock = threading.Lock()
 
     def _get_app_dir(self) -> Path:
         """获取应用根目录（支持源码运行和PyInstaller打包）"""
@@ -137,6 +140,7 @@ class AutorunsParser:
         if verify_signature:
             cmd.append('-v')  # 验证签名
 
+        process = None
         try:
             # Hide console window on Windows
             startupinfo = subprocess.STARTUPINFO()
@@ -150,6 +154,7 @@ class AutorunsParser:
                 startupinfo=startupinfo,
                 creationflags=subprocess.CREATE_NO_WINDOW
             )
+            self._set_active_process(process)
 
             stdout_bytes, stderr_bytes = process.communicate(timeout=180)  # 3分钟超时
 
@@ -157,6 +162,8 @@ class AutorunsParser:
             process.kill()
             process.communicate()
             raise RuntimeError("Autoruns 扫描超时")
+        finally:
+            self._clear_active_process(process)
 
         if process.returncode != 0:
             stderr = stderr_bytes.decode(errors='ignore')
@@ -175,6 +182,37 @@ class AutorunsParser:
             entries = [e for e in entries if e.category in category_filter]
 
         return entries
+
+    def _set_active_process(self, process) -> None:
+        with self._process_lock:
+            self._active_process = process
+
+    def _clear_active_process(self, process) -> None:
+        with self._process_lock:
+            if self._active_process is process:
+                self._active_process = None
+
+    def cancel_scan(self) -> None:
+        """终止当前 autorunsc 子进程。"""
+        with self._process_lock:
+            process = self._active_process
+
+        if process is None:
+            return
+
+        try:
+            process.terminate()
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait(timeout=2)
+        except Exception:
+            try:
+                process.kill()
+            except Exception:
+                pass
+        finally:
+            self._clear_active_process(process)
 
 
     

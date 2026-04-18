@@ -32,6 +32,9 @@ class AutorunsScanWorker(QThread):
     def cancel(self):
         """取消扫描"""
         self._is_cancelled = True
+        cancel_scan = getattr(self.parser, "cancel_scan", None)
+        if callable(cancel_scan):
+            cancel_scan()
 
     def run(self):
         try:
@@ -92,7 +95,6 @@ class AutorunsScanController(QObject):
 
         if self.current_worker and self.current_worker.isRunning():
             self.current_worker.cancel()
-            self.current_worker.quit()
             self.current_worker.wait(5000)
             self.current_worker = None
 
@@ -117,7 +119,6 @@ class AutorunsScanController(QObject):
         """取消当前扫描并重置状态。"""
         if self.current_worker and self.current_worker.isRunning():
             self.current_worker.cancel()
-            self.current_worker.quit()
             self.current_worker.wait(5000)
         self.current_worker = None
 
@@ -130,7 +131,6 @@ class AutorunsScanController(QObject):
         """窗口销毁时清理线程资源，不触发 UI 状态信号。"""
         if self.current_worker and self.current_worker.isRunning():
             self.current_worker.cancel()
-            self.current_worker.quit()
             self.current_worker.wait(5000)
         self.current_worker = None
         self._is_scanning = False

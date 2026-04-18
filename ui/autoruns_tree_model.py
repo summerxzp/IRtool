@@ -254,13 +254,30 @@ class AutorunsTreeModel(QAbstractItemModel):
     def _ensure_risk_visual_cache(self, entry_data: dict, invalidate_cache: bool = False) -> int:
         """确保风险可视化缓存"""
         previous_risk_level = entry_data.get('_risk_level')
-        risk_level = self._get_risk_level_for_entry(entry_data, invalidate_cache=invalidate_cache)
+        base_risk_level = self._get_risk_level_for_entry(entry_data, invalidate_cache=invalidate_cache)
+        risk_level = self._get_visual_risk_level(entry_data, base_risk_level)
         entry_data['_risk_level'] = risk_level
         entry_data['_fg_brush'] = self._risk_foreground_brushes.get(risk_level)
         entry_data['_bg_brush'] = self._risk_background_brushes.get(risk_level)
         if previous_risk_level is not None and previous_risk_level != risk_level:
             entry_data.pop('_icon_overlay', None)
         return risk_level
+
+    @staticmethod
+    def _get_visual_risk_level(entry_data: dict, base_risk_level: int) -> int:
+        """根据当前产品要求覆盖视觉风险等级。"""
+        signer_status = str(entry_data.get('signer_status', '') or '')
+        is_verified = '(Verified)' in signer_status
+        file_exists = bool(entry_data.get('file_exists', True))
+
+        # 产品要求：
+        # 1. Unsigned 显示红色
+        # 2. File not found 显示黄色
+        if not file_exists:
+            return RiskLevel.SUSPICIOUS
+        if not is_verified:
+            return RiskLevel.HIGH_RISK
+        return base_risk_level
 
     def refresh_node(self, node) -> None:
         """节点数据更新后刷新缓存"""
@@ -359,9 +376,6 @@ class AutorunsTreeModel(QAbstractItemModel):
 
     def _get_row_foreground_color(self, node, column):
         """根据条目状态返回前景颜色（字体颜色）- 使用风险评估"""
-        # 只对 Entry 列（第 1 列）应用颜色
-        if column != 1:
-            return None
         brush = node.data.get('_fg_brush')
         if brush is not None:
             return brush
@@ -370,8 +384,6 @@ class AutorunsTreeModel(QAbstractItemModel):
 
     def _get_row_background_color(self, node, column):
         """根据条目状态返回背景颜色 - 使用风险评估"""
-        if column != 1:
-            return None
         brush = node.data.get('_bg_brush')
         if brush is not None:
             return brush

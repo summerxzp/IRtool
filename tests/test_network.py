@@ -20,6 +20,7 @@ class TestNetworkMonitor:
     def test_connection_to_dict(self):
         conn = NetworkConnection(
             timestamp="2024-01-01T00:00:00",
+            timestamp_epoch=1704067200.0,
             pid=1234,
             process_name="test.exe",
             process_path="C:\\test.exe",
@@ -28,13 +29,15 @@ class TestNetworkMonitor:
             remote_address="192.168.1.1",
             remote_port=443,
             status="ESTABLISHED",
-            family="IPv4"
+            family="TCP"
         )
         
         data = conn.to_dict()
+        assert data['timestamp_epoch'] == 1704067200.0
         assert data['pid'] == 1234
         assert data['process_name'] == "test.exe"
         assert data['status'] == "ESTABLISHED"
+        assert data['family'] == "TCP"
     
     def test_status_filter(self):
         monitor = NetworkMonitor()
