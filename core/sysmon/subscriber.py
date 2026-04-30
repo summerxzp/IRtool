@@ -45,7 +45,7 @@ class SysmonSubscriber(QThread):
                 win32evtlog.EvtQueryChannelPath,
                 '*'
             )
-            win32evtlog.EvtClose(h)
+            del h
             return True
         except Exception as e:
             logger.warning(f"[SysmonSubscriber] Sysmon日志通道不可用: {e}")
@@ -93,7 +93,7 @@ class SysmonSubscriber(QThread):
                         self._last_record_id = record_id
                         logger.info(f"[SysmonSubscriber] Starting after RecordID: {self._last_record_id}")
             finally:
-                win32evtlog.EvtClose(h)
+                del h
         except Exception as e:
             logger.warning(f"[SysmonSubscriber] Failed to get last RecordID: {e}")
             self._last_record_id = 0
