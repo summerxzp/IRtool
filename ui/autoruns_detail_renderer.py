@@ -1,8 +1,35 @@
 import os
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import QLabel, QGridLayout, QSplitter, QFrame
+from PyQt6.QtWidgets import QLabel, QGridLayout, QSplitter, QWidget
+
+_FONT = "'Microsoft YaHei', 'Segoe UI', Arial, sans-serif"
+_MONO = "Consolas, 'Courier New', monospace"
+
+_S_TITLE = (
+    f"font-family: {_FONT}; font-size: 11px; "
+    "font-weight: bold; color: #8a9ab0; padding-top: 6px;"
+)
+_S_VALUE = (
+    f"font-family: {_FONT}; font-size: 12px; color: #2b2f33;"
+)
+_S_MONO = (
+    f"font-family: {_MONO}; font-size: 11px; color: #333; "
+    "background: #f4f6f9; padding: 4px 6px; border-radius: 3px;"
+)
+_S_MONO_ERR = (
+    f"font-family: {_MONO}; font-size: 11px; color: #333; "
+    "background: #ffe0e0; padding: 4px 6px; border-radius: 3px;"
+)
+_S_SIG_VERIFIED = (
+    f"font-family: {_FONT}; font-size: 12px; color: #2e7d32; font-weight: bold;"
+)
+_S_SIG_UNSIGNED = (
+    f"font-family: {_FONT}; font-size: 12px; color: #d32f2f; font-weight: bold;"
+)
+_S_SIG_ERROR = (
+    f"font-family: {_FONT}; font-size: 12px; color: #f57c00; font-weight: bold;"
+)
 
 
 class AutorunsDetailRenderer:
@@ -41,31 +68,19 @@ class AutorunsDetailRenderer:
 
         self._clear_layout()
 
-        title_font = QFont()
-        title_font.setPointSize(8)
-        title_font.setFamily("Segoe UI, Arial, sans-serif")
-
-        value_font = QFont()
-        value_font.setPointSize(9)
-        value_font.setFamily("Segoe UI, Arial, sans-serif")
-
-        mono_font = QFont(value_font)
-        mono_font.setFamily("Consolas, Menlo, Monaco, Courier New, monospace")
-
         self.detail_layout.setVerticalSpacing(1)
-        self.detail_layout.setHorizontalSpacing(12)
+        self.detail_layout.setHorizontalSpacing(16)
         self.detail_layout.setColumnStretch(0, 1)
         self.detail_layout.setColumnStretch(1, 1)
 
         def add_title(text, row, col, col_span=1):
             label = QLabel(text)
-            label.setStyleSheet("font-weight: bold; color: #666; font-size: 8pt; margin-top: 6px;")
-            label.setFont(title_font)
+            label.setStyleSheet(_S_TITLE)
             self.detail_layout.addWidget(label, row, col, 1, col_span)
 
-        def add_value(key, row, col, col_span=1, selectable=True, mono=False):
+        def add_value(key, row, col, col_span=1, selectable=True, style=_S_VALUE):
             label = QLabel("")
-            label.setFont(mono_font if mono else value_font)
+            label.setStyleSheet(style)
             label.setWordWrap(True)
             if selectable:
                 label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
@@ -73,9 +88,9 @@ class AutorunsDetailRenderer:
             self.detail_labels[key] = label
 
         def add_separator(row, col_span=2):
-            sep = QFrame()
-            sep.setFrameShape(QFrame.Shape.HLine)
-            sep.setStyleSheet("color: #e0e0e0; margin: 4px 0;")
+            sep = QWidget()
+            sep.setFixedHeight(1)
+            sep.setStyleSheet("background-color: #e4e8ee;")
             self.detail_layout.addWidget(sep, row, 0, 1, col_span)
 
         row = 0
@@ -113,7 +128,7 @@ class AutorunsDetailRenderer:
         add_title("SHA256 哈希", row, 1)
         row += 1
         add_value("version", row, 0)
-        add_value("hash", row, 1, mono=True)
+        add_value("hash", row, 1, style=_S_MONO)
 
         row += 1
         add_separator(row)
@@ -121,12 +136,12 @@ class AutorunsDetailRenderer:
         row += 1
         add_title("文件路径", row, 0, 2)
         row += 1
-        add_value("image_path", row, 0, 2, mono=True)
+        add_value("image_path", row, 0, 2, style=_S_MONO)
 
         row += 1
         add_title("命令行", row, 0, 2)
         row += 1
-        add_value("command_line", row, 0, 2, mono=True)
+        add_value("command_line", row, 0, 2, style=_S_MONO)
 
         self.detail_layout.setRowStretch(row + 1, 1)
 
@@ -171,14 +186,15 @@ class AutorunsDetailRenderer:
         entry_id = data.get("id")
 
         signer_status = data.get("signer_status", "")
-        signature_display = "Unsigned"
-        signature_style = "color: #d32f2f; font-weight: bold;"
         if "(Verified)" in signer_status:
             signature_display = "Verified"
-            signature_style = "color: #2e7d32; font-weight: bold;"
+            signature_style = _S_SIG_VERIFIED
         elif "(Error)" in signer_status:
             signature_display = f"Error: {data.get('signature_detail', 'Unknown error')}"
-            signature_style = "color: #f57c00; font-weight: bold;"
+            signature_style = _S_SIG_ERROR
+        else:
+            signature_display = "Unsigned"
+            signature_style = _S_SIG_UNSIGNED
 
         image_path = detail_data.get("image_path", "")
         file_not_found = False
@@ -188,11 +204,10 @@ class AutorunsDetailRenderer:
             and self._should_probe_path_synchronously(image_path)
         ):
             file_not_found = not self._path_exists(image_path)
-        image_path_display = f"{image_path} (File not found)" if file_not_found else image_path
+        image_path_display = f"{image_path}  (文件不存在)" if file_not_found else image_path
 
         hash_value = detail_data.get("hash", "")
-        hash_display = hash_value if hash_value else "Not calculated"
-
+        hash_display = hash_value if hash_value else "未计算"
         command_line = str(detail_data.get("command_line", "") or "")
 
         self._set_text_if_changed(self.detail_labels["entry"], str(data.get("entry", "") or ""))
@@ -207,15 +222,9 @@ class AutorunsDetailRenderer:
         self._set_text_if_changed(self.detail_labels["image_path"], str(image_path_display or ""))
         self._set_style_if_changed(
             self.detail_labels["image_path"],
-            "background-color: #ffe0e0; padding: 5px; border-radius: 3px;"
-            if file_not_found
-            else "background-color: #f0f0f0; padding: 5px; border-radius: 3px;",
+            _S_MONO_ERR if file_not_found else _S_MONO,
         )
         self._set_text_if_changed(self.detail_labels["command_line"], command_line)
-        self._set_style_if_changed(
-            self.detail_labels["command_line"],
-            "background-color: #f0f0f0; padding: 5px; border-radius: 3px;",
-        )
 
         self._set_tooltip_if_changed(self.detail_labels["hash"], hash_display)
         self._set_tooltip_if_changed(self.detail_labels["image_path"], image_path_display)
