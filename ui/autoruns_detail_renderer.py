@@ -2,7 +2,7 @@ import os
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import QLabel, QGridLayout, QSplitter
+from PyQt6.QtWidgets import QLabel, QGridLayout, QSplitter, QFrame
 
 
 class AutorunsDetailRenderer:
@@ -29,7 +29,7 @@ class AutorunsDetailRenderer:
 
     def show_placeholder(self):
         self._clear_layout()
-        detail_placeholder = QLabel("Select an entry to view details")
+        detail_placeholder = QLabel("选择一条记录以查看详情")
         detail_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
         detail_placeholder.setStyleSheet(self.placeholder_style)
         self.detail_layout.addWidget(detail_placeholder, 0, 0, 1, 2)
@@ -42,7 +42,7 @@ class AutorunsDetailRenderer:
         self._clear_layout()
 
         title_font = QFont()
-        title_font.setPointSize(10)
+        title_font.setPointSize(8)
         title_font.setFamily("Segoe UI, Arial, sans-serif")
 
         value_font = QFont()
@@ -52,9 +52,14 @@ class AutorunsDetailRenderer:
         mono_font = QFont(value_font)
         mono_font.setFamily("Consolas, Menlo, Monaco, Courier New, monospace")
 
+        self.detail_layout.setVerticalSpacing(1)
+        self.detail_layout.setHorizontalSpacing(12)
+        self.detail_layout.setColumnStretch(0, 1)
+        self.detail_layout.setColumnStretch(1, 1)
+
         def add_title(text, row, col, col_span=1):
             label = QLabel(text)
-            label.setStyleSheet("font-weight: bold; color: #000;")
+            label.setStyleSheet("font-weight: bold; color: #666; font-size: 8pt; margin-top: 6px;")
             label.setFont(title_font)
             self.detail_layout.addWidget(label, row, col, 1, col_span)
 
@@ -67,39 +72,63 @@ class AutorunsDetailRenderer:
             self.detail_layout.addWidget(label, row, col, 1, col_span)
             self.detail_labels[key] = label
 
+        def add_separator(row, col_span=2):
+            sep = QFrame()
+            sep.setFrameShape(QFrame.Shape.HLine)
+            sep.setStyleSheet("color: #e0e0e0; margin: 4px 0;")
+            self.detail_layout.addWidget(sep, row, 0, 1, col_span)
+
         row = 0
-        add_title("Entry", row, 0)
-        add_value("entry", row + 1, 0)
-        add_title("Size", row, 1)
-        add_value("size", row + 1, 1)
+        add_title("条目名称", row, 0)
+        add_title("文件大小", row, 1)
+        row += 1
+        add_value("entry", row, 0)
+        add_value("size", row, 1)
 
-        row += 2
-        add_title("Description", row, 0)
-        add_value("description", row + 1, 0)
-        add_title("Timestamp", row, 1)
-        add_value("timestamp", row + 1, 1)
+        row += 1
+        add_separator(row)
 
-        row += 2
-        add_title("Publisher", row, 0)
-        add_value("publisher", row + 1, 0)
-        add_title("Signature", row, 1)
-        add_value("signature", row + 1, 1)
+        row += 1
+        add_title("描述", row, 0)
+        add_title("时间戳", row, 1)
+        row += 1
+        add_value("description", row, 0)
+        add_value("timestamp", row, 1)
 
-        row += 2
-        add_title("Version", row, 0)
-        add_value("version", row + 1, 0)
-        add_title("Hash (SHA256)", row, 1)
-        add_value("hash", row + 1, 1, mono=True)
+        row += 1
+        add_separator(row)
 
-        row += 2
-        add_title("Image Path", row, 0, 2)
-        add_value("image_path", row + 1, 0, 2, mono=True)
+        row += 1
+        add_title("发布者", row, 0)
+        add_title("签名状态", row, 1)
+        row += 1
+        add_value("publisher", row, 0)
+        add_value("signature", row, 1)
 
-        row += 2
-        add_title("Command Line", row, 0, 2)
-        add_value("command_line", row + 1, 0, 2, mono=True)
+        row += 1
+        add_separator(row)
 
-        self.detail_layout.setRowStretch(row + 2, 1)
+        row += 1
+        add_title("版本", row, 0)
+        add_title("SHA256 哈希", row, 1)
+        row += 1
+        add_value("version", row, 0)
+        add_value("hash", row, 1, mono=True)
+
+        row += 1
+        add_separator(row)
+
+        row += 1
+        add_title("文件路径", row, 0, 2)
+        row += 1
+        add_value("image_path", row, 0, 2, mono=True)
+
+        row += 1
+        add_title("命令行", row, 0, 2)
+        row += 1
+        add_value("command_line", row, 0, 2, mono=True)
+
+        self.detail_layout.setRowStretch(row + 1, 1)
 
     @staticmethod
     def _set_text_if_changed(label: QLabel, text: str):

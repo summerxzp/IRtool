@@ -287,11 +287,33 @@ class AutorunsTab(QWidget):
         detail_container = QWidget()
         detail_layout = QVBoxLayout(detail_container)
         detail_layout.setContentsMargins(0, 0, 0, 0)
-        
-        # Detail 标题
+        detail_layout.setSpacing(0)
+
+        # Detail 标题栏（标题 + 关闭按钮）
+        detail_title_bar = QWidget()
+        detail_title_bar.setStyleSheet("background: transparent;")
+        title_bar_layout = QHBoxLayout(detail_title_bar)
+        title_bar_layout.setContentsMargins(0, 0, 0, 0)
+        title_bar_layout.setSpacing(0)
+
         detail_label = QLabel("详细信息")
         detail_label.setStyleSheet(AUTORUNS_DETAIL_TITLE_STYLESHEET)
-        detail_layout.addWidget(detail_label)
+        title_bar_layout.addWidget(detail_label)
+        title_bar_layout.addStretch()
+
+        self.btn_close_detail = QPushButton("✕")
+        self.btn_close_detail.setFixedSize(24, 24)
+        self.btn_close_detail.setToolTip("关闭详细信息")
+        self.btn_close_detail.setStyleSheet(
+            "QPushButton { border: none; color: #666; font-size: 13px; border-radius: 3px; }"
+            "QPushButton:hover { background: #e0e0e0; color: #333; }"
+            "QPushButton:pressed { background: #ccc; }"
+        )
+        self.btn_close_detail.clicked.connect(self._close_detail_pane)
+        self.btn_close_detail.hide()
+        title_bar_layout.addWidget(self.btn_close_detail)
+
+        detail_layout.addWidget(detail_title_bar)
         
         # 创建滚动区域
         scroll_area = QScrollArea()
@@ -749,6 +771,12 @@ class AutorunsTab(QWidget):
     
     def _show_detail_placeholder(self):
         self._detail_renderer.show_placeholder()
+        self.btn_close_detail.hide()
+
+    def _close_detail_pane(self):
+        self._detail_renderer.show_placeholder()
+        self.btn_close_detail.hide()
+        self.splitter.setSizes([1000, 0])
 
     def _schedule_detail_refresh(self, detail_data):
         self._pending_detail_data = detail_data
@@ -792,6 +820,7 @@ class AutorunsTab(QWidget):
         timer = QElapsedTimer()
         timer.start()
         self._detail_renderer.render_detail(data, self.format_file_size)
+        self.btn_close_detail.show()
         entry_id = self._detail_renderer.current_entry_id
         self._log_perf_if_slow(
             "render_detail",
