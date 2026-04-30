@@ -21,6 +21,7 @@ from core.sysmon import (
 from core.sysmon.config_manager import EVENT_CONFIG, DEFAULT_ENABLED_EVENTS
 from ui.table_model import HighPerformanceTableModel
 from ui.ui_style import apply_flat_style
+from ui.process_tree_widget import ProcessTreeWidget
 
 logger = logging.getLogger('IRtool')
 
@@ -310,13 +311,21 @@ class LogCollectorTab(QWidget):
             "border-radius: 4px; padding: 8px; font-family: 'Microsoft YaHei', 'Consolas', monospace; font-size: 13px; }"
         )
         self._detail_panel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self._detail_panel.setMinimumHeight(100)
-        self._detail_panel.setMaximumHeight(400)
+        self._detail_panel.setMinimumHeight(80)
+        self._detail_panel.setMaximumHeight(300)
         self._detail_panel.hide()
 
         splitter.addWidget(self._detail_panel)
-        splitter.setStretchFactor(0, 2)
+
+        self._process_tree_widget = ProcessTreeWidget()
+        self._process_tree_widget.setMinimumHeight(80)
+        self._process_tree_widget.setMaximumHeight(220)
+        self._process_tree_widget.hide()
+        splitter.addWidget(self._process_tree_widget)
+
+        splitter.setStretchFactor(0, 3)
         splitter.setStretchFactor(1, 1)
+        splitter.setStretchFactor(2, 1)
 
         layout.addWidget(splitter)
 
@@ -1052,8 +1061,25 @@ class LogCollectorTab(QWidget):
         if event:
             self._detail_panel.setHtml(self._format_event_detail(event))
             self._detail_panel.show()
+            pid = self._get_event_pid(event)
+            if pid and pid > 0:
+                self._process_tree_widget.show()
+                self._process_tree_widget.load_pid(pid)
+            else:
+                self._process_tree_widget.hide()
+                self._process_tree_widget.clear()
         else:
             self._detail_panel.hide()
+            self._process_tree_widget.hide()
+            self._process_tree_widget.clear()
+
+    @staticmethod
+    def _get_event_pid(event) -> int:
+        """提取事件中最有分析价值的 PID（发起方）。"""
+        if isinstance(event, CreateRemoteThreadEvent):
+            return event.source_process_id
+        pid = getattr(event, 'process_id', 0)
+        return int(pid) if pid else 0
 
     def _format_event_detail(self, event) -> str:
         rows = ""

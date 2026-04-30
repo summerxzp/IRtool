@@ -453,6 +453,8 @@ class NetworkTab(QWidget):
         menu = QMenu(self)
         action_open = menu.addAction("在资源管理器中打开")
         action_kill = menu.addAction("终止进程")
+        menu.addSeparator()
+        action_ptree = menu.addAction("查看父进程链")
 
         action = menu.exec(self.table.viewport().mapToGlobal(pos))
         self._set_ui_refresh_paused(False)
@@ -463,6 +465,8 @@ class NetworkTab(QWidget):
             self._open_selected_in_explorer()
         elif action == action_kill:
             self._kill_selected()
+        elif action == action_ptree:
+            self._show_process_tree_dialog()
 
     def _get_selected_row_data(self):
         indexes = self.table.selectionModel().selectedRows()
@@ -489,6 +493,35 @@ class NetworkTab(QWidget):
             subprocess.run(["explorer", "/select,", path], check=False)
             return
         QMessageBox.warning(self, "提示", f"路径不存在: {path}")
+
+    def _show_process_tree_dialog(self):
+        row_data = self._get_selected_row_data()
+        if not row_data:
+            return
+        try:
+            pid = int(row_data[1])
+        except (TypeError, ValueError):
+            QMessageBox.warning(self, "提示", "无法获取 PID")
+            return
+
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QDialogButtonBox
+        from ui.process_tree_widget import ProcessTreeWidget
+
+        dlg = QDialog(self)
+        dlg.setWindowTitle(f"父进程链 — {row_data[2]} (PID: {pid})")
+        dlg.resize(600, 260)
+        layout = QVBoxLayout(dlg)
+        layout.setContentsMargins(8, 8, 8, 8)
+
+        tree = ProcessTreeWidget(dlg)
+        tree.load_pid(pid)
+        layout.addWidget(tree)
+
+        btns = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        btns.rejected.connect(dlg.reject)
+        layout.addWidget(btns)
+
+        dlg.exec()
 
     def _format_address_for_display(self, addr: str) -> str:
         if addr in ["", "0.0.0.0", "::", "::ffff:0.0.0.0"]:
