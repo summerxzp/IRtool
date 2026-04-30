@@ -299,7 +299,7 @@ class NetworkTab(QWidget):
             QTimer.singleShot(0, self.refresh_data)
 
     def _apply_filters_and_update(self):
-        selected_row = self._get_selected_proxy_row()
+        selected_key = self._get_selected_connection_key()
         text = self.search_box.text().strip().lower()
         data = self.all_data
 
@@ -321,7 +321,7 @@ class NetworkTab(QWidget):
 
         self._update_model(data)
         self._update_statistics(data)
-        self._restore_selection(selected_row)
+        self._restore_selection(selected_key)
 
     def _filter_table(self, text):
         self._apply_filters_and_update()
@@ -399,23 +399,31 @@ class NetworkTab(QWidget):
             self._resize_timer.start(100)
             self._has_auto_resized = True
 
-    def _get_selected_proxy_row(self):
+    def _get_selected_connection_key(self):
         indexes = self.table.selectionModel().selectedRows()
         if not indexes:
             return None
-        return indexes[0].row()
+        proxy_index = indexes[0]
+        source_index = self._proxy_model.mapToSource(proxy_index)
+        row_data = self._model.get_row_data(source_index.row())
+        if not row_data:
+            return None
+        # row_data 顺序：时间, PID, 进程名, 本地地址, 本地端口, 远程地址, 远程端口, 状态, 协议, 进程路径
+        return (row_data[1], row_data[4], row_data[5], row_data[6])  # pid, local_port, remote_addr, remote_port
 
-    def _restore_selection(self, selected_row):
-        if selected_row is None:
+    def _restore_selection(self, connection_key):
+        if connection_key is None:
             return
-        if selected_row < 0 or selected_row >= self._proxy_model.rowCount():
-            return
-
-        proxy_index = self._proxy_model.index(selected_row, 0, QModelIndex())
-        if not proxy_index.isValid():
-            return
-        self.table.selectRow(proxy_index.row())
-        self.table.scrollTo(proxy_index, QTableView.ScrollHint.EnsureVisible)
+        for proxy_row in range(self._proxy_model.rowCount()):
+            source_index = self._proxy_model.mapToSource(self._proxy_model.index(proxy_row, 0))
+            row_data = self._model.get_row_data(source_index.row())
+            if row_data:
+                key = (row_data[1], row_data[4], row_data[5], row_data[6])
+                if key == connection_key:
+                    self.table.selectRow(proxy_row)
+                    self.table.scrollTo(self._proxy_model.index(proxy_row, 0),
+                                       QTableView.ScrollHint.EnsureVisible)
+                    return
 
     def _set_ui_refresh_paused(self, paused: bool):
         was_paused = self._ui_refresh_paused

@@ -5,12 +5,14 @@ from PyQt6.QtWidgets import (
     QGridLayout, QMenu, QFileDialog, QApplication,
     QSplitter, QTextEdit, QSizePolicy, QCheckBox
 )
-from PyQt6.QtCore import Qt, QTimer, QSortFilterProxyModel
+from PyQt6.QtCore import Qt, QTimer, QSortFilterProxyModel, QThread, pyqtSignal
 from PyQt6.QtGui import QColor
 from datetime import datetime
 import os
 import subprocess
 import json
+
+import logging
 
 from core.sysmon import (
     SysmonSubscriber, SysmonConfigManager,
@@ -19,6 +21,8 @@ from core.sysmon import (
 from core.sysmon.config_manager import EVENT_CONFIG, DEFAULT_ENABLED_EVENTS
 from ui.table_model import HighPerformanceTableModel
 from ui.ui_style import apply_flat_style
+
+logger = logging.getLogger('IRtool')
 
 
 EVENT_COLUMNS = [
@@ -46,6 +50,8 @@ class EventFilterProxyModel(QSortFilterProxyModel):
         self._event_type_filter = "全部"
         self._external_only = False
         self._events_data = []  # 存储事件对象引用
+        self._search_text = ""
+        self._process_text = ""
 
     def set_event_type_filter(self, event_type: str):
         self._event_type_filter = event_type
@@ -59,10 +65,25 @@ class EventFilterProxyModel(QSortFilterProxyModel):
         self._events_data = events
         self.invalidateFilter()
 
+    def set_text_filters(self, search_text: str, process_text: str):
+        """设置双文本过滤条件，两者均需满足（AND 逻辑）"""
+        self._search_text = search_text
+        self._process_text = process_text
+        self.invalidateFilter()
+
     def filterAcceptsRow(self, source_row: int, source_parent) -> bool:
-        # 首先应用文本过滤
-        if not super().filterAcceptsRow(source_row, source_parent):
-            return False
+        # 双文本 AND 过滤：在调用父类之前先检查自定义文本条件
+        if self._search_text or self._process_text:
+            source_model = self.sourceModel()
+            col_count = source_model.columnCount()
+            row_text = " ".join(
+                str(source_model.index(source_row, col, source_parent).data() or "")
+                for col in range(col_count)
+            ).lower()
+            if self._search_text and self._search_text not in row_text:
+                return False
+            if self._process_text and self._process_text not in row_text:
+                return False
 
         # 获取对应的事件对象
         if source_row < 0 or source_row >= len(self._events_data):
@@ -97,6 +118,23 @@ class EventFilterProxyModel(QSortFilterProxyModel):
         return True
 
 
+class HistoryLoadWorker(QThread):
+    """后台线程：加载历史 Sysmon 事件，避免阻塞主线程 UI"""
+    finished = pyqtSignal(list)
+
+    def __init__(self, subscriber, limit, filter_external):
+        super().__init__()
+        self._subscriber = subscriber
+        self._limit = limit
+        self._filter_external = filter_external
+
+    def run(self):
+        events = self._subscriber.get_existing_events(
+            limit=self._limit, filter_external_only=self._filter_external
+        )
+        self.finished.emit(events)
+
+
 class LogCollectorTab(QWidget):
 
     def __init__(self, data_store=None):
@@ -121,6 +159,7 @@ class LogCollectorTab(QWidget):
         self._batch_update_timer = QTimer()
         self._batch_update_timer.setSingleShot(True)
         self._batch_update_timer.timeout.connect(self._flush_batch_update)
+        self._history_load_worker = None
 
     def _init_ui(self):
         layout = QVBoxLayout(self)
@@ -351,6 +390,7 @@ class LogCollectorTab(QWidget):
             self._start_collection()
 
     def _start_collection(self):
+        logger.info("[LogCollector] 开始启动采集...")
         # 检查是否已安装
         if not self.config_manager.is_installed():
             reply = QMessageBox.question(
@@ -364,11 +404,13 @@ class LogCollectorTab(QWidget):
             if reply == QMessageBox.StandardButton.Yes:
                 success, msg = self.config_manager.install()
                 if not success:
+                    logger.error(f"[LogCollector] Sysmon安装失败: {msg}")
                     QMessageBox.warning(self, "安装失败", msg)
                     return
                 self._sysmon_was_started_by_us = True
                 self._update_status_display()
             else:
+                logger.info("[LogCollector] 用户取消安装Sysmon，采集未启动")
                 return
         # 已安装但未运行
         elif not self.config_manager.is_running():
@@ -383,11 +425,13 @@ class LogCollectorTab(QWidget):
                 # 已安装的情况下，尝试启动服务
                 success, msg = self.config_manager.start_service()
                 if not success:
+                    logger.error(f"[LogCollector] Sysmon服务启动失败: {msg}")
                     QMessageBox.warning(self, "启动失败", msg)
                     return
                 self._sysmon_was_started_by_us = True
                 self._update_status_display()
             else:
+                logger.info("[LogCollector] 用户取消启动Sysmon服务，采集未启动")
                 return
         else:
             self._sysmon_was_started_by_us = True
@@ -397,6 +441,7 @@ class LogCollectorTab(QWidget):
         self.subscriber = SysmonSubscriber(filter_external_only=filter_external, enabled_events=self._enabled_events)
 
         if not self.subscriber.is_sysmon_available():
+            logger.error("[LogCollector] Sysmon日志通道不可用，采集启动失败")
             QMessageBox.warning(
                 self,
                 "无法连接",
@@ -410,6 +455,7 @@ class LogCollectorTab(QWidget):
         self.subscriber.error_occurred.connect(self._on_error)
 
         self.subscriber.start()
+        logger.info("[LogCollector] 采集已启动")
 
         self._is_collecting = True
         self._start_time = datetime.now()
@@ -474,11 +520,12 @@ class LogCollectorTab(QWidget):
         # 更新代理模型的事件数据引用
         self._proxy_model.set_events_data(self.all_events)
 
+        pending_count = len(self._pending_events)
         self._pending_events = []
 
         self._apply_filters()
 
-        if not self._resize_timer.isActive() and self._model.rowCount() <= len(self._pending_events) + 50:
+        if not self._resize_timer.isActive() and self._model.rowCount() <= pending_count + 50:
             self._resize_timer.start(500)
 
     def _event_to_row(self, event) -> tuple:
@@ -618,6 +665,7 @@ class LogCollectorTab(QWidget):
         self.lbl_status.setText(f"状态: {text}")
 
     def _on_error(self, error_msg):
+        logger.error(f"[LogCollector] 采集错误: {error_msg}")
         QMessageBox.warning(self, "错误", f"日志采集错误:\n{error_msg}")
 
     def _update_duration(self):
@@ -631,15 +679,7 @@ class LogCollectorTab(QWidget):
         search_text = self.search_box.text().strip().lower()
         process_text = self.process_filter.text().strip().lower()
 
-        if search_text or process_text:
-            filter_parts = []
-            if search_text:
-                filter_parts.append(search_text)
-            if process_text:
-                filter_parts.append(process_text)
-            self._proxy_model.setFilterFixedString(" ".join(filter_parts))
-        else:
-            self._proxy_model.setFilterFixedString("")
+        self._proxy_model.set_text_filters(search_text, process_text)
 
         # 更新事件数据引用
         self._proxy_model.set_events_data(self.all_events)
@@ -789,23 +829,39 @@ class LogCollectorTab(QWidget):
             QMessageBox.warning(self, "提示", "无法连接到 Sysmon 日志通道")
             return
 
-        existing_timestamps = set()
-        for ev in self.all_events:
-            ts = getattr(ev, 'timestamp_epoch', None)
-            if ts:
-                existing_timestamps.add(ts)
+        # 禁用按钮，防止重复点击
+        self.btn_load_history.setEnabled(False)
+        self.btn_load_history.setText("加载中...")
 
         filter_external = self.chk_external_only.isChecked()
-        events = temp_subscriber.get_existing_events(limit=500, filter_external_only=filter_external)
+        worker = HistoryLoadWorker(temp_subscriber, limit=500, filter_external=filter_external)
+        worker.finished.connect(lambda events: self._on_history_loaded(events, filter_external))
+        self._history_load_worker = worker  # 持有引用，防止 GC
+        worker.start()
+
+    def _on_history_loaded(self, events: list, filter_external: bool):
+        """后台加载完成后在主线程处理去重与 UI 更新"""
+        # 恢复按钮
+        self.btn_load_history.setEnabled(True)
+        self.btn_load_history.setText("加载历史")
+
+        def _make_event_key(ev):
+            return (
+                getattr(ev, 'timestamp_epoch', 0),
+                getattr(ev, 'event_id', 0),
+                getattr(ev, 'process_id', getattr(ev, 'source_process_id', 0)),
+            )
+
+        existing_keys = set()
+        for ev in self.all_events:
+            existing_keys.add(_make_event_key(ev))
 
         new_events = []
         for ev in events:
-            ts = getattr(ev, 'timestamp_epoch', None)
-            if ts and ts not in existing_timestamps:
+            key = _make_event_key(ev)
+            if key not in existing_keys:
                 new_events.append(ev)
-                existing_timestamps.add(ts)
-            elif not ts:
-                new_events.append(ev)
+                existing_keys.add(key)
 
         if new_events:
             self.all_events = new_events + self.all_events

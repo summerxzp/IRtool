@@ -90,15 +90,9 @@ class SysmonConfigManager:
 
     def _find_config_path(self) -> Path:
         base_dir = _get_app_dir()
-
         config_path = base_dir / 'tools' / 'sysmon_config.xml'
-        if config_path.exists():
-            logger.debug(f"找到配置文件: {config_path}")
-            return config_path
-
-        default_path = base_dir / 'tools' / 'sysmon_config.xml'
-        logger.debug(f"使用默认配置路径: {default_path}")
-        return default_path
+        logger.debug(f"使用配置路径: {config_path}")
+        return config_path
 
     def _find_in_path(self, filename: str) -> Optional[str]:
         for path in os.environ.get('PATH', '').split(os.pathsep):
@@ -152,6 +146,11 @@ class SysmonConfigManager:
             logger.error(error_msg)
             return False, error_msg
 
+        if not self.config_path.exists():
+            error_msg = f"找不到配置文件: {self.config_path}"
+            logger.error(error_msg)
+            return False, error_msg
+
         logger.info(f"Sysmon路径: {self.sysmon_exe_path}")
         logger.info(f"配置文件: {self.config_path}")
 
@@ -167,8 +166,7 @@ class SysmonConfigManager:
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=60,
-                shell=True
+                timeout=60
             )
 
             logger.debug(f"命令返回码: {result.returncode}")
@@ -208,8 +206,7 @@ class SysmonConfigManager:
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=60,
-                shell=True
+                timeout=60
             )
 
             logger.debug(f"命令返回码: {result.returncode}")
@@ -256,8 +253,7 @@ class SysmonConfigManager:
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=30,
-                shell=True
+                timeout=30
             )
 
             logger.debug(f"命令返回码: {result.returncode}")
@@ -470,6 +466,20 @@ class SysmonConfigManager:
             import shutil
             shutil.copy2(self.config_path, backup_path)
             logger.info(f"配置已备份到: {backup_path}")
+
+            # 清理多余备份，保留最新 5 个
+            try:
+                backup_dir = self.config_path.parent
+                backup_files = sorted(
+                    backup_dir.glob('sysmon_config_backup_*.xml'),
+                    key=lambda p: p.stat().st_mtime,
+                    reverse=True
+                )
+                for old_backup in backup_files[5:]:
+                    old_backup.unlink(missing_ok=True)
+            except Exception as e:
+                logger.warning(f"清理旧备份文件失败: {e}")
+
             return True, str(backup_path)
         except Exception as e:
             error_msg = f"备份配置失败: {e}"

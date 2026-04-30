@@ -38,10 +38,6 @@ class NetworkMonitor:
     
     def __init__(self):
         self._process_cache: Dict[int, Tuple[str, str, float]] = {}  # PID -> (name, path, timestamp) 缓存
-        # 新增：连接归属缓存
-        # Key: (local_ip, local_port, remote_ip, remote_port, protocol_type)
-        # Value: process_name
-        self._connection_owner_cache = {}
         self._cache_ttl = 5.0
         
     def get_connections(self, status_filter: Optional[List[str]] = None) -> List[NetworkConnection]:
@@ -59,8 +55,7 @@ class NetworkMonitor:
             laddr = (conn.laddr.ip, conn.laddr.port) if conn.laddr else ("", 0)
             raddr = (conn.raddr.ip, conn.raddr.port) if conn.raddr else ("", 0)
             protocol_type = "TCP" if conn.type == socket.SOCK_STREAM else "UDP" if conn.type == socket.SOCK_DGRAM else "UNKNOWN"
-            conn_key = (laddr[0], laddr[1], raddr[0], raddr[1], protocol_type)
-            
+
             # 获取进程信息（带缓存）
             proc_name, proc_path = self._get_process_info(conn.pid)
             
@@ -76,14 +71,6 @@ class NetworkMonitor:
             status_for_display = conn.status
             if protocol_type == "UDP" and conn.status == "NONE":
                 status_for_display = ""
-            
-            # 【修复点4】：更新连接归属缓存，使用新的键值结构
-            if conn.pid and conn.pid > 0:
-                self._connection_owner_cache[conn_key] = {
-                    'name': proc_name,
-                    'path': proc_path,
-                    'pid': conn.pid
-                }
             
             # 构建连接对象 - 保留原始值
             now = datetime.now()

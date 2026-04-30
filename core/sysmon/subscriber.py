@@ -45,8 +45,10 @@ class SysmonSubscriber(QThread):
                 win32evtlog.EvtQueryChannelPath,
                 '*'
             )
+            win32evtlog.EvtClose(h)
             return True
-        except Exception:
+        except Exception as e:
+            logger.warning(f"[SysmonSubscriber] Sysmon日志通道不可用: {e}")
             return False
 
     def run(self):
@@ -62,11 +64,6 @@ class SysmonSubscriber(QThread):
                 if events:
                     # 批量发射信号，减少信号开销
                     self.events_batch_received.emit(events)
-                    # 保持向后兼容的单个事件信号
-                    for event in events:
-                        if not self._running:
-                            break
-                        self.event_received.emit(event)
 
                 for _ in range(int(self._poll_interval / 0.1)):
                     if not self._running:
@@ -74,6 +71,7 @@ class SysmonSubscriber(QThread):
                     time.sleep(0.1)
 
         except Exception as e:
+            logger.error(f"[SysmonSubscriber] 运行异常: {e}", exc_info=True)
             self.error_occurred.emit(str(e))
             self.status_changed.emit("error")
         finally:
@@ -86,13 +84,16 @@ class SysmonSubscriber(QThread):
                 win32evtlog.EvtQueryChannelPath | win32evtlog.EvtQueryReverseDirection,
                 '*'
             )
-            events = win32evtlog.EvtNext(h, 1)
-            if events:
-                xml_str = win32evtlog.EvtRender(events[0], win32evtlog.EvtRenderEventXml)
-                _, record_id = SysmonEventParser.parse_event_with_record_id(xml_str)
-                if record_id:
-                    self._last_record_id = record_id
-                    logger.info(f"[SysmonSubscriber] Starting after RecordID: {self._last_record_id}")
+            try:
+                events = win32evtlog.EvtNext(h, 1)
+                if events:
+                    xml_str = win32evtlog.EvtRender(events[0], win32evtlog.EvtRenderEventXml)
+                    _, record_id = SysmonEventParser.parse_event_with_record_id(xml_str)
+                    if record_id:
+                        self._last_record_id = record_id
+                        logger.info(f"[SysmonSubscriber] Starting after RecordID: {self._last_record_id}")
+            finally:
+                win32evtlog.EvtClose(h)
         except Exception as e:
             logger.warning(f"[SysmonSubscriber] Failed to get last RecordID: {e}")
             self._last_record_id = 0
@@ -194,5 +195,6 @@ class SysmonSubscriber(QThread):
             return events
 
         except Exception as e:
+            logger.error(f"[SysmonSubscriber] 获取历史事件失败: {e}", exc_info=True)
             self.error_occurred.emit(str(e))
             return []

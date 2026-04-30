@@ -532,8 +532,28 @@ class AutorunsParser:
             return False, "权限不足，请以管理员身份运行"
         except FileNotFoundError:
             return False, "注册表子键不存在"
-        except OSError as e:
-            return False, f"删除子键失败: {e}"
+        except OSError:
+            # 子键含有子键时 DeleteKey 会失败，fallback 使用 reg delete 命令
+            _ROOT_STR_MAP = {
+                winreg.HKEY_LOCAL_MACHINE: 'HKLM',
+                winreg.HKEY_CURRENT_USER: 'HKCU',
+                winreg.HKEY_CLASSES_ROOT: 'HKCR',
+                winreg.HKEY_USERS: 'HKU',
+            }
+            root_str = _ROOT_STR_MAP.get(root, 'HKLM')
+            full_path = f'{root_str}\\{parent_path}\\{subkey_name}' if parent_path else f'{root_str}\\{subkey_name}'
+            try:
+                fb = subprocess.run(
+                    ['reg', 'delete', full_path, '/f'],
+                    capture_output=True, timeout=15
+                )
+                if fb.returncode == 0:
+                    return True, f"已删除注册表子键(含子键): {subkey_name}"
+                else:
+                    err = fb.stderr.strip() if fb.stderr else f"返回码: {fb.returncode}"
+                    return False, f"reg delete 失败: {err}"
+            except subprocess.TimeoutExpired:
+                return False, "操作超时(15s)"
     
     def _delete_lsa_auth_package(self, entry: AutorunEntry, value_name: str) -> tuple:
         """
@@ -748,8 +768,11 @@ class AutorunsParser:
         
         cmd = ['sc', 'delete', entry.service_name]
         print(f"[Parser] 执行命令: {' '.join(cmd)}")
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        except subprocess.TimeoutExpired:
+            return False, "操作超时(30s)"
+
         print(f"[Parser] 命令返回码: {result.returncode}")
         print(f"[Parser] 命令输出: {result.stdout}")
         print(f"[Parser] 命令错误: {result.stderr}")

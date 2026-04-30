@@ -46,7 +46,7 @@ class DataStore(QObject):
 
     def set_sysmon_events(self, events: list):
         self._sysmon_events = events or []
-        self.sysmon_event_added.emit(None)
+        self.sysmon_events_cleared.emit()  # 通知接收方数据已全量替换
 
     def clear_sysmon_events(self):
         self._sysmon_events = []

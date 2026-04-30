@@ -240,9 +240,8 @@ class CreateRemoteThreadEvent(SysmonEvent):
         source_lower = self.source_process_name.lower()
         target_lower = self.target_process_name.lower()
         
-        return (source_lower in suspicious_sources or 
-                target_lower in suspicious_targets or
-                (source_lower != target_lower and target_lower in suspicious_targets))
+        return (source_lower in suspicious_sources or
+                target_lower in suspicious_targets)
 
     @classmethod
     def from_event_data(cls, event_data: Dict[str, Any], timestamp: datetime) -> 'CreateRemoteThreadEvent':

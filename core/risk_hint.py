@@ -217,7 +217,11 @@ class RiskEvaluator:
         # - 无签名但位于系统目录
         if reasons and not is_verified:
             return RiskHint(level=RiskLevel.SUSPICIOUS, reasons=reasons)
-        
+
+        if is_verified and self._is_high_risk_path(image_path):
+            reasons.append("虽有签名但位于用户可写目录")
+            return RiskHint(level=RiskLevel.SUSPICIOUS, reasons=reasons)
+
         # ========== 明显可信 ==========
         # - Microsoft 签名
         # - 位于 System32 / Program Files

@@ -72,7 +72,7 @@ class PrintLogger:
         if self.original_stdout and hasattr(self.original_stdout, 'write'):
             try:
                 self.original_stdout.write(message)
-            except:
+            except Exception:
                 pass
         # 同时记录到日志
         self.buffer += message
@@ -87,7 +87,7 @@ class PrintLogger:
         if self.original_stdout and hasattr(self.original_stdout, 'flush'):
             try:
                 self.original_stdout.flush()
-            except:
+            except Exception:
                 pass
         if self.buffer.strip():
             self.log_func(self.buffer)
