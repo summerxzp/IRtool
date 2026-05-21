@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install 7-Zip
+        shell: pwsh
+        run: choco install 7zip -y
+
+      - name: Install build dependencies
+        shell: pwsh
+        run: pip install -r package/requirements-build.txt
+
+      - name: Build with PyInstaller + 7z SFX
+        shell: pwsh
+        run: powershell -ExecutionPolicy Bypass -File package/build-with-7z.ps1 -Mode onedir-7z
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: IRtool-build
+          path: package/dist/IRtool-v*-7z.exe
+          retention-days: 7
