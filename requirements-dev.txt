@@ -1,0 +1,9 @@
+# 开发/测试/打包依赖（基于 requirements.txt）
+-r requirements.txt
+
+# 打包
+pyinstaller>=6.3.0
+
+# 测试
+pytest>=7.4.0
+pytest-qt>=4.2.0

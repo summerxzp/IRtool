@@ -2,11 +2,14 @@ from PyQt6.QtCore import QObject, QRunnable, QThreadPool, QTimer
 from PyQt6.QtWidgets import QMessageBox
 import subprocess
 import threading
+import logging
 from typing import Optional, Callable
 from dataclasses import dataclass
 from enum import Enum
 
 from core.constants import MAX_THREAD_COUNT
+
+LOGGER = logging.getLogger(__name__)
 
 
 class CommandStatus(Enum):
@@ -64,7 +67,7 @@ class CommandTask(QRunnable):
     
     def _execute_command(self) -> CommandResult:
         """执行命令并返回结果"""
-        print(f"[SafeExecutor] 开始执行命令: {self.command}")
+        LOGGER.debug(f"[SafeExecutor] 开始执行命令: {self.command}")
         
         try:
             process = subprocess.Popen(
@@ -80,9 +83,9 @@ class CommandTask(QRunnable):
             stdout, stderr = process.communicate()
             return_code = process.returncode
             
-            print(f"[SafeExecutor] 命令执行完成，返回码: {return_code}")
-            print(f"[SafeExecutor] 标准输出: {stdout}")
-            print(f"[SafeExecutor] 标准错误: {stderr}")
+            LOGGER.debug(f"[SafeExecutor] 命令执行完成，返回码: {return_code}")
+            LOGGER.debug(f"[SafeExecutor] 标准输出: {stdout}")
+            LOGGER.debug(f"[SafeExecutor] 标准错误: {stderr}")
             
             # 检查错误：返回码非零，或 stderr 包含错误关键词
             error_keywords = ['拒绝访问', 'access denied', 'error', '失败', 'failed', 'cannot', '无法']
@@ -100,7 +103,7 @@ class CommandTask(QRunnable):
                 stderr=stderr
             )
         except PermissionError as e:
-            print(f"[SafeExecutor] 权限错误: {str(e)}")
+            LOGGER.warning(f"[SafeExecutor] 权限错误: {str(e)}")
             return CommandResult(
                 status=CommandStatus.FAILED,
                 return_code=-1,
@@ -109,7 +112,7 @@ class CommandTask(QRunnable):
                 error_message=f"权限不足: {str(e)}"
             )
         except FileNotFoundError as e:
-            print(f"[SafeExecutor] 文件未找到: {str(e)}")
+            LOGGER.warning(f"[SafeExecutor] 文件未找到: {str(e)}")
             return CommandResult(
                 status=CommandStatus.FAILED,
                 return_code=-1,
@@ -118,7 +121,7 @@ class CommandTask(QRunnable):
                 error_message=f"命令或文件不存在: {str(e)}"
             )
         except Exception as e:
-            print(f"[SafeExecutor] 执行异常: {str(e)}")
+            LOGGER.error(f"[SafeExecutor] 执行异常: {str(e)}")
             import traceback
             traceback.print_exc()
             return CommandResult(

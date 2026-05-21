@@ -14,13 +14,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QMainWindow, QTabWidget, QMessageBox
 
 # 本地模块（需要先确定 APP_DIR）
-def get_app_dir():
-    """获取应用根目录（支持源码运行和PyInstaller打包）"""
-    if getattr(sys, 'frozen', False):
-        return Path(sys.executable).parent
-    else:
-        return Path(__file__).parent
-
+# 使用统一的路径解析工具
+from utils.path_resolver import get_app_dir
 APP_DIR = get_app_dir()
 sys.path.insert(0, str(APP_DIR))
 

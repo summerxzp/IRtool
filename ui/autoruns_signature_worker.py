@@ -29,7 +29,8 @@ class SignatureVerifyWorker(QThread):
         """执行签名验证"""
         cmd = [self.sigcheck_path, '-accepteula', '-nobanner', self.image_path]
         try:
-            result = subprocess.run(cmd, capture_output=True, timeout=30)
+            result = subprocess.run(cmd, capture_output=True, timeout=30,
+                                     creationflags=subprocess.CREATE_NO_WINDOW)
             stdout = decode_sigcheck_bytes(result.stdout, preferred_encoding=self.encoding)
             stderr = decode_sigcheck_bytes(result.stderr, preferred_encoding=self.encoding)
             if result.returncode == 0:

@@ -9,6 +9,11 @@ from typing import Tuple, Optional, Dict, List
 
 logger = logging.getLogger('IRtool')
 
+_SUBPROCESS_KWARGS = {
+    'creationflags': subprocess.CREATE_NO_WINDOW,
+    'startupinfo': subprocess.STARTUPINFO(dwFlags=subprocess.STARTF_USESHOWWINDOW, wShowWindow=subprocess.SW_HIDE),
+}
+
 EVENT_CONFIG = {
     'dns': {
         'name': 'DNS查询',
@@ -166,7 +171,8 @@ class SysmonConfigManager:
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=60
+                timeout=60,
+                **_SUBPROCESS_KWARGS
             )
 
             logger.debug(f"命令返回码: {result.returncode}")
@@ -206,7 +212,8 @@ class SysmonConfigManager:
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=60
+                timeout=60,
+                **_SUBPROCESS_KWARGS
             )
 
             logger.debug(f"命令返回码: {result.returncode}")
@@ -253,7 +260,8 @@ class SysmonConfigManager:
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=30,
+                **_SUBPROCESS_KWARGS
             )
 
             logger.debug(f"命令返回码: {result.returncode}")
@@ -357,13 +365,15 @@ class SysmonConfigManager:
             logger.info("Sysmon服务已停止")
             return True, "Sysmon 服务已停止"
         except win32service.error as e:
-            # 错误码 5 = 拒绝访问，1052 = 服务已被标记为删除
             if e.winerror == 5:
-                logger.warning(f"停止Sysmon服务被拒绝访问，可能已被其他进程停止: {e}")
-                return True, "服务已停止或无需停止"
+                logger.error(f"停止Sysmon服务被拒绝访问: {e}")
+                return False, "停止服务失败: 拒绝访问"
             elif e.winerror == 1052:
                 logger.info("Sysmon服务已被标记为删除")
                 return True, "服务已停止"
+            elif e.winerror == 1062:
+                logger.info("Sysmon服务未在运行")
+                return True, "服务未在运行"
             else:
                 logger.exception("停止Sysmon服务失败")
                 return False, f"停止服务失败: {e}"

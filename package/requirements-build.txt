@@ -6,3 +6,4 @@ pyzipper==0.3.6
 pywin32==306
 requests==2.31.0
 pyinstaller==6.3.0
+pyparsing>=3.0

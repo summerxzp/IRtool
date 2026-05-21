@@ -65,32 +65,12 @@ class RuleEngine:
     """规则扫描引擎（核心层）"""
 
     def __init__(self, rules_path: str = None):
-        base_dir = self._get_app_dir()
-        # 尝试多个路径: 1) 根目录/data 2) _internal/data (PyInstaller onedir)
-        possible_paths = [
-            base_dir / "data" / "rules.json",
-            base_dir / "_internal" / "data" / "rules.json",
-        ]
-        default_path = possible_paths[0]
-        for path in possible_paths:
-            if path.exists():
-                default_path = path
-                break
-        self.rules_path = Path(rules_path) if rules_path else default_path
+        from utils.path_resolver import get_rules_path
+        self.rules_path = Path(rules_path) if rules_path else get_rules_path()
         self.rules = []
         self._validation_errors: List[RuleValidationError] = []
         self._compiled_patterns: Dict[str, re.Pattern] = {}  # 缓存编译后的正则
         self._load_rules()
-
-    def _get_app_dir(self) -> Path:
-        """获取应用根目录（支持源码运行和PyInstaller打包）"""
-        import sys
-        if getattr(sys, 'frozen', False):
-            # PyInstaller打包后，使用可执行文件所在目录
-            return Path(sys.executable).parent
-        else:
-            # 源码运行，使用脚本所在目录
-            return Path(__file__).parent.parent
 
     def _get_rules_template(self):
         return []
@@ -122,9 +102,18 @@ class RuleEngine:
         """校验所有规则，记录错误信息"""
         self._validation_errors = []
         self._compiled_patterns = {}
+        seen_rule_ids: Set[str] = set()
         
         for rule in self.rules:
             rule_id = rule.get("id", "unknown")
+            
+            # 检查重复ID
+            if rule_id != "unknown" and rule_id in seen_rule_ids:
+                self._validation_errors.append(
+                    RuleValidationError(rule_id, "id", "duplicate_id", f"规则ID重复: {rule_id}")
+                )
+            seen_rule_ids.add(rule_id)
+            
             match_conditions = rule.get("match", [])
             
             if not match_conditions:

@@ -1,6 +1,6 @@
 # IRtool Release Build Script
 # Build Type: onedir + 7z SFX (self-extracting)
-# Version: 1.1.2
+# Version: 1.1.3
 
 param(
     [ValidateSet('onedir','onedir-7z')] [string]$Mode = 'onedir-7z'
@@ -15,9 +15,9 @@ Set-Location $here
 $appDir = Split-Path -Parent $here
 
 # Version info (must match core/constants.py)
-$appVersion = "1.1.2"
+$appVersion = "1.1.4"
 $buildType = "release"
-$buildDate = "2026-04-15"
+$buildDate = "2026-05-20"
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  IRtool Release Build" -ForegroundColor Cyan
@@ -46,9 +46,13 @@ if ($Mode -eq 'onedir-7z') {
     Write-Host "7-Zip found: $sevenZip" -ForegroundColor Green
 }
 
-# Use system Python directly (venv has issues in this environment)
-$python = 'python'
-Write-Host "Using system Python: $python" -ForegroundColor Yellow
+# Use venv Python (system Python may not be in PATH)
+$python = Join-Path $appDir '.venv\Scripts\python.exe'
+if (-not (Test-Path $python)) {
+    # Fallback to system Python
+    $python = 'python'
+}
+Write-Host "Using Python: $python" -ForegroundColor Yellow
 Write-Host "Installing dependencies..." -ForegroundColor Yellow
 & $python -m pip install -q -r (Join-Path $here 'requirements-build.txt')
 
@@ -77,6 +81,15 @@ $buildArgs = @(
     '--hidden-import','PyQt6.QtCore',
     '--hidden-import','PyQt6.QtGui',
     '--hidden-import','PyQt6.QtWidgets',
+    '--hidden-import','pyparsing',
+    '--hidden-import','win32service',
+    '--hidden-import','win32serviceutil',
+    '--hidden-import','win32evtlog',
+    '--hidden-import','win32api',
+    '--hidden-import','win32con',
+    '--hidden-import','win32security',
+    '--hidden-import','winerror',
+    '--collect-binaries','pywin32',
     '--collect-binaries','PyQt6',
     '--add-data', "$(Join-Path $appDir 'data\rules.json');data",
     '--add-data', "$(Join-Path $appDir 'tools\autorunsc64.exe');tools",
@@ -98,7 +111,6 @@ $buildArgs = @(
     '--exclude-module','email.mime',
     '--exclude-module','http.server',
     '--exclude-module','xmlrpc',
-    '--exclude-module','html',
     '--exclude-module','_pytest',
     '--exclude-module','pytest',
     '--exclude-module','pytestqt',

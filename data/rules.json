@@ -6,7 +6,7 @@
       {
         "field": "command_line",
         "type": "regex",
-        "value": "rundll32.exe\" \"C:\\Program Files\\"
+        "value": "rundll32\\.exe.*C:\\\\Program Files\\\\"
       }
     ],
     "severity": "high",
@@ -42,7 +42,7 @@
     "note": "命令行包含 inetpub\\wwwroot"
   },
   {
-    "id": "silverfox_inetpub_path",
+    "id": "silverfox_mfg_path",
     "family": "银狐",
     "match": [
       {

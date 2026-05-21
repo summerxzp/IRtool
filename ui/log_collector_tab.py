@@ -1196,7 +1196,10 @@ class LogCollectorTab(QWidget):
     def stop_sysmon_if_started_by_us(self):
         if self._sysmon_was_started_by_us and self.config_manager.is_running():
             success, msg = self.config_manager.stop_service()
-            self.config_manager.clear_started_marker()
+            if success:
+                self.config_manager.clear_started_marker()
+            else:
+                logger.warning(f"停止Sysmon服务失败，保留标记文件以便下次重试: {msg}")
             self._sysmon_was_started_by_us = False
 
     def _check_crash_recovery(self):

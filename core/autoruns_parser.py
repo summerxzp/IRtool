@@ -4,6 +4,8 @@ import csv
 import hashlib
 import os
 import time
+import logging
+import traceback
 from dataclasses import dataclass, asdict
 from typing import List, Optional, Dict, Tuple
 from pathlib import Path
@@ -14,6 +16,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 # Windows API for hiding console window
 import ctypes
 from subprocess import CREATE_NO_WINDOW, SW_HIDE
+
+# Logger配置
+logger = logging.getLogger('AutorunsParser')
 
 @dataclass
 class AutorunEntry:
@@ -73,11 +78,11 @@ class AutorunsParser:
     def __init__(self, autoruns_path: str = None):
         # 默认从程序目录下的tools文件夹查找
         if autoruns_path is None:
-            base_dir = self._get_app_dir()
-            # 尝试多个路径: 1) 根目录/tools 2) _internal/tools (PyInstaller onedir)
+            from utils.path_resolver import get_tools_dir
+            tools_dir = get_tools_dir()
+            # 尝试多个路径
             possible_paths = [
-                base_dir / "tools" / "autorunsc64.exe",
-                base_dir / "_internal" / "tools" / "autorunsc64.exe",
+                tools_dir / "autorunsc64.exe",
             ]
             self.autoruns_path = None
             for path in possible_paths:
@@ -93,16 +98,6 @@ class AutorunsParser:
         self._verify_autoruns()
         self._active_process = None
         self._process_lock = threading.Lock()
-
-    def _get_app_dir(self) -> Path:
-        """获取应用根目录（支持源码运行和PyInstaller打包）"""
-        import sys
-        if getattr(sys, 'frozen', False):
-            # PyInstaller打包后，使用可执行文件所在目录
-            return Path(sys.executable).parent
-        else:
-            # 源码运行，使用脚本所在目录
-            return Path(__file__).parent.parent
     
     def _verify_autoruns(self):
         """验证autoruns是否存在"""
@@ -361,56 +356,56 @@ class AutorunsParser:
         注意: Winlogon Shell/Userinit 已禁用删除功能，因对系统启动至关重要
         """
         try:
-            print(f"[Parser] delete_entry 开始")
-            print(f"[Parser] entry.location: {entry.location}")
-            print(f"[Parser] entry.entry: {entry.entry}")
-            print(f"[Parser] entry.launch_string: {entry.launch_string}")
-            print(f"[Parser] entry.service_name: {entry.service_name}")
-            print(f"[Parser] entry.category: {entry.category}")
+            logger.debug("delete_entry 开始")
+            logger.debug(f"entry.location: {entry.location}")
+            logger.debug(f"entry.entry: {entry.entry}")
+            logger.debug(f"entry.launch_string: {entry.launch_string}")
+            logger.debug(f"entry.service_name: {entry.service_name}")
+            logger.debug(f"entry.category: {entry.category}")
             
             # 1. Services (最高优先级)
             if entry.service_name:
-                print(f"[Parser] 识别为服务类型（通过 service_name）")
+                logger.debug("识别为服务类型（通过 service_name）")
                 return self._delete_service(entry)
             
             # 2. Winlogon/Credential Providers (删除注册表子键)
             if entry.location and 'Credential Providers' in entry.location:
-                print(f"[Parser] 识别为 Winlogon/Credential Providers 类型")
+                logger.debug("识别为 Winlogon/Credential Providers 类型")
                 return self._delete_registry_key(entry)
             
             # 3. Winlogon/Notify (删除注册表子键)
             if entry.location and 'Winlogon\\Notify' in entry.location:
-                print(f"[Parser] 识别为 Winlogon/Notify 类型")
+                logger.debug("识别为 Winlogon/Notify 类型")
                 return self._delete_registry_key(entry)
             
             # 4. LSA Providers/Authentication Packages (编辑 REG_MULTI_SZ)
             if entry.location and 'Authentication Packages' in entry.location:
-                print(f"[Parser] 识别为 LSA/Authentication Packages 类型")
+                logger.debug("识别为 LSA/Authentication Packages 类型")
                 return self._delete_lsa_auth_package(entry, 'Authentication Packages')
             
             # 5. LSA Providers/Security Packages (编辑 REG_MULTI_SZ)
             if entry.location and 'Security Packages' in entry.location:
-                print(f"[Parser] 识别为 LSA/Security Packages 类型")
+                logger.debug("识别为 LSA/Security Packages 类型")
                 return self._delete_lsa_auth_package(entry, 'Security Packages')
             
             # 6. Scheduled Task
             if entry.category in ("Scheduled Tasks", "Tasks") or 'Task' in entry.location:
-                print(f"[Parser] 识别为计划任务类型")
+                logger.debug("识别为计划任务类型")
                 return self._delete_scheduled_task(entry)
             
             # 7. Boot Execute (编辑 REG_MULTI_SZ)
             if entry.location and 'BootExecute' in entry.location:
-                print(f"[Parser] 识别为 Boot Execute 类型")
+                logger.debug("识别为 Boot Execute 类型")
                 return self._delete_boot_execute_entry(entry)
             
             # 8. KnownDLLs (删除注册表值)
             if entry.location and 'KnownDLLs' in entry.location:
-                print(f"[Parser] 识别为 KnownDLLs 类型")
+                logger.debug("识别为 KnownDLLs 类型")
                 return self._delete_registry_entry(entry)
             
             # 9. AppInit_DLLs (编辑 REG_SZ 值，移除指定 DLL)
             if entry.location and 'AppInit_DLLs' in entry.location:
-                print(f"[Parser] 识别为 AppInit_DLLs 类型")
+                logger.debug("识别为 AppInit_DLLs 类型")
                 return self._delete_appinit_dlls_entry(entry)
             
             # 10. Winlogon Shell/Userinit - 已禁用删除功能
@@ -419,26 +414,25 @@ class AutorunsParser:
             
             # 11. Registry Run keys (删除注册表值)
             if entry.location and ('Run' in entry.location or 'RunOnce' in entry.location):
-                print(f"[Parser] 识别为注册表 Run/RunOnce 类型")
+                logger.debug("识别为注册表 Run/RunOnce 类型")
                 return self._delete_registry_entry(entry)
             
             # 12. Image File Execution Options (IFEO)
             if entry.location and 'Image File Execution Options' in entry.location:
-                print(f"[Parser] 识别为 IFEO 类型")
+                logger.debug("识别为 IFEO 类型")
                 return self._delete_ifeo_entry(entry)
             
             # 13. Fallback: 尝试作为注册表值删除
             if entry.location and ('HKLM' in entry.location or 'HKCU' in entry.location):
-                print(f"[Parser] 尝试作为注册表值删除")
+                logger.debug("尝试作为注册表值删除")
                 return self._delete_registry_entry(entry)
             
             # 14. 完全不支持的类型
-            print(f"[Parser] 不支持的类型")
+            logger.debug("不支持的类型")
             return False, "不支持删除此类型的启动项"
         except Exception as e:
-            import traceback
-            print(f"[Parser] delete_entry 错误: {e}")
-            print(f"[Parser] 错误堆栈:\n{traceback.format_exc()}")
+            logger.error(f"delete_entry 错误: {e}")
+            logger.error(f"错误堆栈:\n{traceback.format_exc()}")
             return False, str(e)
     
     def _parse_location(self, location: str):
@@ -519,9 +513,9 @@ class AutorunsParser:
             clsid_match = re.search(r'\{[0-9a-fA-F-]{36}\}', entry.launch_string or '')
             if clsid_match:
                 subkey_name = clsid_match.group(0)
-                print(f"[Parser] 从 launch_string 提取 CLSID 子键名: {subkey_name}")
+                logger.debug(f"从 launch_string 提取 CLSID 子键名: {subkey_name}")
         
-        print(f"[Parser] _delete_registry_key: root={root}, parent={parent_path}, subkey={subkey_name}")
+        logger.debug(f"_delete_registry_key: root={root}, parent={parent_path}, subkey={subkey_name}")
         
         try:
             with winreg.OpenKey(root, parent_path, 0,
@@ -545,7 +539,8 @@ class AutorunsParser:
             try:
                 fb = subprocess.run(
                     ['reg', 'delete', full_path, '/f'],
-                    capture_output=True, timeout=15
+                    capture_output=True, timeout=15,
+                    creationflags=subprocess.CREATE_NO_WINDOW
                 )
                 if fb.returncode == 0:
                     return True, f"已删除注册表子键(含子键): {subkey_name}"
@@ -571,7 +566,7 @@ class AutorunsParser:
         if not target_string:
             return False, "无法确定要移除的条目内容"
         
-        print(f"[Parser] _delete_lsa_auth_package: value_name={value_name}, target={target_string}")
+        logger.debug(f"_delete_lsa_auth_package: value_name={value_name}, target={target_string}")
         
         try:
             with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, LSA_KEY_PATH, 0,
@@ -613,7 +608,7 @@ class AutorunsParser:
         if root is None:
             return False, f"无法解析注册表路径: {entry.location}"
         
-        print(f"[Parser] _delete_ifeo_entry: key_path={key_path}, entry={entry.entry}")
+        logger.debug(f"_delete_ifeo_entry: key_path={key_path}, entry={entry.entry}")
         
         try:
             with winreg.OpenKey(root, key_path, 0,
@@ -658,7 +653,7 @@ class AutorunsParser:
         if not target_string:
             return False, "无法确定要移除的条目内容"
         
-        print(f"[Parser] _delete_boot_execute_entry: target={target_string}")
+        logger.debug(f"_delete_boot_execute_entry: target={target_string}")
         
         try:
             with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, BOOTEXECUTE_KEY_PATH, 0,
@@ -703,7 +698,7 @@ class AutorunsParser:
         if not target_dll:
             return False, "无法确定要移除的 DLL"
         
-        print(f"[Parser] _delete_appinit_dlls_entry: target={target_dll}")
+        logger.debug(f"_delete_appinit_dlls_entry: target={target_dll}")
         
         root, key_path = self._parse_location(entry.location)
         if root is None:
@@ -747,7 +742,8 @@ class AutorunsParser:
         """删除计划任务"""
         cmd = ['schtasks', '/delete', '/tn', entry.entry, '/f']
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30,
+                                     creationflags=subprocess.CREATE_NO_WINDOW)
         except subprocess.TimeoutExpired:
             return False, "操作超时(30s)，计划任务可能需要管理员权限或在远程计算机上"
         
@@ -759,23 +755,24 @@ class AutorunsParser:
     
     def _delete_service(self, entry: AutorunEntry) -> tuple:
         """删除服务"""
-        print(f"[Parser] _delete_service 开始")
-        print(f"[Parser] entry.service_name: {entry.service_name}")
+        logger.debug("_delete_service 开始")
+        logger.debug(f"entry.service_name: {entry.service_name}")
         
         if not entry.service_name:
-            print(f"[Parser] service_name 为空，无法删除")
+            logger.debug("service_name 为空，无法删除")
             return False, "Service name not available, cannot delete"
         
         cmd = ['sc', 'delete', entry.service_name]
-        print(f"[Parser] 执行命令: {' '.join(cmd)}")
+        logger.debug(f"执行命令: {' '.join(cmd)}")
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30,
+                                     creationflags=subprocess.CREATE_NO_WINDOW)
         except subprocess.TimeoutExpired:
             return False, "操作超时(30s)"
 
-        print(f"[Parser] 命令返回码: {result.returncode}")
-        print(f"[Parser] 命令输出: {result.stdout}")
-        print(f"[Parser] 命令错误: {result.stderr}")
+        logger.debug(f"命令返回码: {result.returncode}")
+        logger.debug(f"命令输出: {result.stdout}")
+        logger.debug(f"命令错误: {result.stderr}")
         
         if result.returncode == 0:
             return True, f"已删除服务: {entry.service_name}"

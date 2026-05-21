@@ -9,6 +9,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QGuiApplication, QClipboard
 import os
 import json
+import logging
 
 from core.rule_engine import RuleEngine
 from core.search_service import SearchService
@@ -21,6 +22,8 @@ from ui.ui_style import apply_flat_style
 from ui.workspace_rule_dialogs import RuleManagerDialog
 from ui.workspace_results_presenter import WorkspaceResultsPresenter
 from ui.workspace_action_executor import WorkspaceActionExecutor
+
+LOGGER = logging.getLogger(__name__)
 
 
 class NumericTableWidgetItem(QTableWidgetItem):
@@ -471,7 +474,7 @@ class WorkspaceTab(QWidget):
             # 扫描网络连接数据（IP 规则）
             if "ip" in allowed_types:
                 network_data = self.search_service.get_network_connections(include_history=True)
-                print(f"[IP Rule Scan] 获取到 {len(network_data)} 条网络连接")
+                LOGGER.debug(f"[IP Rule Scan] 获取到 {len(network_data)} 条网络连接")
                 for conn in network_data:
                     # 将网络连接转换为条目格式
                     # 注意：IP 规则匹配时会检查 command_line/launch_string/image_path 中的 IP
@@ -504,7 +507,7 @@ class WorkspaceTab(QWidget):
 
                     matched_rules = self.rule_engine.scan_entry(entry, allowed_types)
                     if matched_rules:
-                        print(f"[IP Rule Scan] 命中: PID={conn.get('pid')}, {local_addr} -> {remote_addr}, rules={[r.get('id') for r in matched_rules]}")
+                        LOGGER.debug(f"[IP Rule Scan] 命中: PID={conn.get('pid')}, {local_addr} -> {remote_addr}, rules={[r.get('id') for r in matched_rules]}")
                     if matched_rules:
                         # 获取最高严重级别
                         severity_order = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
