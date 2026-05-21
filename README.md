@@ -96,7 +96,7 @@ powershell -ExecutionPolicy Bypass -File package/build-with-7z.ps1
 
 ## 开发
 
-见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+见 [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)。
 
 ## 常见问题
 

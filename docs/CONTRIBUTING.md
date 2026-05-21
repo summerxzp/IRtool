@@ -121,7 +121,7 @@ def get_app_dir() -> Path:
 
 ## 打包发布
 
-详见 [Release.md](Release.md)。
+详见 [MAINTENANCE.md](MAINTENANCE.md)。
 
 ### 快速打包
 
