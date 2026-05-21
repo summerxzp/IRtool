@@ -32,14 +32,13 @@ Write-Host ""
 # Check 7z for onedir-7z mode
 $sevenZip = $null
 if ($Mode -eq 'onedir-7z') {
-    if (Get-Command 7z -ErrorAction SilentlyContinue) {
-        $sevenZip = '7z'
+    $cmd = Get-Command 7z -ErrorAction SilentlyContinue
+    if ($cmd) {
+        $sevenZip = $cmd.Source
     } elseif (Test-Path 'C:\Program Files\7-Zip\7z.exe') {
         $sevenZip = 'C:\Program Files\7-Zip\7z.exe'
     } elseif (Test-Path 'C:\Program Files (x86)\7-Zip\7z.exe') {
         $sevenZip = 'C:\Program Files (x86)\7-Zip\7z.exe'
-    } elseif (Test-Path 'D:\Sofware\7-Zip\7z.exe') {
-        $sevenZip = 'D:\Sofware\7-Zip\7z.exe'
     }
 
     if (-not $sevenZip) {
@@ -243,8 +242,20 @@ if ($LASTEXITCODE -eq 0) {
 
         if ($LASTEXITCODE -eq 0) {
             # Get 7z SFX module
-            $sfxModule = Join-Path (Split-Path $sevenZip) '7z.sfx'
-            if (Test-Path $sfxModule) {
+            $sevenZipDir = Split-Path $sevenZip -ErrorAction SilentlyContinue
+            $sfxModule = $null
+            if ($sevenZipDir) {
+                $sfxModule = Join-Path $sevenZipDir '7z.sfx'
+            }
+            if (-not $sfxModule -or -not (Test-Path $sfxModule)) {
+                $sfxModule = Get-Command 7z.sfx -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+            }
+            if (-not $sfxModule -or -not (Test-Path $sfxModule)) {
+                foreach ($p in @('C:\Program Files\7-Zip\7z.sfx', 'C:\Program Files (x86)\7-Zip\7z.sfx')) {
+                    if (Test-Path $p) { $sfxModule = $p; break }
+                }
+            }
+            if ($sfxModule -and (Test-Path $sfxModule)) {
                 # Create config file for SFX from template
                 $configFile = Join-Path $here 'dist\sfx_config.txt'
                 $templateFile = Join-Path $here 'sfx_config_template.txt'
