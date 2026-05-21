@@ -7,7 +7,7 @@ def _create_qt_mock():
     mock.QObject = MagicMock
     mock.QRunnable = MagicMock
     mock.QThreadPool = MagicMock
-    mock.QTimer = MagicMock
+    mock.QTimer = MagicMock()
     mock.QThread = MagicMock
     mock.pyqtSignal = MagicMock(return_value=MagicMock())
     mock.pyqtSlot = MagicMock(return_value=lambda f: f)

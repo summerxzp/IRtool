@@ -46,7 +46,6 @@ package/build/
 
 # Temporary test files
 test_*_fix*.py
-test_*_*.py
 debug_*.py
 *_backup.py
 *_backup/
