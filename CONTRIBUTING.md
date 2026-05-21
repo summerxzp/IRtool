@@ -13,7 +13,11 @@
 ### 安装依赖
 
 ```bash
+# 运行时依赖
 pip install -r requirements.txt
+
+# 或使用 pyproject.toml（推荐）
+pip install -e ".[dev]"
 ```
 
 ### 运行项目
@@ -128,13 +132,45 @@ powershell -ExecutionPolicy Bypass -File package/build-with-7z.ps1
 
 ### 发布检查清单
 
-- [ ] 更新 `core/constants.py` 版本号
-- [ ] 更新 `package/build-with-7z.ps1` 版本号
+- [ ] 更新 `pyproject.toml` 版本号
 - [ ] 更新 `CHANGELOG.md` 版本日志
 - [ ] 测试源码运行正常
 - [ ] 测试打包后运行正常
 - [ ] 验证工具调用正常（autoruns, sigcheck）
 - [ ] 验证管理员权限申请
+
+## Git 提交规范
+
+采用 [Conventional Commits](https://www.conventionalcommits.org/) 规范：
+
+```
+<type>(<scope>): <subject>
+```
+
+**type 类型**：
+
+| type | 说明 |
+|------|------|
+| `feat` | 新功能 |
+| `fix` | 修复 bug |
+| `refactor` | 重构（非新功能、非修复） |
+| `perf` | 性能优化 |
+| `ui` | UI 调整 |
+| `docs` | 文档变更 |
+| `test` | 测试相关 |
+| `chore` | 构建/工具/依赖 |
+
+**scope 范围**（可选）：`autoruns`, `network`, `workspace`, `rule-engine`, `sysmon`, `threat-intel`, `ui`, `utils`, `build`
+
+**示例**：
+```
+feat(autoruns): 添加进程父进程链查看功能
+fix(network): 修复连接状态过滤逻辑
+refactor(rule-engine): 提取 IP 匹配为独立方法
+docs: 更新架构文档
+```
+
+> 配置提交模板：`git config commit.template .gitmessage`
 
 ## 常见问题
 

@@ -1,10 +1,25 @@
 # core/constants.py
 """全局常量定义"""
 
+from pathlib import Path
+
+
+def _read_version_from_pyproject() -> str:
+    pyproject_path = Path(__file__).resolve().parent.parent / "pyproject.toml"
+    try:
+        with open(pyproject_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.strip().startswith("version"):
+                    return line.split("=", 1)[1].strip().strip('"').strip("'")
+    except Exception:
+        pass
+    return "0.0.0"
+
+
 # 应用信息
 APP_NAME = "终端安全检测工具"
 APP_ID = "com.internal.IRtool"
-APP_VERSION = "1.1.4"
+APP_VERSION = _read_version_from_pyproject()
 BUILD_TYPE = "release"
 BUILD_DATE = "2026-05-20"
 

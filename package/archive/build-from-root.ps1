@@ -16,7 +16,7 @@ Write-Host "Package dir: $scriptDir" -ForegroundColor Cyan
 # Create venv for build isolation (放在package目录下)
 $venv = Join-Path $scriptDir '.venv'
 if (-not (Test-Path $venv)) {
-    python -m venv $venv
+    D:\Sofware\python3.11.9\python.exe -m venv $venv
 }
 
 $python = Join-Path $venv 'Scripts\python.exe'

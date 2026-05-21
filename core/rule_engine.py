@@ -1,4 +1,4 @@
-"""
+r"""
 规则引擎 - JSON 转义规则说明
 
 【重要】规则文件中的 value 字段必须按以下规则转义：
@@ -26,7 +26,24 @@ import json
 import re
 import ipaddress
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple, Set
+from typing import List, Dict, Any, Optional, Tuple, Set, TypedDict
+
+
+class ScanEntry(TypedDict, total=False):
+    image_path: str
+    command_line: str
+    launch_string: str
+    enabled: str
+    entry: str
+    location: str
+    category: str
+    md5: str
+    sha256: str
+    ip: str
+    detail_data: Dict[str, Any]
+
+
+SUPPORTED_FIELDS = {"image_path", "command_line", "launch_string", "enabled", "entry", "location", "category", "md5", "sha256", "ip", "hash"}
 
 
 class RuleValidationError:
@@ -131,6 +148,10 @@ class RuleEngine:
                     self._validation_errors.append(
                         RuleValidationError(rule_id, f"match[{idx}].field", "missing_required", "字段不能为空")
                     )
+                elif field not in SUPPORTED_FIELDS:
+                    self._validation_errors.append(
+                        RuleValidationError(rule_id, f"match[{idx}].field", "invalid_field", f"未知字段: {field}，支持的字段: {', '.join(sorted(SUPPORTED_FIELDS))}")
+                    )
                 
                 if not match_type:
                     self._validation_errors.append(
@@ -184,7 +205,7 @@ class RuleEngine:
         except Exception as e:
             return False, f"保存规则失败: {str(e)}"
 
-    def scan_entry(self, entry, allowed_types=None, debug=False):
+    def scan_entry(self, entry: ScanEntry, allowed_types: Optional[Set[str]] = None, debug: bool = False):
         """扫描单个条目，返回命中的规则列表
         
         Args:

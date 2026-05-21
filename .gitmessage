@@ -1,0 +1,23 @@
+# Conventional Commits 规范
+
+# 格式: <type>(<scope>): <subject>
+#
+# type:
+#   feat     新功能
+#   fix      修复 bug
+#   refactor 重构（非新功能、非修复）
+#   perf     性能优化
+#   ui       UI 调整
+#   docs     文档变更
+#   test     测试相关
+#   chore    构建/工具/依赖
+#
+# scope（可选）:
+#   autoruns, network, workspace, rule-engine, sysmon,
+#   threat-intel, skill-scan, ui, utils, build
+#
+# 示例:
+#   feat(autoruns): 添加进程父进程链查看功能
+#   fix(network): 修复连接状态过滤逻辑
+#   refactor(rule-engine): 提取 IP 匹配为独立方法
+#   docs: 更新架构文档

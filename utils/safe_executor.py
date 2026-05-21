@@ -121,9 +121,7 @@ class CommandTask(QRunnable):
                 error_message=f"命令或文件不存在: {str(e)}"
             )
         except Exception as e:
-            LOGGER.error(f"[SafeExecutor] 执行异常: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            LOGGER.error(f"[SafeExecutor] 执行异常: {str(e)}", exc_info=True)
             return CommandResult(
                 status=CommandStatus.FAILED,
                 return_code=-1,

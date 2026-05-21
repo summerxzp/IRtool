@@ -1,19 +1,55 @@
-.venv/
-venv/
-.venv_codex/
+# Python
 __pycache__/
 *.pyc
 *.pyo
-package/.venv/
-package/dist/
-package/build/
-app.log
+*.pyd
+*.egg-info/
+*.egg
+dist/
+build/
+*.whl
+
+# Virtual environments
+.venv/
+venv/
+.venv_codex/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+app.log
 logs/
 
-# 临时测试文件
+# Environment
+.env
+.env.*
+
+# Package build artifacts
+package/.venv/
+package/build-venv/
+package/dist/
+package/build/
+
+# PyInstaller
+*.spec
+
+# Temporary test files
 test_*_fix*.py
 test_*_*.py
 debug_*.py
 *_backup.py
 *_backup/
+
+# Sysmon runtime marker
+.sysmon_started_by_irtool

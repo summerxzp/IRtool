@@ -5,7 +5,7 @@
 
 from .autoruns_parser import AutorunsParser, AutorunEntry
 from .data_store import DataStore
-from .rule_engine import RuleEngine
+from .rule_engine import RuleEngine, ScanEntry
 from .search_service import SearchService
 from .icon_provider import IconProvider, get_icon, get_icon_provider
 from .risk_hint import RiskEvaluator, RiskLevel, RiskHint, get_risk_evaluator, evaluate
@@ -17,13 +17,6 @@ from .threat_intel import (
     VirusTotalProvider,
     WeibuProvider,
     ThreatIntelService,
-)
-from .skill_audit import (
-    SkillAuditFinding,
-    SkillAuditReport,
-    SkillAuditOptions,
-    SkillAuditScanner,
-    DEFAULT_SKILL_ROOTS,
 )
 from .skill_scan import (
     SkillFileEntry,
@@ -40,6 +33,7 @@ __all__ = [
     'AutorunEntry',
     'DataStore',
     'RuleEngine',
+    'ScanEntry',
     'SearchService',
     'IconProvider',
     'get_icon',
@@ -56,11 +50,6 @@ __all__ = [
     'VirusTotalProvider',
     'WeibuProvider',
     'ThreatIntelService',
-    'SkillAuditFinding',
-    'SkillAuditReport',
-    'SkillAuditOptions',
-    'SkillAuditScanner',
-    'DEFAULT_SKILL_ROOTS',
     'SkillFileEntry',
     'SkillScanConfig',
     'SkillScanResult',

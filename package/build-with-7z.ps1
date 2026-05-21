@@ -1,6 +1,6 @@
 # IRtool Release Build Script
 # Build Type: onedir + 7z SFX (self-extracting)
-# Version: 1.1.3
+# Version: 1.1.4
 
 param(
     [ValidateSet('onedir','onedir-7z')] [string]$Mode = 'onedir-7z'
@@ -14,10 +14,12 @@ Set-Location $here
 # Use parent directory (project root) as app directory
 $appDir = Split-Path -Parent $here
 
-# Version info (must match core/constants.py)
-$appVersion = "1.1.4"
+# Read version from pyproject.toml (single source of truth)
+$pyprojectPath = Join-Path $appDir 'pyproject.toml'
+$appVersion = (Select-String -Path $pyprojectPath -Pattern 'version\s*=\s*"([^"]+)"' | Select-Object -First 1).Matches.Groups[1].Value
+if (-not $appVersion) { $appVersion = "0.0.0" }
 $buildType = "release"
-$buildDate = "2026-05-20"
+$buildDate = (Get-Date -Format "yyyy-MM-dd")
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  IRtool Release Build" -ForegroundColor Cyan
@@ -36,6 +38,8 @@ if ($Mode -eq 'onedir-7z') {
         $sevenZip = 'C:\Program Files\7-Zip\7z.exe'
     } elseif (Test-Path 'C:\Program Files (x86)\7-Zip\7z.exe') {
         $sevenZip = 'C:\Program Files (x86)\7-Zip\7z.exe'
+    } elseif (Test-Path 'D:\Sofware\7-Zip\7z.exe') {
+        $sevenZip = 'D:\Sofware\7-Zip\7z.exe'
     }
 
     if (-not $sevenZip) {
@@ -46,15 +50,17 @@ if ($Mode -eq 'onedir-7z') {
     Write-Host "7-Zip found: $sevenZip" -ForegroundColor Green
 }
 
-# Use venv Python (system Python may not be in PATH)
-$python = Join-Path $appDir '.venv\Scripts\python.exe'
-if (-not (Test-Path $python)) {
-    # Fallback to system Python
-    $python = 'python'
+# Create venv in package directory
+$venv = Join-Path $here '.venv'
+if (-not (Test-Path $venv)) {
+    Write-Host "Creating virtual environment..." -ForegroundColor Cyan
+    D:\Sofware\python3.11.9\python.exe -m venv $venv
 }
+
+$python = Join-Path $venv 'Scripts\python.exe'
 Write-Host "Using Python: $python" -ForegroundColor Yellow
 Write-Host "Installing dependencies..." -ForegroundColor Yellow
-& $python -m pip install -q -r (Join-Path $here 'requirements-build.txt')
+& $python -m pip install -r (Join-Path $here 'requirements-build.txt')
 
 # Get PyQt6 Qt6 bin path for DLLs
 $qt6BinPath = & $python -c "import PyQt6; import os; print(os.path.join(os.path.dirname(PyQt6.__file__), 'Qt6', 'bin'))"

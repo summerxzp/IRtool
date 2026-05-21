@@ -4,6 +4,7 @@
 # 标准库
 import ctypes
 import logging
+import logging.handlers
 import os
 import sys
 from datetime import datetime
@@ -45,8 +46,10 @@ log_file = logs_dir / f"IRtool_{datetime.now().strftime('%Y%m%d')}.log"
 logger = logging.getLogger('IRtool')
 logger.setLevel(getattr(logging, LOG_LEVEL, logging.INFO))
 
-# 文件处理器
-file_handler = logging.FileHandler(log_file, encoding='utf-8')
+# 文件处理器（带轮转，单文件最大 10MB，保留 5 个备份）
+file_handler = logging.handlers.RotatingFileHandler(
+    log_file, maxBytes=10*1024*1024, backupCount=5, encoding='utf-8'
+)
 file_handler.setLevel(logging.INFO)
 file_formatter = logging.Formatter(LOG_FORMAT)
 file_handler.setFormatter(file_formatter)
@@ -100,7 +103,7 @@ def is_admin():
     """检查是否以管理员权限运行"""
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
-    except:
+    except Exception:
         return False
 
 class MainWindow(QMainWindow):
