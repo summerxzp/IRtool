@@ -1,6 +1,6 @@
 # IRtool Release Build Script
 # Build Type: onedir + 7z SFX (self-extracting)
-# Version: 1.1.4
+# Version: auto-detected from pyproject.toml
 
 param(
     [ValidateSet('onedir','onedir-7z')] [string]$Mode = 'onedir-7z'
@@ -54,7 +54,16 @@ if ($Mode -eq 'onedir-7z') {
 $venv = Join-Path $here '.venv'
 if (-not (Test-Path $venv)) {
     Write-Host "Creating virtual environment..." -ForegroundColor Cyan
-    D:\Sofware\python3.11.9\python.exe -m venv $venv
+    $pythonExe = $null
+    foreach ($candidate in @('python', 'python3', 'python3.11')) {
+        try { $pythonExe = (Get-Command $candidate -ErrorAction Stop).Source; break } catch {}
+    }
+    if (-not $pythonExe) {
+        Write-Host "Python not found. Please install Python 3.11+ and add to PATH." -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "Using system Python: $pythonExe" -ForegroundColor Yellow
+    & $pythonExe -m venv $venv
 }
 
 $python = Join-Path $venv 'Scripts\python.exe'
