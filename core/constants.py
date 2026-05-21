@@ -1,10 +1,19 @@
 # core/constants.py
 """全局常量定义"""
 
+import os
+import sys
 from pathlib import Path
 
 
 def _read_version_from_pyproject() -> str:
+    if getattr(sys, 'frozen', False):
+        env_ver = os.environ.get("IRTOOL_VERSION", "")
+        if env_ver:
+            return env_ver
+        ver_file = Path(sys.executable).parent / ".version"
+        if ver_file.exists():
+            return ver_file.read_text(encoding="utf-8").strip()
     pyproject_path = Path(__file__).resolve().parent.parent / "pyproject.toml"
     try:
         with open(pyproject_path, "r", encoding="utf-8") as f:

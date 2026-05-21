@@ -196,6 +196,9 @@ if ($LASTEXITCODE -eq 0) {
 
     $dirPath = Join-Path $here "dist\$outputName"
 
+    # Write .version file for runtime version detection
+    Set-Content -Path (Join-Path $dirPath ".version") -Value $appVersion -NoNewline
+
     if ($Mode -eq 'onedir-7z') {
         Write-Host ""
         Write-Host "Creating 7z self-extracting archive..." -ForegroundColor Cyan
