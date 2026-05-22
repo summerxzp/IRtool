@@ -59,7 +59,7 @@ jobs:
           $repo = "irtool"
 
           if (-not $env:GITEE_TOKEN) {
-            Write-Error "GITEE_TOKEN is not configured. Skip Gitee upload."
+            Write-Warning "GITEE_TOKEN is not configured. Skip Gitee upload."
             exit 0
           }
 
@@ -73,17 +73,20 @@ jobs:
             Invoke-RestMethod -Uri "https://gitee.com/api/v5/repos/$owner/$repo/tags" -Method Post -Body $tagBody -ContentType "application/x-www-form-urlencoded" -ErrorAction Stop
             Write-Host "Tag $tag created on Gitee"
           } catch {
-            $respStream = $_.Exception.Response
-            $errBody = ""
-            if ($respStream) {
-              $reader = New-Object System.IO.StreamReader($respStream.GetResponseStream())
-              $errBody = $reader.ReadToEnd()
-              $reader.Close()
+            $errDetail = ""
+            if ($_.ErrorDetails) { $errDetail = $_.ErrorDetails.Message }
+            elseif ($_.Exception.Response) {
+              try {
+                $stream = $_.Exception.Response.GetResponseStream()
+                $reader = New-Object System.IO.StreamReader($stream)
+                $errDetail = $reader.ReadToEnd()
+                $reader.Close()
+              } catch {}
             }
-            if ($errBody -match "已存在" -or $errBody -match "already exist") {
+            if ($errDetail -match "已存在" -or $errDetail -match "already exist") {
               Write-Host "Tag $tag already exists on Gitee, continuing"
             } else {
-              Write-Error "Failed to create tag: $errBody"
+              Write-Error "Failed to create tag: $errDetail"
               exit 1
             }
           }
@@ -103,20 +106,23 @@ jobs:
             $releaseId = $resp.id
             Write-Host "Gitee release created: $releaseId"
           } catch {
-            $respStream2 = $_.Exception.Response
-            $errBody2 = ""
-            if ($respStream2) {
-              $reader2 = New-Object System.IO.StreamReader($respStream2.GetResponseStream())
-              $errBody2 = $reader2.ReadToEnd()
-              $reader2.Close()
+            $errDetail2 = ""
+            if ($_.ErrorDetails) { $errDetail2 = $_.ErrorDetails.Message }
+            elseif ($_.Exception.Response) {
+              try {
+                $stream2 = $_.Exception.Response.GetResponseStream()
+                $reader2 = New-Object System.IO.StreamReader($stream2)
+                $errDetail2 = $reader2.ReadToEnd()
+                $reader2.Close()
+              } catch {}
             }
-            if ($errBody2 -match "已存在" -or $errBody2 -match "already exist") {
+            if ($errDetail2 -match "已存在" -or $errDetail2 -match "already exist") {
               Write-Host "Release for $tag already exists, fetching existing release ..."
               $existing = Invoke-RestMethod -Uri "https://gitee.com/api/v5/repos/$owner/$repo/releases/tags/$tag" -Method Get -Body @{ access_token = $env:GITEE_TOKEN }
               $releaseId = $existing.id
               Write-Host "Using existing release: $releaseId"
             } else {
-              Write-Error "Failed to create release: $errBody2"
+              Write-Error "Failed to create release: $errDetail2"
               exit 1
             }
           }
@@ -136,6 +142,8 @@ jobs:
             $uploadResp = Invoke-RestMethod -Uri $uploadUrl -Method Post -Form $form -ErrorAction Stop
             Write-Host "File uploaded to Gitee: $($uploadResp.name)"
           } catch {
-            Write-Error "Failed to upload file to Gitee: $($_.Exception.Message)"
+            $errDetail3 = ""
+            if ($_.ErrorDetails) { $errDetail3 = $_.ErrorDetails.Message }
+            Write-Error "Failed to upload file to Gitee: $errDetail3"
             exit 1
           }
