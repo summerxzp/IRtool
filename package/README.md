@@ -18,7 +18,7 @@ powershell -ExecutionPolicy Bypass -File package/build-with-7z.ps1
 ### 可选模式
 
 ```powershell
-# onedir + 7z 自解压（推荐，体积最小）
+# onedir + 7z 自解压 + ZIP 外层包裹（推荐）
 powershell -ExecutionPolicy Bypass -File package/build-with-7z.ps1 -Mode onedir-7z
 
 # onedir 模式（目录形式，便于调试）
@@ -27,10 +27,13 @@ powershell -ExecutionPolicy Bypass -File package/build-with-7z.ps1 -Mode onedir
 
 ## 输出文件
 
-| 模式 | 输出文件名 | 大小 | 说明 |
-|------|-----------|------|------|
-| `onedir-7z` | `IRtool-v{版本号}-7z.exe` | ~37MB | **推荐**，自解压运行 |
-| `onedir` | `IRtool-v{版本号}/` | ~140MB | 目录形式，便于调试 |
+| 模式 | 输出文件名 | 说明 |
+|------|-----------|------|
+| `onedir-7z` | `IRtool-v{版本号}.zip` | **推荐**，ZIP 包裹 SFX 自解压，避免浏览器拦截下载 |
+| `onedir-7z` | `IRtool-v{版本号}-7z.exe` | SFX 自解压包（ZIP 内部文件） |
+| `onedir` | `IRtool-v{版本号}/` | 目录形式，便于调试 |
+
+用户下载 ZIP 后解压，双击 `IRtool-v{版本号}-7z.exe` 即可运行。
 
 ## 版本管理
 
@@ -42,10 +45,11 @@ powershell -ExecutionPolicy Bypass -File package/build-with-7z.ps1 -Mode onedir
 
 ```
 package/
-├── build-with-7z.ps1       # 唯一主构建脚本
+├── build-with-7z.ps1       # 主构建脚本
 ├── IRtool.manifest          # UAC 清单（管理员权限）
 ├── requirements-build.txt   # 打包依赖
 ├── sfx_config_template.txt  # 7z SFX 配置模板
+├── CI.md                    # CI 与发布流程说明
 └── README.md                # 本文件
 ```
 
@@ -56,6 +60,7 @@ package/
 3. 从 `pyproject.toml` 读取版本号
 4. PyInstaller onedir 模式打包（排除 50+ 未使用模块）
 5. 7z LZMA2 极限压缩 + SFX 自解压封装
+6. ZIP 外层包裹（避免浏览器"不安全下载"拦截）
 
 ## 注意事项
 

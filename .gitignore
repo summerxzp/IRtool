@@ -12,7 +12,6 @@ build/
 # Virtual environments
 .venv/
 venv/
-.venv_codex/
 env/
 
 # IDE
@@ -32,26 +31,21 @@ desktop.ini
 app.log
 logs/
 
-# Environment
+# Environment & secrets
 .env
 .env.*
+config.json
 
 # Package build artifacts
 package/.venv/
-package/build-venv/
 package/dist/
 package/build/
 
 # PyInstaller
 *.spec
 
-# Temporary test files
-test_*_fix*.py
-debug_*.py
-*_backup.py
-*_backup/
-
-# Sysmon runtime marker
+# Runtime generated
+tools/sysmon_config_backup_*.xml
 .sysmon_started_by_irtool
 
 # Local backups
