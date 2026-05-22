@@ -68,11 +68,17 @@ jobs:
             Invoke-RestMethod -Uri "https://gitee.com/api/v5/repos/$owner/$repo/tags" -Method Post -Body $tagBody -ContentType "application/x-www-form-urlencoded" -ErrorAction Stop
             Write-Host "Tag $tag created on Gitee"
           } catch {
-            $errMsg = $_.Exception.Message
-            if ($errMsg -match "已存在" -or $errMsg -match "already exist") {
+            $respStream = $_.Exception.Response
+            $errBody = ""
+            if ($respStream) {
+              $reader = New-Object System.IO.StreamReader($respStream.GetResponseStream())
+              $errBody = $reader.ReadToEnd()
+              $reader.Close()
+            }
+            if ($errBody -match "已存在" -or $errBody -match "already exist" -or $errBody -match "标签名已存在") {
               Write-Host "Tag $tag already exists on Gitee, continuing"
             } else {
-              Write-Error "Failed to create tag: $errMsg"
+              Write-Error "Failed to create tag: $errBody"
               exit 1
             }
           }
