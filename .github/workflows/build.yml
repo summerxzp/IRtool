@@ -144,17 +144,20 @@ jobs:
             Write-Error "Build artifact not found: $file"
             exit 1
           }
+          $fileSize = [math]::Round((Get-Item $file).Length / 1MB, 2)
+          Write-Host "Uploading $file ($fileSize MB) to Gitee release $releaseId ..."
           try {
             $uploadUrl = "https://gitee.com/api/v5/repos/$owner/$repo/releases/$releaseId/attach_files?access_token=$env:GITEE_TOKEN"
-            $form = @{
-              file         = Get-Item -Path $file
-            }
-            $uploadResp = Invoke-RestMethod -Uri $uploadUrl -Method Post -Form $form -ErrorAction Stop
+            $form = @{ file = Get-Item -Path $file }
+            $uploadResp = Invoke-RestMethod -Uri $uploadUrl -Method Post -Form $form -TimeoutSec 600 -ErrorAction Stop
             Write-Host "File uploaded to Gitee: $($uploadResp.name)"
           } catch {
             $errMsg3 = Get-ApiMsg $_
             if ($errMsg3 -match "已经存在" -or $errMsg3 -match "已存在" -or $errMsg3 -match "already exist") {
               Write-Host "File already exists on Gitee release, skipping upload"
+            } elseif ($errMsg3 -match "timeout" -or $errMsg3 -match "超时" -or $errMsg3 -match "timed out") {
+              Write-Error "Upload timed out after 10 minutes (file size: $fileSize MB)"
+              exit 1
             } else {
               Write-Error "Failed to upload file to Gitee: $errMsg3"
               exit 1
