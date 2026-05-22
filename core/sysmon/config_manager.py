@@ -164,7 +164,8 @@ class SysmonConfigManager:
             cmd.append('-accepteula')
         cmd.extend(['-i', str(self.config_path)])
 
-        logger.debug(f"执行命令: {' '.join(cmd)}")
+        cmd_str = ' '.join(cmd)
+        logger.info(f"执行命令: {cmd_str}")
 
         try:
             result = subprocess.run(

@@ -96,6 +96,7 @@ $buildArgs = @(
     '--hidden-import','PyQt6.QtGui',
     '--hidden-import','PyQt6.QtWidgets',
     '--hidden-import','pyparsing',
+    '--hidden-import','core.sysmon',
     '--hidden-import','win32service',
     '--hidden-import','win32serviceutil',
     '--hidden-import','win32evtlog',
