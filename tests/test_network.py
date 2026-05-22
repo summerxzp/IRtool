@@ -15,7 +15,11 @@ class TestNetworkMonitor:
             assert isinstance(conn, NetworkConnection)
             assert conn.pid > 0
             assert conn.process_name
-            assert conn.status in monitor.VALID_STATUSES
+            # UDP connections have empty status, TCP uses VALID_STATUSES
+            if conn.family == "UDP":
+                assert conn.status == ""
+            else:
+                assert conn.status in monitor.VALID_STATUSES
     
     def test_connection_to_dict(self):
         conn = NetworkConnection(
