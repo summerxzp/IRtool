@@ -61,11 +61,11 @@ jobs:
           Write-Host "Creating Gitee release for $tag ..."
 
           $body = @{
-            access_token = $env:GITEE_TOKEN
-            tag_name     = $tag
-            name         = "IRtool $tag"
-            body         = "Automated build from GitHub CI"
-            target       = "main"
+            access_token     = $env:GITEE_TOKEN
+            tag_name         = $tag
+            name             = "IRtool $tag"
+            body             = "Automated build from GitHub CI"
+            target_commitish = "main"
           }
 
           $resp = Invoke-RestMethod -Uri "https://gitee.com/api/v5/repos/$owner/$repo/releases" -Method Post -Body $body -ContentType "application/x-www-form-urlencoded"
