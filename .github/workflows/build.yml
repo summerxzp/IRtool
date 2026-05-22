@@ -58,7 +58,7 @@ jobs:
           $owner = "summerxzp"
           $repo = "irtool"
 
-          # Check if tag exists on Gitee, create if not
+          # Check if tag exists on Gitee, create if not (Gitee default branch is master)
           try {
             $tagResp = Invoke-RestMethod -Uri "https://gitee.com/api/v5/repos/$owner/$repo/tags/$tag" -Method Get -ErrorAction Stop
             Write-Host "Tag $tag already exists on Gitee"
@@ -66,10 +66,10 @@ jobs:
             Write-Host "Tag $tag not found, creating tag on Gitee ..."
             $tagBody = @{
               access_token = $env:GITEE_TOKEN
-              refs         = "main"
+              refs         = "refs/heads/master"
               tag_name     = $tag
             }
-            Invoke-RestMethod -Uri "https://gitee.com/api/v5/repos/$owner/$repo/git/tags" -Method Post -Body $tagBody -ContentType "application/x-www-form-urlencoded"
+            Invoke-RestMethod -Uri "https://gitee.com/api/v5/repos/$owner/$repo/tags" -Method Post -Body $tagBody -ContentType "application/x-www-form-urlencoded"
             Write-Host "Tag $tag created on Gitee"
           }
 
