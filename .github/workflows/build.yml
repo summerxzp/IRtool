@@ -63,6 +63,23 @@ jobs:
             exit 0
           }
 
+          function Get-ApiMsg {
+            param($errRecord)
+            $msg = ""
+            if ($errRecord.ErrorDetails -and $errRecord.ErrorDetails.Message) {
+              try {
+                $json = $errRecord.ErrorDetails.Message | ConvertFrom-Json
+                if ($json.message) { $msg = $json.message }
+                elseif ($json.messages) { $msg = $json.messages -join ", " }
+                else { $msg = $errRecord.ErrorDetails.Message }
+              } catch {
+                $msg = $errRecord.ErrorDetails.Message
+              }
+            }
+            if (-not $msg) { $msg = $errRecord.Exception.Message }
+            return $msg
+          }
+
           # Ensure tag exists on Gitee (Gitee default branch is master)
           try {
             $tagBody = @{
@@ -73,20 +90,12 @@ jobs:
             Invoke-RestMethod -Uri "https://gitee.com/api/v5/repos/$owner/$repo/tags" -Method Post -Body $tagBody -ContentType "application/x-www-form-urlencoded" -ErrorAction Stop
             Write-Host "Tag $tag created on Gitee"
           } catch {
-            $errDetail = ""
-            if ($_.ErrorDetails) { $errDetail = $_.ErrorDetails.Message }
-            elseif ($_.Exception.Response) {
-              try {
-                $stream = $_.Exception.Response.GetResponseStream()
-                $reader = New-Object System.IO.StreamReader($stream)
-                $errDetail = $reader.ReadToEnd()
-                $reader.Close()
-              } catch {}
-            }
-            if ($errDetail -match "已存在" -or $errDetail -match "already exist") {
+            $errMsg = Get-ApiMsg $_
+            Write-Host "Tag creation response: $errMsg"
+            if ($errMsg -match "已经存在" -or $errMsg -match "已存在" -or $errMsg -match "already exist") {
               Write-Host "Tag $tag already exists on Gitee, continuing"
             } else {
-              Write-Error "Failed to create tag: $errDetail"
+              Write-Error "Failed to create tag: $errMsg"
               exit 1
             }
           }
@@ -106,23 +115,21 @@ jobs:
             $releaseId = $resp.id
             Write-Host "Gitee release created: $releaseId"
           } catch {
-            $errDetail2 = ""
-            if ($_.ErrorDetails) { $errDetail2 = $_.ErrorDetails.Message }
-            elseif ($_.Exception.Response) {
-              try {
-                $stream2 = $_.Exception.Response.GetResponseStream()
-                $reader2 = New-Object System.IO.StreamReader($stream2)
-                $errDetail2 = $reader2.ReadToEnd()
-                $reader2.Close()
-              } catch {}
-            }
-            if ($errDetail2 -match "已存在" -or $errDetail2 -match "already exist") {
+            $errMsg2 = Get-ApiMsg $_
+            Write-Host "Release creation response: $errMsg2"
+            if ($errMsg2 -match "已经存在" -or $errMsg2 -match "已存在" -or $errMsg2 -match "already exist") {
               Write-Host "Release for $tag already exists, fetching existing release ..."
-              $existing = Invoke-RestMethod -Uri "https://gitee.com/api/v5/repos/$owner/$repo/releases/tags/$tag" -Method Get -Body @{ access_token = $env:GITEE_TOKEN }
-              $releaseId = $existing.id
-              Write-Host "Using existing release: $releaseId"
+              try {
+                $existing = Invoke-RestMethod -Uri "https://gitee.com/api/v5/repos/$owner/$repo/releases/tags/$tag" -Method Get -Body @{ access_token = $env:GITEE_TOKEN } -ErrorAction Stop
+                $releaseId = $existing.id
+                Write-Host "Using existing release: $releaseId"
+              } catch {
+                $fetchErr = Get-ApiMsg $_
+                Write-Error "Failed to fetch existing release for $tag : $fetchErr"
+                exit 1
+              }
             } else {
-              Write-Error "Failed to create release: $errDetail2"
+              Write-Error "Failed to create release: $errMsg2"
               exit 1
             }
           }
@@ -133,17 +140,23 @@ jobs:
           }
 
           # Upload file
+          if (-not (Test-Path $file)) {
+            Write-Error "Build artifact not found: $file"
+            exit 1
+          }
           try {
-            $uploadUrl = "https://gitee.com/api/v5/repos/$owner/$repo/releases/$releaseId/attach_files"
+            $uploadUrl = "https://gitee.com/api/v5/repos/$owner/$repo/releases/$releaseId/attach_files?access_token=$env:GITEE_TOKEN"
             $form = @{
-              access_token = $env:GITEE_TOKEN
               file         = Get-Item -Path $file
             }
             $uploadResp = Invoke-RestMethod -Uri $uploadUrl -Method Post -Form $form -ErrorAction Stop
             Write-Host "File uploaded to Gitee: $($uploadResp.name)"
           } catch {
-            $errDetail3 = ""
-            if ($_.ErrorDetails) { $errDetail3 = $_.ErrorDetails.Message }
-            Write-Error "Failed to upload file to Gitee: $errDetail3"
-            exit 1
+            $errMsg3 = Get-ApiMsg $_
+            if ($errMsg3 -match "已经存在" -or $errMsg3 -match "已存在" -or $errMsg3 -match "already exist") {
+              Write-Host "File already exists on Gitee release, skipping upload"
+            } else {
+              Write-Error "Failed to upload file to Gitee: $errMsg3"
+              exit 1
+            }
           }
