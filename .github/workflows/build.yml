@@ -58,19 +58,23 @@ jobs:
           $owner = "summerxzp"
           $repo = "irtool"
 
-          # Check if tag exists on Gitee, create if not (Gitee default branch is master)
+          # Ensure tag exists on Gitee (Gitee default branch is master)
           try {
-            $tagResp = Invoke-RestMethod -Uri "https://gitee.com/api/v5/repos/$owner/$repo/tags/$tag" -Method Get -ErrorAction Stop
-            Write-Host "Tag $tag already exists on Gitee"
-          } catch {
-            Write-Host "Tag $tag not found, creating tag on Gitee ..."
             $tagBody = @{
               access_token = $env:GITEE_TOKEN
               refs         = "refs/heads/master"
               tag_name     = $tag
             }
-            Invoke-RestMethod -Uri "https://gitee.com/api/v5/repos/$owner/$repo/tags" -Method Post -Body $tagBody -ContentType "application/x-www-form-urlencoded"
+            Invoke-RestMethod -Uri "https://gitee.com/api/v5/repos/$owner/$repo/tags" -Method Post -Body $tagBody -ContentType "application/x-www-form-urlencoded" -ErrorAction Stop
             Write-Host "Tag $tag created on Gitee"
+          } catch {
+            $errMsg = $_.Exception.Message
+            if ($errMsg -match "已存在" -or $errMsg -match "already exist") {
+              Write-Host "Tag $tag already exists on Gitee, continuing"
+            } else {
+              Write-Error "Failed to create tag: $errMsg"
+              exit 1
+            }
           }
 
           Write-Host "Creating Gitee release for $tag ..."
@@ -80,7 +84,7 @@ jobs:
             tag_name         = $tag
             name             = "IRtool $tag"
             body             = "Automated build from GitHub CI"
-            target_commitish = "main"
+            target_commitish = "master"
           }
 
           $resp = Invoke-RestMethod -Uri "https://gitee.com/api/v5/repos/$owner/$repo/releases" -Method Post -Body $body -ContentType "application/x-www-form-urlencoded"
