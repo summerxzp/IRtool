@@ -53,3 +53,6 @@ debug_*.py
 
 # Sysmon runtime marker
 .sysmon_started_by_irtool
+
+# Local backups
+bak/

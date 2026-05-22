@@ -1,6 +1,8 @@
 param(
     [switch]$SkipBuild,
-    [string]$GiteeToken = $env:GITEE_TOKEN
+    [string]$GiteeToken = $env:GITEE_TOKEN,
+    [string]$GiteeOwner = $env:GITEE_OWNER,
+    [string]$GiteeRepo = $env:GITEE_REPO
 )
 
 $ErrorActionPreference = "Stop"
@@ -14,8 +16,42 @@ if (-not $ver) { Write-Error "Cannot read version from pyproject.toml"; exit 1 }
 $tag = "v$ver"
 $file = "package/dist/IRtool-v$ver.zip"
 
+$ghRepo = $env:GH_REPO
+if (-not $ghRepo) {
+    $remoteUrl = git remote get-url origin 2>$null
+    if ($remoteUrl -match "github\.com[:/]([^/]+/[^/.]+)") {
+        $ghRepo = $Matches[1]
+    } else {
+        Write-Error "Cannot determine GitHub repo from git remote. Set GH_REPO or run from a git clone."
+        exit 1
+    }
+}
+
+if (-not $GiteeOwner) {
+    $giteeRemoteUrl = git remote get-url gitee 2>$null
+    if ($giteeRemoteUrl -match "gitee\.com[:/]([^/]+)") {
+        $GiteeOwner = $Matches[1]
+    } elseif ($ghRepo -match "^([^/]+)") {
+        $GiteeOwner = $Matches[1]
+    } else {
+        Write-Error "Cannot determine Gitee owner. Set GITEE_OWNER env var."
+        exit 1
+    }
+}
+
+if (-not $GiteeRepo) {
+    $giteeRemoteUrl = git remote get-url gitee 2>$null
+    if ($giteeRemoteUrl -match "gitee\.com[:/][^/]+/([^/.]+)") {
+        $GiteeRepo = $Matches[1]
+    } else {
+        $GiteeRepo = ($ghRepo -split "/")[1]
+    }
+}
+
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  IRtool Release v$ver" -ForegroundColor Cyan
+Write-Host "  GitHub: $ghRepo" -ForegroundColor Gray
+Write-Host "  Gitee:  $GiteeOwner/$GiteeRepo" -ForegroundColor Gray
 Write-Host "========================================" -ForegroundColor Cyan
 
 if (-not $SkipBuild) {
@@ -53,12 +89,12 @@ function Get-ApiMsg {
 Write-Host ""
 Write-Host "[2/3] Uploading to GitHub Release ..." -ForegroundColor Yellow
 
-$ghExists = gh release view $tag --repo summerxzp/IRtool 2>$null
+$ghExists = gh release view $tag --repo $ghRepo 2>$null
 if ($ghExists) {
     Write-Host "  GitHub Release $tag already exists, uploading asset ..." -ForegroundColor Gray
-    gh release upload $tag $file --repo summerxzp/IRtool --clobber
+    gh release upload $tag $file --repo $ghRepo --clobber
 } else {
-    gh release create $tag $file --repo summerxzp/IRtool --title "IRtool $tag" --notes "Automated release build"
+    gh release create $tag $file --repo $ghRepo --title "IRtool $tag" --notes "Automated release build"
 }
 if ($LASTEXITCODE -ne 0) { Write-Error "GitHub release failed"; exit 1 }
 Write-Host "  GitHub Release done" -ForegroundColor Green
@@ -74,8 +110,8 @@ if (-not $GiteeToken) {
     exit 0
 }
 
-$owner = "summerxzp"
-$repo = "irtool"
+$owner = $GiteeOwner
+$repo = $GiteeRepo
 
 try {
     $tagBody = @{
@@ -154,6 +190,6 @@ try {
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green
 Write-Host "  Release complete!" -ForegroundColor Green
-Write-Host "  GitHub: https://github.com/summerxzp/IRtool/releases/tag/$tag" -ForegroundColor Cyan
-Write-Host "  Gitee:  https://gitee.com/summerxzp/irtool/releases/tag/$tag" -ForegroundColor Cyan
+Write-Host "  GitHub: https://github.com/$ghRepo/releases/tag/$tag" -ForegroundColor Cyan
+Write-Host "  Gitee:  https://gitee.com/$owner/$repo/releases/tag/$tag" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Green
