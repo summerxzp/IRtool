@@ -68,7 +68,7 @@ if (-not (Test-Path $venv)) {
 $python = Join-Path $venv 'Scripts\python.exe'
 Write-Host "Using Python: $python" -ForegroundColor Yellow
 Write-Host "Installing dependencies..." -ForegroundColor Yellow
-& $python -m pip install -r (Join-Path $here 'requirements-build.txt')
+& $python -m pip install --upgrade -r (Join-Path $here 'requirements-build.txt')
 
 # Get PyQt6 Qt6 bin path for DLLs
 $qt6BinPath = & $python -c "import PyQt6; import os; print(os.path.join(os.path.dirname(PyQt6.__file__), 'Qt6', 'bin'))"

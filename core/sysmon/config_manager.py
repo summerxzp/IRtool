@@ -206,7 +206,7 @@ class SysmonConfigManager:
             return True, "Sysmon 未安装"
 
         cmd = [str(self.sysmon_exe_path), '-accepteula', '-u']
-        logger.debug(f"执行命令: {' '.join(cmd)}")
+        logger.info(f"执行命令: {' '.join(cmd)}")
 
         try:
             result = subprocess.run(

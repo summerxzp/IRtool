@@ -58,6 +58,11 @@ jobs:
           $owner = "summerxzp"
           $repo = "irtool"
 
+          if (-not $env:GITEE_TOKEN) {
+            Write-Error "GITEE_TOKEN is not configured. Skip Gitee upload."
+            exit 0
+          }
+
           # Ensure tag exists on Gitee (Gitee default branch is master)
           try {
             $tagBody = @{
@@ -75,7 +80,7 @@ jobs:
               $errBody = $reader.ReadToEnd()
               $reader.Close()
             }
-            if ($errBody -match "已存在" -or $errBody -match "already exist" -or $errBody -match "标签名已存在") {
+            if ($errBody -match "已存在" -or $errBody -match "already exist") {
               Write-Host "Tag $tag already exists on Gitee, continuing"
             } else {
               Write-Error "Failed to create tag: $errBody"
@@ -83,27 +88,54 @@ jobs:
             }
           }
 
-          Write-Host "Creating Gitee release for $tag ..."
-
-          $body = @{
-            access_token     = $env:GITEE_TOKEN
-            tag_name         = $tag
-            name             = "IRtool $tag"
-            body             = "Automated build from GitHub CI"
-            target_commitish = "master"
+          # Create or get existing release
+          $releaseId = $null
+          try {
+            Write-Host "Creating Gitee release for $tag ..."
+            $body = @{
+              access_token     = $env:GITEE_TOKEN
+              tag_name         = $tag
+              name             = "IRtool $tag"
+              body             = "Automated build from GitHub CI"
+              target_commitish = "master"
+            }
+            $resp = Invoke-RestMethod -Uri "https://gitee.com/api/v5/repos/$owner/$repo/releases" -Method Post -Body $body -ContentType "application/x-www-form-urlencoded" -ErrorAction Stop
+            $releaseId = $resp.id
+            Write-Host "Gitee release created: $releaseId"
+          } catch {
+            $respStream2 = $_.Exception.Response
+            $errBody2 = ""
+            if ($respStream2) {
+              $reader2 = New-Object System.IO.StreamReader($respStream2.GetResponseStream())
+              $errBody2 = $reader2.ReadToEnd()
+              $reader2.Close()
+            }
+            if ($errBody2 -match "已存在" -or $errBody2 -match "already exist") {
+              Write-Host "Release for $tag already exists, fetching existing release ..."
+              $existing = Invoke-RestMethod -Uri "https://gitee.com/api/v5/repos/$owner/$repo/releases/tags/$tag" -Method Get -Body @{ access_token = $env:GITEE_TOKEN }
+              $releaseId = $existing.id
+              Write-Host "Using existing release: $releaseId"
+            } else {
+              Write-Error "Failed to create release: $errBody2"
+              exit 1
+            }
           }
 
-          $resp = Invoke-RestMethod -Uri "https://gitee.com/api/v5/repos/$owner/$repo/releases" -Method Post -Body $body -ContentType "application/x-www-form-urlencoded"
-          $releaseId = $resp.id
-          Write-Host "Gitee release created: $releaseId"
-
-          $uploadUrl = "https://gitee.com/api/v5/repos/$owner/$repo/releases/$releaseId/attach_files"
-          $fileName = [System.IO.Path]::GetFileName($file)
-
-          $form = @{
-            access_token = $env:GITEE_TOKEN
-            file         = Get-Item -Path $file
+          if (-not $releaseId) {
+            Write-Error "Could not obtain release ID"
+            exit 1
           }
 
-          $uploadResp = Invoke-RestMethod -Uri $uploadUrl -Method Post -Form $form
-          Write-Host "File uploaded to Gitee: $($uploadResp.name)"
+          # Upload file
+          try {
+            $uploadUrl = "https://gitee.com/api/v5/repos/$owner/$repo/releases/$releaseId/attach_files"
+            $form = @{
+              access_token = $env:GITEE_TOKEN
+              file         = Get-Item -Path $file
+            }
+            $uploadResp = Invoke-RestMethod -Uri $uploadUrl -Method Post -Form $form -ErrorAction Stop
+            Write-Host "File uploaded to Gitee: $($uploadResp.name)"
+          } catch {
+            Write-Error "Failed to upload file to Gitee: $($_.Exception.Message)"
+            exit 1
+          }
