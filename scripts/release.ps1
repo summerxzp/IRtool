@@ -12,7 +12,7 @@ Set-Location $projectRoot
 $ver = (Select-String -Path "pyproject.toml" -Pattern 'version\s*=\s*"([^"]+)"' | Select-Object -First 1).Matches.Groups[1].Value
 if (-not $ver) { Write-Error "Cannot read version from pyproject.toml"; exit 1 }
 $tag = "v$ver"
-$file = "package/dist/IRtool-v$ver-7z.exe"
+$file = "package/dist/IRtool-v$ver.zip"
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  IRtool Release v$ver" -ForegroundColor Cyan

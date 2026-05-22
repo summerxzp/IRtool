@@ -296,6 +296,19 @@ if ($LASTEXITCODE -eq 0) {
                 Write-Host "Type: Self-extracting archive (extracts and runs automatically)" -ForegroundColor Cyan
                 Write-Host ""
                 Write-Host "Usage: Double-click $outputName.exe to extract and run" -ForegroundColor White
+
+                # Wrap SFX in ZIP to avoid browser "unsafe download" warnings
+                $zipPath = Join-Path $here "dist\$outputName.zip"
+                if (Test-Path $zipPath) { Remove-Item $zipPath -Force -ErrorAction SilentlyContinue }
+                Write-Host ""
+                Write-Host "Wrapping in ZIP archive ..." -ForegroundColor Cyan
+                & $sevenZip a -tzip -mx=5 "$zipPath" "$sfxPath"
+                if ($LASTEXITCODE -eq 0) {
+                    $zipSize = (Get-Item $zipPath).Length / 1MB
+                    Write-Host "ZIP created: $zipPath ($([math]::Round($zipSize,2)) MB)" -ForegroundColor Green
+                } else {
+                    Write-Host "ZIP creation failed, SFX is still available" -ForegroundColor Yellow
+                }
             } else {
                 Write-Host "7z.sfx module not found, keeping .7z archive" -ForegroundColor Yellow
                 $archiveSize = (Get-Item $archivePath).Length / 1MB
