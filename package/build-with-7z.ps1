@@ -39,6 +39,8 @@ if ($Mode -eq 'onedir-7z') {
         $sevenZip = 'C:\Program Files\7-Zip\7z.exe'
     } elseif (Test-Path 'C:\Program Files (x86)\7-Zip\7z.exe') {
         $sevenZip = 'C:\Program Files (x86)\7-Zip\7z.exe'
+    } elseif (Test-Path 'D:\Sofware\7-Zip\7z.exe') {
+        $sevenZip = 'D:\Sofware\7-Zip\7z.exe'
     }
 
     if (-not $sevenZip) {

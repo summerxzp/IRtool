@@ -39,6 +39,7 @@ config.json
 
 # Package build artifacts
 package/.venv/
+package/build-venv/
 package/dist/
 package/build/
 
