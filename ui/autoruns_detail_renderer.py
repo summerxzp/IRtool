@@ -6,9 +6,16 @@ from PyQt6.QtWidgets import QLabel, QGridLayout, QSplitter, QWidget
 _FONT = "'Microsoft YaHei', 'Segoe UI', Arial, sans-serif"
 _MONO = "Consolas, 'Courier New', monospace"
 
+_S_ENTRY_NAME = (
+    f"font-family: {_FONT}; font-size: 15px; "
+    "font-weight: 600; color: #1a2a44; padding: 2px 0px;"
+)
+_S_META = (
+    f"font-family: {_FONT}; font-size: 11px; color: #8a9ab0;"
+)
 _S_TITLE = (
     f"font-family: {_FONT}; font-size: 11px; "
-    "font-weight: bold; color: #8a9ab0; padding-top: 6px;"
+    "color: #8a9ab0; padding-top: 8px;"
 )
 _S_VALUE = (
     f"font-family: {_FONT}; font-size: 12px; color: #2b2f33;"
@@ -94,11 +101,10 @@ class AutorunsDetailRenderer:
             self.detail_layout.addWidget(sep, row, 0, 1, col_span)
 
         row = 0
-        add_title("条目名称", row, 0)
-        add_title("文件大小", row, 1)
+        add_value("entry", row, 0, 2, style=_S_ENTRY_NAME)
+
         row += 1
-        add_value("entry", row, 0)
-        add_value("size", row, 1)
+        add_value("meta_line", row, 0, 2, style=_S_META)
 
         row += 1
         add_separator(row)
@@ -115,23 +121,18 @@ class AutorunsDetailRenderer:
 
         row += 1
         add_title("发布者", row, 0)
-        add_title("签名状态", row, 1)
+        add_title("版本", row, 1)
         row += 1
         add_value("publisher", row, 0)
-        add_value("signature", row, 1)
+        add_value("version", row, 1)
 
         row += 1
         add_separator(row)
 
         row += 1
-        add_title("版本", row, 0)
-        add_title("SHA256 哈希", row, 1)
+        add_title("SHA256 哈希", row, 0, 2)
         row += 1
-        add_value("version", row, 0)
-        add_value("hash", row, 1, style=_S_MONO)
-
-        row += 1
-        add_separator(row)
+        add_value("hash", row, 0, 2, style=_S_MONO)
 
         row += 1
         add_title("文件路径", row, 0, 2)
@@ -211,12 +212,21 @@ class AutorunsDetailRenderer:
         command_line = str(detail_data.get("command_line", "") or "")
 
         self._set_text_if_changed(self.detail_labels["entry"], str(data.get("entry", "") or ""))
-        self._set_text_if_changed(self.detail_labels["size"], format_file_size(detail_data.get("size", "")))
+
+        meta_parts = []
+        if signature_display:
+            meta_parts.append(signature_display)
+        category = str(data.get("category", "") or "")
+        if category:
+            meta_parts.append(category)
+        file_size = format_file_size(detail_data.get("size", ""))
+        if file_size:
+            meta_parts.append(file_size)
+        self._set_text_if_changed(self.detail_labels["meta_line"], "  ·  ".join(meta_parts))
+
         self._set_text_if_changed(self.detail_labels["description"], str(data.get("description", "") or ""))
         self._set_text_if_changed(self.detail_labels["timestamp"], str(detail_data.get("timestamp", "") or ""))
         self._set_text_if_changed(self.detail_labels["publisher"], str(detail_data.get("publisher", "") or ""))
-        self._set_text_if_changed(self.detail_labels["signature"], signature_display)
-        self._set_style_if_changed(self.detail_labels["signature"], signature_style)
         self._set_text_if_changed(self.detail_labels["version"], str(detail_data.get("version", "") or ""))
         self._set_text_if_changed(self.detail_labels["hash"], hash_display)
         self._set_text_if_changed(self.detail_labels["image_path"], str(image_path_display or ""))

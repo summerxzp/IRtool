@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
-    QPushButton, QComboBox, QMessageBox, QLineEdit, QLabel,
+    QPushButton, QMessageBox, QLineEdit, QLabel,
     QTextEdit, QFileDialog, QAbstractItemView, QDialog,
     QDialogButtonBox, QFormLayout
 )
@@ -11,6 +11,7 @@ import copy
 
 from core.rule_engine import RuleEngine
 from ui.ui_style import apply_flat_style
+from ui.dropdown_button import DropdownButton
 
 class RuleEditDialog(QDialog):
     """规则添加对话框"""
@@ -27,16 +28,16 @@ class RuleEditDialog(QDialog):
 
         self.edt_id = QLineEdit(f"rule_{uuid.uuid4().hex[:8]}")
         self.edt_rule_name = QLineEdit("custom")
-        self.cmb_field = QComboBox()
+        self.cmb_field = DropdownButton()
         self.cmb_field.addItems([
             "command_line", "image_path", "entry", "description",
             "publisher", "company", "location", "category", "launch_string",
             "ip", "hash", "sha256", "md5"
         ])
-        self.cmb_type = QComboBox()
+        self.cmb_type = DropdownButton()
         self.cmb_type.addItems(["包含", "正则", "等于"])
         self.edt_value = QLineEdit()
-        self.cmb_severity = QComboBox()
+        self.cmb_severity = DropdownButton()
         self.cmb_severity.addItems(["critical", "high", "medium", "low"])
         self.edt_date = QLineEdit()
         self.edt_note = QLineEdit()
@@ -426,14 +427,14 @@ class RuleManagerDialog(QDialog):
             self.table.setItem(idx, 1, QTableWidgetItem(rule.get("family", "")))
             
             # Field 列 (下拉框)
-            field_combo = QComboBox()
+            field_combo = DropdownButton()
             field_combo.addItems(field_options)
             field_combo.setCurrentText(first_match.get("field", "command_line"))
             field_combo.currentTextChanged.connect(lambda: self._on_combo_changed())
             self.table.setCellWidget(idx, 2, field_combo)
             
             # Type 列 (下拉框)
-            type_combo = QComboBox()
+            type_combo = DropdownButton()
             type_combo.addItems(type_options)
             type_combo.setCurrentText(display_type)
             type_combo.currentTextChanged.connect(lambda: self._on_combo_changed())
@@ -447,7 +448,7 @@ class RuleManagerDialog(QDialog):
             self.table.setItem(idx, 4, QTableWidgetItem(display_value))
             
             # Severity 列 (下拉框)
-            severity_combo = QComboBox()
+            severity_combo = DropdownButton()
             severity_combo.addItems(severity_options)
             severity_combo.setCurrentText(rule.get("severity", "medium"))
             severity_combo.currentTextChanged.connect(lambda: self._on_combo_changed())

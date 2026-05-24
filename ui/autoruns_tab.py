@@ -26,7 +26,6 @@ from PyQt6.QtWidgets import (
     QTreeView,
     QAbstractItemView,
     QCheckBox,
-    QComboBox,
     QLineEdit,
     QPushButton,
     QMessageBox,
@@ -54,6 +53,7 @@ from ui.autoruns_tree_model import (
 from ui.autoruns_signature_worker import SignatureVerifyWorker
 from ui.autoruns_detail_renderer import AutorunsDetailRenderer
 from ui.autoruns_scan_controller import AutorunsScanController
+from ui.dropdown_button import DropdownButton
 from ui.ui_style import (
     apply_flat_style,
     AUTORUNS_CONTROL_HEIGHT,
@@ -167,27 +167,29 @@ class AutorunsTab(QWidget):
     
     def _init_ui(self):
         layout = QVBoxLayout(self)
-        
-        # 工具栏
+        layout.setSpacing(8)
+        layout.setContentsMargins(8, 8, 8, 8)
+
         toolbar = QHBoxLayout()
-        
-        self.btn_scan = QPushButton("开始扫描")
+        toolbar.setSpacing(6)
+
+        self.btn_scan = QPushButton("▶ 开始扫描")
+        self.btn_scan.setProperty("class", "primary")
         self.btn_scan.clicked.connect(self._start_scan)
         self.btn_scan.setFixedHeight(AUTORUNS_CONTROL_HEIGHT)
-        
+
         self.btn_cancel = QPushButton("取消扫描")
         self.btn_cancel.clicked.connect(self._cancel_scan)
-        self.btn_cancel.setEnabled(False)  # 默认禁用，扫描时启用
+        self.btn_cancel.setEnabled(False)
         self.btn_cancel.setFixedHeight(AUTORUNS_CONTROL_HEIGHT)
-        
-        self.chk_hash = QCheckBox("计算Hash")
-        self.chk_hash.setChecked(False)  # 默认不计算，加快速度
 
-        
+        self.chk_hash = QCheckBox("计算Hash")
+        self.chk_hash.setChecked(False)
+
         self.chk_sig = QCheckBox("验证签名")
         self.chk_sig.setChecked(False)  # Default to disabled
         
-        self.cmb_category = QComboBox()
+        self.cmb_category = DropdownButton()
         self.cmb_category.addItem("全部类别")
         self.cmb_category.currentTextChanged.connect(self._on_category_filter_changed)
         self.cmb_category.setFixedHeight(AUTORUNS_CONTROL_HEIGHT)
@@ -202,21 +204,22 @@ class AutorunsTab(QWidget):
         self.search_box.textChanged.connect(self._schedule_filter_table)
         self.search_box.setFixedHeight(AUTORUNS_CONTROL_HEIGHT)
         
-        self.btn_delete = QPushButton("删除选中项")
+        self.btn_delete = QPushButton("✕ 删除选中项")
+        self.btn_delete.setProperty("class", "danger")
         self.btn_delete.clicked.connect(self._delete_selected)
         self.btn_delete.setFixedHeight(AUTORUNS_CONTROL_HEIGHT)
-        
-        self.btn_export = QPushButton("导出CSV")
+
+        self.btn_export = QPushButton("↓ 导出CSV")
         self.btn_export.clicked.connect(self._export_csv)
         self.btn_export.setFixedHeight(AUTORUNS_CONTROL_HEIGHT)
-        
+
         toolbar.addWidget(self.btn_scan)
         toolbar.addWidget(self.btn_cancel)
         toolbar.addWidget(self.chk_hash)
         toolbar.addWidget(self.chk_sig)
         toolbar.addWidget(self.cmb_category)
         toolbar.addWidget(self.chk_suspicious)
-        toolbar.addSpacing(10)
+        toolbar.addSpacing(12)
         toolbar.addWidget(search_label)
         toolbar.addWidget(self.search_box, 1)  # 1表示拉伸因子
         toolbar.addStretch()
@@ -356,12 +359,12 @@ class AutorunsTab(QWidget):
         
         # 创建状态框架
         self.status_frame = QFrame()
-        self.status_frame.setFrameShape(QFrame.Shape.Box)
-        self.status_frame.setObjectName("panel")
+        self.status_frame.setFrameShape(QFrame.Shape.NoFrame)
+        self.status_frame.setObjectName("stats-bar")
         # 设置较小的高度，只比字体高一点点
         font_metrics = self.fontMetrics()
         text_height = font_metrics.height()
-        self.status_frame.setFixedHeight(text_height + 20)  # 比字体高一点点
+        self.status_frame.setFixedHeight(text_height + 16)
         status_inner_layout = QHBoxLayout()
         status_inner_layout.setContentsMargins(8, 2, 8, 2)  # 减小上下边距，让按钮完整显示
         

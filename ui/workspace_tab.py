@@ -1,9 +1,8 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTableWidget,
-    QTableWidgetItem, QPushButton, QComboBox, QMessageBox,
+    QTableWidgetItem, QPushButton, QMessageBox,
     QLineEdit, QLabel, QTextEdit, QSplitter,
-    QAbstractItemView, QFrame, QCheckBox, QMenu,
-    QRadioButton, QButtonGroup
+    QAbstractItemView, QFrame, QCheckBox, QMenu
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QGuiApplication, QClipboard
@@ -19,6 +18,7 @@ from utils.command_template import CommandTemplateManager
 from utils.safe_executor import SafeExecutor
 from utils.search_result import SearchResult, ResultType
 from ui.ui_style import apply_flat_style
+from ui.dropdown_button import DropdownButton
 from ui.workspace_rule_dialogs import RuleManagerDialog
 from ui.workspace_results_presenter import WorkspaceResultsPresenter
 from ui.workspace_action_executor import WorkspaceActionExecutor
@@ -235,27 +235,13 @@ class WorkspaceTab(QWidget):
         # Target Scope 选择
         scope_layout = QHBoxLayout()
         scope_label = QLabel("操作目标:")
-        self.scope_group = QButtonGroup(self)
-        
-        self.rb_current_file = QRadioButton("当前文件")
-        self.rb_current_dir = QRadioButton("所在目录")
-        self.rb_parent_dir = QRadioButton("上一级目录")
-        self.rb_manual = QRadioButton("手动选择")
-        
-        self.rb_current_file.setChecked(True)
-        
-        self.scope_group.addButton(self.rb_current_file, 0)
-        self.scope_group.addButton(self.rb_current_dir, 1)
-        self.scope_group.addButton(self.rb_parent_dir, 2)
-        self.scope_group.addButton(self.rb_manual, 3)
-        
-        self.scope_group.idClicked.connect(self._on_scope_changed)
+        self.cmb_scope = DropdownButton()
+        self.cmb_scope.addItems(["当前文件", "所在目录", "上一级目录", "手动选择"])
+        self.cmb_scope.setCurrentIndex(0)
+        self.cmb_scope.currentIndexChanged.connect(self._on_scope_changed)
         
         scope_layout.addWidget(scope_label)
-        scope_layout.addWidget(self.rb_current_file)
-        scope_layout.addWidget(self.rb_current_dir)
-        scope_layout.addWidget(self.rb_parent_dir)
-        scope_layout.addWidget(self.rb_manual)
+        scope_layout.addWidget(self.cmb_scope)
         scope_layout.addStretch()
         
         layout.addLayout(scope_layout)
@@ -263,7 +249,7 @@ class WorkspaceTab(QWidget):
         # 命令模板选择
         preset_layout = QHBoxLayout()
         preset_label = QLabel("命令模板:")
-        self.cmb_preset = QComboBox()
+        self.cmb_preset = DropdownButton()
         self._populate_presets()
         self.cmb_preset.currentTextChanged.connect(self._on_preset_changed)
         
@@ -650,21 +636,17 @@ class WorkspaceTab(QWidget):
     def _on_scope_changed(self, scope_id):
         """Target Scope 变化时触发"""
         try:
-            # 映射 scope_id 到 PathScope
             scope_map = {
                 0: PathScope.SELF,
                 1: PathScope.DIRECTORY,
                 2: PathScope.PARENT,
-                3: PathScope.SELF  # 手动选择后仍然是 SELF
+                3: PathScope.SELF
             }
             self.selected_scope = scope_map.get(scope_id, PathScope.SELF)
-            
-            # 如果是手动选择，弹出对话框
             if scope_id == 3:
                 path = PathResolver.select_directory(self, "选择目标目录")
                 if path:
                     self.selected_entry = {'image_path': path}
-            
             self._update_command_preview()
         except Exception as e:
             QMessageBox.warning(self, "错误", f"Target Scope 变化处理失败: {str(e)}")

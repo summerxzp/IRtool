@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTableView,
-    QPushButton, QComboBox, QLabel,
+    QPushButton, QLabel,
     QMessageBox, QHeaderView, QLineEdit, QFrame,
     QGridLayout, QMenu, QFileDialog, QApplication,
     QSplitter, QTextEdit, QSizePolicy, QCheckBox
@@ -22,6 +22,7 @@ from core.sysmon.config_manager import EVENT_CONFIG, DEFAULT_ENABLED_EVENTS
 from ui.table_model import HighPerformanceTableModel
 from ui.ui_style import apply_flat_style
 from ui.process_tree_widget import ProcessTreeWidget
+from ui.dropdown_button import DropdownButton
 
 logger = logging.getLogger('IRtool')
 
@@ -164,25 +165,32 @@ class LogCollectorTab(QWidget):
 
     def _init_ui(self):
         layout = QVBoxLayout(self)
+        layout.setSpacing(8)
+        layout.setContentsMargins(8, 8, 8, 8)
 
         toolbar = QHBoxLayout()
+        toolbar.setSpacing(6)
 
-        self.btn_start = QPushButton("启动采集")
+        self.btn_start = QPushButton("▶ 启动采集")
+        self.btn_start.setProperty("class", "primary")
         self.btn_start.clicked.connect(self._toggle_collection)
 
         self.btn_deploy = QPushButton("部署 Sysmon")
         self.btn_deploy.clicked.connect(self._deploy_sysmon)
 
         self.btn_uninstall = QPushButton("卸载 Sysmon")
+        self.btn_uninstall.setProperty("class", "danger")
+        self.btn_uninstall.setEnabled(False)
         self.btn_uninstall.clicked.connect(self._uninstall_sysmon)
 
         self.btn_load_history = QPushButton("加载历史")
         self.btn_load_history.clicked.connect(self._load_history_events)
 
         self.btn_clear = QPushButton("清空记录")
+        self.btn_clear.setProperty("class", "danger")
         self.btn_clear.clicked.connect(self._clear_events)
 
-        self.btn_export = QPushButton("导出")
+        self.btn_export = QPushButton("↓ 导出")
         self.btn_export.clicked.connect(self._export_events)
 
         toolbar.addWidget(self.btn_start)
@@ -201,7 +209,7 @@ class LogCollectorTab(QWidget):
         layout.addLayout(toolbar)
 
         config_frame = QFrame()
-        config_frame.setFrameShape(QFrame.Shape.Box)
+        config_frame.setFrameShape(QFrame.Shape.StyledPanel)
         config_frame.setObjectName("panel")
         config_layout = QHBoxLayout(config_frame)
         config_layout.setContentsMargins(10, 4, 10, 4)
@@ -231,8 +239,8 @@ class LogCollectorTab(QWidget):
         layout.addWidget(config_frame)
 
         status_frame = QFrame()
-        status_frame.setFrameShape(QFrame.Shape.Box)
-        status_frame.setObjectName("panel")
+        status_frame.setFrameShape(QFrame.Shape.NoFrame)
+        status_frame.setObjectName("stats-bar")
         status_layout = QGridLayout(status_frame)
         status_layout.setContentsMargins(10, 5, 10, 5)
 
@@ -255,7 +263,7 @@ class LogCollectorTab(QWidget):
         filter_layout = QHBoxLayout()
 
         filter_layout.addWidget(QLabel("事件类型:"))
-        self.event_type_filter = QComboBox()
+        self.event_type_filter = DropdownButton()
         self.event_type_filter.addItems(["全部", "DNS查询", "网络连接", "远程线程", "DLL创建"])
         self.event_type_filter.currentTextChanged.connect(self._on_event_type_changed)
         filter_layout.addWidget(self.event_type_filter)
@@ -293,7 +301,9 @@ class LogCollectorTab(QWidget):
         self.table.setSortingEnabled(True)
         self.table.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
         self.table.setEditTriggers(QTableView.EditTrigger.NoEditTriggers)
-        self.table.verticalHeader().setDefaultSectionSize(25)
+        self.table.verticalHeader().setDefaultSectionSize(28)
+        self.table.verticalHeader().hide()
+        self.table.setAlternatingRowColors(True)
 
         self.table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.table.customContextMenuRequested.connect(self._show_context_menu)
@@ -470,8 +480,10 @@ class LogCollectorTab(QWidget):
         self._start_time = datetime.now()
         self.duration_timer.start(1000)
 
-        self.btn_start.setText("停止采集")
-        self.btn_start.setStyleSheet("background-color: #ffcccc;")
+        self.btn_start.setText("■ 停止采集")
+        self.btn_start.setProperty("class", "danger")
+        self.btn_start.style().unpolish(self.btn_start)
+        self.btn_start.style().polish(self.btn_start)
 
     def _stop_collection(self):
         if self.subscriber:
@@ -482,8 +494,10 @@ class LogCollectorTab(QWidget):
         self._start_time = None
         self.duration_timer.stop()
 
-        self.btn_start.setText("启动采集")
-        self.btn_start.setStyleSheet("")
+        self.btn_start.setText("▶ 启动采集")
+        self.btn_start.setProperty("class", "primary")
+        self.btn_start.style().unpolish(self.btn_start)
+        self.btn_start.style().polish(self.btn_start)
 
         self._update_status_label("disconnected")
 

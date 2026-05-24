@@ -141,32 +141,24 @@ class MainWindow(QMainWindow):
     def _init_ui(self):
         """初始化UI"""
         tabs = QTabWidget()
+        tabs.tabBar().setObjectName("mainTabBar")
+        tabs.tabBar().setDrawBase(False)
         self.setCentralWidget(tabs)
-        
-        # 网络监控标签
+
         self.network_tab = NetworkTab(self.network_monitor, self.data_store)
         tabs.addTab(self.network_tab, "网络监控")
-        
-        # 日志采集标签
+
         self.log_collector_tab = LogCollectorTab(self.data_store)
         tabs.addTab(self.log_collector_tab, "日志采集")
 
-        # Skill Scan 标签（独立于 Autoruns/Workspace）- 暂时隐藏
-        # self.skill_scan_tab = SkillScanTab()
-        # tabs.addTab(self.skill_scan_tab, "Skill Scan")
-
-        # 持久化检测标签
         if self.autoruns_parser:
             self.autoruns_tab = AutorunsTab(self.autoruns_parser, self.data_store)
             tabs.addTab(self.autoruns_tab, "持久化检测")
-            
-            # 工作台标签
+
             self.workspace_tab = WorkspaceTab(self.data_store, self.search_service)
             tabs.addTab(self.workspace_tab, "工作台")
-            
-            # 连接信号：Autoruns -> Workspace
+
             self.autoruns_tab.search_in_workspace.connect(self._on_search_in_workspace)
-            # 连接信号：Workspace -> Autoruns
             self.workspace_tab.jump_to_autorun.connect(self._on_workspace_jump_to_autorun)
     
     def _on_search_in_workspace(self, search_text):

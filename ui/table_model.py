@@ -75,6 +75,9 @@ class HighPerformanceTableModel(QAbstractTableModel):
         self._tooltips = tooltips[:self.MAX_ROWS] if tooltips else []
         self.endResetModel()
 
+    def row_count_matches(self, count: int) -> bool:
+        return len(self._data) == count
+
     def append_rows(self, new_rows: List[list],
                     sort_values: Optional[List[list]] = None,
                     backgrounds: Optional[List[list]] = None,

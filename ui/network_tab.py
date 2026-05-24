@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTableView,
-    QPushButton, QComboBox, QCheckBox,
+    QPushButton, QCheckBox,
     QMessageBox, QHeaderView, QFileDialog, QLineEdit, QLabel,
     QFrame, QGridLayout, QMenu
 )
@@ -12,6 +12,7 @@ from utils.exporter import DataExporter
 from datetime import datetime, timedelta
 from ui.ui_style import apply_flat_style
 from ui.table_model import HighPerformanceTableModel
+from ui.dropdown_button import DropdownButton
 
 
 NET_COLUMNS = [
@@ -82,10 +83,14 @@ class NetworkTab(QWidget):
 
     def _init_ui(self):
         layout = QVBoxLayout(self)
+        layout.setSpacing(8)
+        layout.setContentsMargins(8, 8, 8, 8)
 
         toolbar = QHBoxLayout()
+        toolbar.setSpacing(6)
 
-        self.btn_refresh = QPushButton("刷新")
+        self.btn_refresh = QPushButton("↻ 刷新")
+        self.btn_refresh.setProperty("class", "primary")
         self.btn_refresh.clicked.connect(self.refresh_data)
 
         self.chk_auto_refresh = QCheckBox("自动刷新")
@@ -93,31 +98,33 @@ class NetworkTab(QWidget):
         self.chk_auto_refresh.stateChanged.connect(self._toggle_auto_refresh)
 
         refresh_interval_label = QLabel("刷新间隔:")
-        self.cmb_refresh_interval = QComboBox()
+        self.cmb_refresh_interval = DropdownButton()
         self.cmb_refresh_interval.addItems(["1秒", "2秒", "5秒"])
         self.cmb_refresh_interval.setCurrentIndex(0)
         self.cmb_refresh_interval.currentTextChanged.connect(self._on_refresh_interval_changed)
 
-        self.cmb_status = QComboBox()
+        self.cmb_status = DropdownButton()
         self.cmb_status.addItems(["全部状态", "ESTABLISHED", "LISTEN", "TIME_WAIT", "CLOSE_WAIT", "NONE"])
         self.cmb_status.currentTextChanged.connect(self._on_status_filter_changed)
 
         search_label = QLabel("搜索:")
         self.search_box = QLineEdit()
-        self.search_box.setPlaceholderText("PID/IP/端口/进程名")
+        self.search_box.setPlaceholderText("PID / IP / 端口 / 进程名")
         self.search_box.textChanged.connect(self._on_search_debounced)
 
-        self.btn_kill = QPushButton("终止进程")
+        self.btn_kill = QPushButton("✕ 终止进程")
+        self.btn_kill.setProperty("class", "danger")
         self.btn_kill.clicked.connect(self._kill_selected)
 
-        self.btn_export = QPushButton("导出CSV")
+        self.btn_export = QPushButton("↓ 导出CSV")
         self.btn_export.clicked.connect(self._export_csv)
 
         self.btn_clear_history = QPushButton("清空记录")
+        self.btn_clear_history.setProperty("class", "danger")
         self.btn_clear_history.clicked.connect(self._clear_history)
 
         history_retention_label = QLabel("历史保留:")
-        self.cmb_history_retention = QComboBox()
+        self.cmb_history_retention = DropdownButton()
         self.cmb_history_retention.addItems(["1分钟", "5分钟", "10分钟", "持续保留"])
         self.cmb_history_retention.setCurrentIndex(2)
         self.cmb_history_retention.currentTextChanged.connect(self._on_history_retention_changed)
@@ -127,13 +134,14 @@ class NetworkTab(QWidget):
         toolbar.addWidget(refresh_interval_label)
         toolbar.addWidget(self.cmb_refresh_interval)
         toolbar.addWidget(self.cmb_status)
-        toolbar.addSpacing(10)
+        toolbar.addSpacing(12)
         toolbar.addWidget(search_label)
         toolbar.addWidget(self.search_box, 1)
         toolbar.addStretch()
         toolbar.addWidget(self.btn_kill)
         toolbar.addWidget(self.btn_export)
         toolbar.addWidget(self.btn_clear_history)
+        toolbar.addSpacing(8)
         toolbar.addWidget(history_retention_label)
         toolbar.addWidget(self.cmb_history_retention)
 
@@ -156,7 +164,9 @@ class NetworkTab(QWidget):
         self.table.setSortingEnabled(True)
         self.table.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
         self.table.setEditTriggers(QTableView.EditTrigger.NoEditTriggers)
-        self.table.verticalHeader().setDefaultSectionSize(25)
+        self.table.verticalHeader().setDefaultSectionSize(28)
+        self.table.verticalHeader().hide()
+        self.table.setAlternatingRowColors(True)
 
         self.table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.table.customContextMenuRequested.connect(self._show_context_menu)
@@ -164,19 +174,26 @@ class NetworkTab(QWidget):
         layout.addWidget(self.table)
 
         self.stats_frame = QFrame()
-        self.stats_frame.setFrameShape(QFrame.Shape.Box)
-        self.stats_frame.setObjectName("panel")
+        self.stats_frame.setFrameShape(QFrame.Shape.NoFrame)
+        self.stats_frame.setObjectName("stats-bar")
         font_metrics = self.fontMetrics()
         text_height = font_metrics.height()
-        self.stats_frame.setFixedHeight(text_height + 20)
+        self.stats_frame.setFixedHeight(text_height + 18)
         stats_inner_layout = QGridLayout()
+        stats_inner_layout.setContentsMargins(12, 4, 12, 4)
+        stats_inner_layout.setHorizontalSpacing(20)
 
         self.lbl_endpoints = QLabel("Endpoints: 0")
         self.lbl_established = QLabel("Established: 0")
+        self.lbl_established.setStyleSheet("color: #2e7d32; font-weight: 500;")
         self.lbl_listening = QLabel("Listening: 0")
+        self.lbl_listening.setStyleSheet("color: #1565c0; font-weight: 500;")
         self.lbl_time_wait = QLabel("Time Wait: 0")
+        self.lbl_time_wait.setStyleSheet("color: #f9a825; font-weight: 500;")
         self.lbl_close_wait = QLabel("Close Wait: 0")
+        self.lbl_close_wait.setStyleSheet("color: #c62828; font-weight: 500;")
         self.lbl_history = QLabel("History: 0")
+        self.lbl_history.setStyleSheet("color: #9e9e9e;")
 
         stats_inner_layout.addWidget(self.lbl_endpoints, 0, 0)
         stats_inner_layout.addWidget(self.lbl_established, 0, 1)
@@ -243,6 +260,13 @@ class NetworkTab(QWidget):
         )
         self.current_worker.start()
 
+    def _build_search_blob(self, conn):
+        return (
+            f"{conn['pid']}|{conn['process_name']}|{conn['process_path']}|"
+            f"{conn['local_address']}|{conn['remote_address']}|"
+            f"{conn['local_port']}|{conn['remote_port']}"
+        ).lower()
+
     def _on_data_received(self, data, generation=None):
         if generation is not None and generation != self._refresh_generation:
             return
@@ -255,22 +279,32 @@ class NetworkTab(QWidget):
 
         current_keys = set()
         current_connections = []
+        cache_changed = False
         for conn in data:
-            conn = conn.copy()
-            conn['is_current'] = True
             key = self._generate_connection_key(conn)
             current_keys.add(key)
             if key in self._connection_cache:
                 cached = self._connection_cache[key]
-                cached.update(conn)
+                cached['timestamp'] = conn['timestamp']
+                cached['timestamp_epoch'] = conn['timestamp_epoch']
+                cached['status'] = conn['status']
+                was_current = cached.get('is_current', True)
+                cached['is_current'] = True
+                if not was_current:
+                    cache_changed = True
                 current_connections.append(cached)
             else:
+                conn['is_current'] = True
+                conn['_search_blob'] = self._build_search_blob(conn)
                 self._connection_cache[key] = conn
                 current_connections.append(conn)
+                cache_changed = True
 
         for key, cached in self._connection_cache.items():
             if key not in current_keys:
-                cached['is_current'] = False
+                if cached.get('is_current', True):
+                    cached['is_current'] = False
+                    cache_changed = True
 
         if self.history_retention_minutes > 0:
             retention_threshold = now - timedelta(minutes=self.history_retention_minutes)
@@ -282,9 +316,11 @@ class NetworkTab(QWidget):
                         keys_to_remove.append(key)
             for key in keys_to_remove:
                 del self._connection_cache[key]
+                cache_changed = True
 
         self.current_data = current_connections
-        self.all_data = list(self._connection_cache.values())
+        if cache_changed or not self.all_data:
+            self.all_data = list(self._connection_cache.values())
         if self.data_store:
             self.data_store.set_network_connections(
                 current_connections=self.current_data,
@@ -306,13 +342,7 @@ class NetworkTab(QWidget):
         if text:
             data = [
                 c for c in data
-                if text in str(c['pid']).lower()
-                or text in str(c['process_name']).lower()
-                or text in str(c['process_path']).lower()
-                or text in str(c['local_address']).lower()
-                or text in str(c['remote_address']).lower()
-                or text in str(c['local_port'])
-                or text in str(c['remote_port'])
+                if text in c.get('_search_blob', self._build_search_blob(c))
             ]
 
         if self.cmb_status.currentIndex() > 0:
@@ -333,6 +363,27 @@ class NetworkTab(QWidget):
         self._apply_filters_and_update()
 
     def _update_model(self, data):
+        new_row_count = min(len(data), self._model.MAX_ROWS)
+        if (self._model.row_count_matches(new_row_count)
+                and not self.search_box.text().strip()
+                and self.cmb_status.currentIndex() == 0):
+            changed = False
+            for i, conn in enumerate(data):
+                if i >= new_row_count:
+                    break
+                is_current = conn.get('is_current', True)
+                old_bg = self._model._backgrounds[i][7] if i < len(self._model._backgrounds) else None
+                new_bg = None
+                if not is_current:
+                    new_bg = HISTORY_COLOR
+                elif conn['status'] in STATUS_COLORS:
+                    new_bg = STATUS_COLORS[conn['status']]
+                if old_bg != new_bg:
+                    changed = True
+                    break
+            if not changed:
+                return
+
         rows = []
         sort_vals = []
         backgrounds = []
