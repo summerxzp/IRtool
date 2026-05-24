@@ -11,10 +11,8 @@ $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $here
 
-# Use parent directory (project root) as app directory
 $appDir = Split-Path -Parent $here
 
-# Read version from pyproject.toml (single source of truth)
 $pyprojectPath = Join-Path $appDir 'pyproject.toml'
 $appVersion = (Select-String -Path $pyprojectPath -Pattern 'version\s*=\s*"([^"]+)"' | Select-Object -First 1).Matches.Groups[1].Value
 if (-not $appVersion) { $appVersion = "0.0.0" }
@@ -29,7 +27,6 @@ Write-Host "  Mode: $Mode" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Check 7z for onedir-7z mode
 $sevenZip = $null
 if ($Mode -eq 'onedir-7z') {
     $cmd = Get-Command 7z -ErrorAction SilentlyContinue
@@ -51,7 +48,6 @@ if ($Mode -eq 'onedir-7z') {
     Write-Host "7-Zip found: $sevenZip" -ForegroundColor Green
 }
 
-# Create venv in package directory
 $venv = Join-Path $here '.venv'
 if (-not (Test-Path $venv)) {
     Write-Host "Creating virtual environment..." -ForegroundColor Cyan
@@ -72,17 +68,14 @@ Write-Host "Using Python: $python" -ForegroundColor Yellow
 Write-Host "Installing dependencies..." -ForegroundColor Yellow
 & $python -m pip install --upgrade -r (Join-Path $here 'requirements-build.txt')
 
-# Get PyQt6 Qt6 bin path for DLLs
 $qt6BinPath = & $python -c "import PyQt6; import os; print(os.path.join(os.path.dirname(PyQt6.__file__), 'Qt6', 'bin'))"
 Write-Host "PyQt6 Qt6 bin path: $qt6BinPath" -ForegroundColor Cyan
 
 Write-Host "App directory: $appDir" -ForegroundColor Cyan
 
-# Output name with version
 $outputName = "IRtool-v$appVersion"
 $buildName = $outputName
 
-# Base build args
 $buildArgs = @(
     '-m','PyInstaller',
     '--clean',
@@ -92,7 +85,7 @@ $buildArgs = @(
     '--workpath', (Join-Path $here 'build'),
     '--specpath', (Join-Path $here 'build'),
     '--paths', $appDir,
-    '--manifest', (Join-Path $here 'IRtool.manifest'),
+    '--manifest', ([System.IO.Path]::GetFullPath((Join-Path $here 'IRtool.manifest'))),
     '--hidden-import','PyQt6.sip',
     '--hidden-import','PyQt6.QtCore',
     '--hidden-import','PyQt6.QtGui',
@@ -113,6 +106,7 @@ $buildArgs = @(
     '--add-data', "$(Join-Path $appDir 'tools\sigcheck64.exe');tools",
     '--add-data', "$(Join-Path $appDir 'tools\Sysmon64.exe');tools",
     '--add-data', "$(Join-Path $appDir 'tools\sysmon_config.xml');tools",
+    '--add-data', "$(Join-Path $appDir 'ui\_check.svg');ui",
     '--exclude-module','matplotlib',
     '--exclude-module','numpy',
     '--exclude-module','pandas',
@@ -177,16 +171,14 @@ $buildArgs = @(
     '--exclude-module','PyQt6.QtXmlPatterns'
 )
 
-# onedir mode
 $buildArgs += '--onedir'
-Write-Host "Mode: onedir (directory)" -ForegroundColor Green
+$modeStr = 'onedir (directory)'
+Write-Host "Mode: $modeStr" -ForegroundColor Green
 
-# Entry - use main.py from project root
 $buildArgs += (Join-Path $appDir 'main.py')
 
 Write-Host ""
 Write-Host "Building..." -ForegroundColor Cyan
-# Set environment variable to auto-confirm PyInstaller cleanup
 $env:PYINSTALLER_CLEANUP_CONFIRM = 'yes'
 & $python @buildArgs --noconfirm
 
@@ -198,58 +190,40 @@ if ($LASTEXITCODE -eq 0) {
 
     $dirPath = Join-Path $here "dist\$outputName"
 
-    # Write .version file for runtime version detection
     Set-Content -Path (Join-Path $dirPath ".version") -Value $appVersion -NoNewline
 
     if ($Mode -eq 'onedir-7z') {
         Write-Host ""
         Write-Host "Creating 7z self-extracting archive..." -ForegroundColor Cyan
 
-        # Create logs and config directories inside the build
         $logsDir = Join-Path $dirPath "logs"
         New-Item -ItemType Directory -Force -Path $logsDir | Out-Null
         $configDir = Join-Path $dirPath "config"
         New-Item -ItemType Directory -Force -Path $configDir | Out-Null
 
-        # Paths for 7z creation
         $archivePath = Join-Path $here "dist\$outputName.7z"
-        $sfxPath = Join-Path $here "dist\$outputName-7z.exe"    # 打包文件添加 -7z 后缀，避免与解压后的主程序同名
+        $sfxPath = Join-Path $here "dist\$outputName-7z.exe"
 
-        # Clean up old files
-        if (Test-Path $sfxPath) {
-            Remove-Item $sfxPath -Force -ErrorAction SilentlyContinue
-        }
-        if (Test-Path $archivePath) {
-            Remove-Item $archivePath -Force -ErrorAction SilentlyContinue
-        }
+        if (Test-Path $sfxPath) { Remove-Item $sfxPath -Force -ErrorAction SilentlyContinue }
+        if (Test-Path $archivePath) { Remove-Item $archivePath -Force -ErrorAction SilentlyContinue }
 
-        # Create 7z archive with version folder structure
-        # First create a temp directory with the correct structure
         $tempDir = Join-Path $here "dist\temp_7z"
-        if (Test-Path $tempDir) {
-            Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
-        }
+        if (Test-Path $tempDir) { Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue }
         New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
-        
-        # Copy build output to temp dir with version folder name
+
         $versionDir = Join-Path $tempDir $outputName
         Copy-Item $dirPath $versionDir -Recurse -Force
-        
-        # Create 7z archive from temp dir
+
         Push-Location $tempDir
         & $sevenZip a -t7z -m0=lzma2 -mx=9 "$archivePath" *
         Pop-Location
-        
-        # Clean up temp dir
+
         Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
 
         if ($LASTEXITCODE -eq 0) {
-            # Get 7z SFX module
             $sevenZipDir = Split-Path $sevenZip -ErrorAction SilentlyContinue
             $sfxModule = $null
-            if ($sevenZipDir) {
-                $sfxModule = Join-Path $sevenZipDir '7z.sfx'
-            }
+            if ($sevenZipDir) { $sfxModule = Join-Path $sevenZipDir '7z.sfx' }
             if (-not $sfxModule -or -not (Test-Path $sfxModule)) {
                 $sfxModule = Get-Command 7z.sfx -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
             }
@@ -259,7 +233,6 @@ if ($LASTEXITCODE -eq 0) {
                 }
             }
             if ($sfxModule -and (Test-Path $sfxModule)) {
-                # Create config file for SFX from template
                 $configFile = Join-Path $here 'dist\sfx_config.txt'
                 $templateFile = Join-Path $here 'sfx_config_template.txt'
                 if (Test-Path $templateFile) {
@@ -267,39 +240,44 @@ if ($LASTEXITCODE -eq 0) {
                     $configContent = $templateContent.Replace('{VERSION}', $appVersion).Replace('{OUTPUTNAME}', $outputName)
                     Set-Content -Path $configFile -Value $configContent -Encoding UTF8
                 } else {
-                    # Fallback: create minimal config
-                    $configContent = ";!@Install@!UTF-8!`nTitle=`"IRtool v$appVersion`"`nBeginPrompt=`"Extract and run IRtool?`"`nExtractPath=`"%TEMP%\IRtool-$appVersion-%PID%`"`nOverwriteMode=0`nGUIRunOnce=`"%TEMP%\IRtool-$appVersion-%PID%\$outputName.exe`"`n;!@InstallEnd@!`n"
-                    Set-Content -Path $configFile -Value $configContent -Encoding UTF8
+                    $sb = New-Object System.Text.StringBuilder
+                    [void]$sb.AppendLine(';!@Install@!UTF-8!')
+                    [void]$sb.AppendLine("Title=IRtool v$appVersion")
+                    [void]$sb.AppendLine('BeginPrompt=Extract and run IRtool?')
+                    [void]$sb.AppendLine("ExtractPath=%TEMP%\IRtool-$appVersion-%PID%")
+                    [void]$sb.AppendLine('OverwriteMode=0')
+                    [void]$sb.AppendLine("GUIRunOnce=%TEMP%\IRtool-$appVersion-%PID%\$outputName.exe")
+                    [void]$sb.AppendLine(';!@InstallEnd@!')
+                    Set-Content -Path $configFile -Value $sb.ToString() -Encoding UTF8
                 }
 
-                # Combine SFX module + config + archive
                 $sfxBytes = [System.IO.File]::ReadAllBytes($sfxModule)
                 $configBytes = [System.IO.File]::ReadAllBytes($configFile)
                 $archiveBytes = [System.IO.File]::ReadAllBytes($archivePath)
 
-                $outputBytes = New-Object byte[] ($sfxBytes.Length + $configBytes.Length + $archiveBytes.Length)
+                $totalLen = $sfxBytes.Length + $configBytes.Length + $archiveBytes.Length
+                $outputBytes = New-Object byte[] $totalLen
                 [System.Array]::Copy($sfxBytes, 0, $outputBytes, 0, $sfxBytes.Length)
                 [System.Array]::Copy($configBytes, 0, $outputBytes, $sfxBytes.Length, $configBytes.Length)
                 [System.Array]::Copy($archiveBytes, 0, $outputBytes, $sfxBytes.Length + $configBytes.Length, $archiveBytes.Length)
 
                 [System.IO.File]::WriteAllBytes($sfxPath, $outputBytes)
 
-                # Clean up
                 Remove-Item $archivePath -ErrorAction SilentlyContinue
                 Remove-Item $configFile -ErrorAction SilentlyContinue
 
                 $sfxSize = (Get-Item $sfxPath).Length / 1MB
+                $sfxSizeMB = [math]::Round($sfxSize, 2)
                 Write-Host ""
                 Write-Host "========================================" -ForegroundColor Green
                 Write-Host "Self-extracting archive created!" -ForegroundColor Green
                 Write-Host "========================================" -ForegroundColor Green
                 Write-Host "Output: $sfxPath" -ForegroundColor Yellow
-                Write-Host "Size: $([math]::Round($sfxSize,2)) MB" -ForegroundColor Yellow
+                Write-Host "Size: $sfxSizeMB MB" -ForegroundColor Yellow
                 Write-Host "Type: Self-extracting archive (extracts and runs automatically)" -ForegroundColor Cyan
                 Write-Host ""
                 Write-Host "Usage: Double-click $outputName.exe to extract and run" -ForegroundColor White
 
-                # Wrap SFX in ZIP to avoid browser "unsafe download" warnings
                 $zipPath = Join-Path $here "dist\$outputName.zip"
                 if (Test-Path $zipPath) { Remove-Item $zipPath -Force -ErrorAction SilentlyContinue }
                 Write-Host ""
@@ -307,32 +285,32 @@ if ($LASTEXITCODE -eq 0) {
                 & $sevenZip a -tzip -mx=5 "$zipPath" "$sfxPath"
                 if ($LASTEXITCODE -eq 0) {
                     $zipSize = (Get-Item $zipPath).Length / 1MB
-                    Write-Host "ZIP created: $zipPath ($([math]::Round($zipSize,2)) MB)" -ForegroundColor Green
+                    $zipSizeMB = [math]::Round($zipSize, 2)
+                    $zipMsg = "ZIP created: $zipPath ($zipSizeMB MB)"
+                    Write-Host $zipMsg -ForegroundColor Green
                 } else {
                     Write-Host "ZIP creation failed, SFX is still available" -ForegroundColor Yellow
                 }
             } else {
                 Write-Host "7z.sfx module not found, keeping .7z archive" -ForegroundColor Yellow
                 $archiveSize = (Get-Item $archivePath).Length / 1MB
+                $archiveSizeMB = [math]::Round($archiveSize, 2)
                 Write-Host "Archive: $archivePath" -ForegroundColor Yellow
-                Write-Host "Size: $([math]::Round($archiveSize,2)) MB" -ForegroundColor Yellow
+                Write-Host "Size: $archiveSizeMB MB" -ForegroundColor Yellow
             }
         }
     } else {
-        # onedir mode - just show info
         if (Test-Path $dirPath) {
-            # Create logs directory
             $logsDir = Join-Path $dirPath "logs"
             New-Item -ItemType Directory -Force -Path $logsDir | Out-Null
-
-            # Create config directory
             $configDir = Join-Path $dirPath "config"
             New-Item -ItemType Directory -Force -Path $configDir | Out-Null
 
             $size = (Get-ChildItem $dirPath -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB
+            $sizeMB = [math]::Round($size, 2)
             Write-Host ""
             Write-Host "Output: $dirPath\" -ForegroundColor Yellow
-            Write-Host "Total Size: $([math]::Round($size,2)) MB" -ForegroundColor Yellow
+            Write-Host "Total Size: $sizeMB MB" -ForegroundColor Yellow
             Write-Host "Type: Directory (fast startup, stable)" -ForegroundColor Green
         }
     }

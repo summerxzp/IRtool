@@ -1,7 +1,10 @@
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtGui import QPixmap, QPainter, QPen, QColor
 from PyQt6.QtCore import Qt, QRectF, QPointF
+from PyQt6.QtSvg import QSvgRenderer
 import os
+import sys
+import tempfile
 
 
 _CHECK_SVG_CONTENT = (
@@ -19,13 +22,30 @@ def _ensure_check_svg():
     if _check_svg_path and os.path.exists(_check_svg_path):
         return _check_svg_path
     try:
-        path = os.path.join(os.path.dirname(__file__), '_check.svg')
+        base = os.path.dirname(__file__)
+        path = os.path.join(base, '_check.svg')
+        if os.path.isfile(path):
+            _check_svg_path = path
+            return path
+        if getattr(sys, 'frozen', False):
+            base = sys._MEIPASS
+            path = os.path.join(base, 'ui', '_check.svg')
+            if os.path.isfile(path):
+                _check_svg_path = path
+                return path
         with open(path, 'w', encoding='utf-8') as f:
             f.write(_CHECK_SVG_CONTENT)
         _check_svg_path = path
         return path
     except Exception:
-        return None
+        try:
+            tmp = os.path.join(tempfile.gettempdir(), '_check.svg')
+            with open(tmp, 'w', encoding='utf-8') as f:
+                f.write(_CHECK_SVG_CONTENT)
+            _check_svg_path = tmp
+            return tmp
+        except Exception:
+            return None
 
 
 _BASE_STYLESHEET = """
@@ -453,8 +473,41 @@ QTextEdit {
 _CHECK_PIXMAP = None
 
 
-def apply_flat_style(widget: QWidget) -> None:
+def _render_check_pixmap():
     global _CHECK_PIXMAP
+    if _CHECK_PIXMAP is not None:
+        return _CHECK_PIXMAP
+    try:
+        from PyQt6.QtCore import QByteArray
+        svg_bytes = QByteArray(_CHECK_SVG_CONTENT.encode('utf-8'))
+        renderer = QSvgRenderer(svg_bytes)
+        if renderer.isValid():
+            size = renderer.defaultSize()
+            pm = QPixmap(size)
+            pm.fill(Qt.GlobalColor.transparent)
+            painter = QPainter(pm)
+            renderer.render(painter)
+            painter.end()
+            _CHECK_PIXMAP = pm
+            return pm
+    except Exception:
+        pass
+    pm = QPixmap(16, 16)
+    pm.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pm)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(QColor(255, 255, 255), 2.2)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+    painter.setPen(pen)
+    painter.drawLine(QPointF(3.5, 8.5), QPointF(6.5, 11.5))
+    painter.drawLine(QPointF(6.5, 11.5), QPointF(12.5, 4.5))
+    painter.end()
+    _CHECK_PIXMAP = pm
+    return pm
+
+
+def apply_flat_style(widget: QWidget) -> None:
     svg_path = _ensure_check_svg()
     if svg_path:
         svg_url = svg_path.replace('\\', '/')
