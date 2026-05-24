@@ -13,6 +13,7 @@ build/
 .venv/
 venv/
 env/
+.local_packages/
 
 # IDE
 .idea/
