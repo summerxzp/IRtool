@@ -490,6 +490,14 @@ class LogCollectorTab(QWidget):
             self.subscriber.stop()
             self.subscriber = None
 
+        # 停止 Sysmon 服务（真正暂停采集）
+        if self.config_manager.is_running():
+            success, msg = self.config_manager.stop_service()
+            if not success:
+                logger.warning(f"[LogCollector] 停止Sysmon服务失败: {msg}")
+            else:
+                logger.info("[LogCollector] Sysmon服务已停止")
+
         self._is_collecting = False
         self._start_time = None
         self.duration_timer.stop()
@@ -500,6 +508,7 @@ class LogCollectorTab(QWidget):
         self.btn_start.style().polish(self.btn_start)
 
         self._update_status_label("disconnected")
+        self._update_status_display()
 
     def _on_events_batch_received(self, events: list):
         """批量接收事件，减少信号开销"""

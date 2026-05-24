@@ -12,7 +12,10 @@ from pathlib import Path
 
 # 第三方库
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QApplication, QMainWindow, QTabWidget, QMessageBox
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+    QStackedWidget, QPushButton, QMessageBox
+)
 
 # 本地模块（需要先确定 APP_DIR）
 # 使用统一的路径解析工具
@@ -106,8 +109,54 @@ def is_admin():
     except Exception:
         return False
 
+
+def run_as_admin():
+    """以管理员权限重新启动自身"""
+    import subprocess
+    script = sys.argv[0]
+    args = sys.argv[1:]
+    cmd = [sys.executable, script] + args
+    # ShellExecuteW 的 runas verb 会触发 UAC 提权提示
+    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, subprocess.list2cmdline([script] + args), None, 1)
+    sys.exit(0)
+
+
 class MainWindow(QMainWindow):
     """主窗口"""
+
+    # IDE 风格 Tab 按钮样式
+    _TAB_BTN_STYLE = """
+    QPushButton {
+        border: none;
+        background: transparent;
+        color: #6b7280;
+        font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 8px 18px;
+        border-radius: 6px;
+        margin: 2px 2px;
+    }
+    QPushButton:hover {
+        background: rgba(76, 141, 255, 0.08);
+        color: #3a3f47;
+    }
+    QPushButton:checked {
+        background: #4c8dff;
+        color: #ffffff;
+        font-weight: 600;
+    }
+    QPushButton:checked:hover {
+        background: #3a7af0;
+    }
+    """
+
+    _TAB_BAR_STYLE = """
+    QWidget#tabBar {
+        background: #ffffff;
+        border-bottom: 1px solid #dce1e8;
+    }
+    """
 
     def __init__(self, is_admin_mode=True):
         super().__init__()
@@ -139,56 +188,98 @@ class MainWindow(QMainWindow):
             self.autoruns_parser = None
     
     def _init_ui(self):
-        """初始化UI"""
-        tabs = QTabWidget()
-        tabs.tabBar().setObjectName("mainTabBar")
-        tabs.tabBar().setDrawBase(False)
-        self.setCentralWidget(tabs)
+        """初始化UI - IDE风格顶部导航"""
+        central = QWidget()
+        self.setCentralWidget(central)
+        main_layout = QVBoxLayout(central)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
 
+        # Tab 导航栏
+        self.tab_bar = QWidget()
+        self.tab_bar.setObjectName("tabBar")
+        self.tab_bar.setStyleSheet(self._TAB_BAR_STYLE)
+        self.tab_bar_layout = QHBoxLayout(self.tab_bar)
+        self.tab_bar_layout.setContentsMargins(8, 4, 8, 4)
+        self.tab_bar_layout.setSpacing(4)
+        self.tab_bar_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+        # StackedWidget 用于切换页面
+        self.stack = QStackedWidget()
+
+        # Tab 按钮列表
+        self._tab_buttons = []
+
+        # 网络监控
         self.network_tab = NetworkTab(self.network_monitor, self.data_store)
-        tabs.addTab(self.network_tab, "网络监控")
+        self._add_tab("网络监控", self.network_tab)
 
+        # 日志采集
         self.log_collector_tab = LogCollectorTab(self.data_store)
-        tabs.addTab(self.log_collector_tab, "日志采集")
+        self._add_tab("日志采集", self.log_collector_tab)
 
+        # 持久化检测 + 工作台
         if self.autoruns_parser:
             self.autoruns_tab = AutorunsTab(self.autoruns_parser, self.data_store)
-            tabs.addTab(self.autoruns_tab, "持久化检测")
+            self._add_tab("持久化检测", self.autoruns_tab)
 
             self.workspace_tab = WorkspaceTab(self.data_store, self.search_service)
-            tabs.addTab(self.workspace_tab, "工作台")
+            self._add_tab("工作台", self.workspace_tab)
 
             self.autoruns_tab.search_in_workspace.connect(self._on_search_in_workspace)
             self.workspace_tab.jump_to_autorun.connect(self._on_workspace_jump_to_autorun)
+
+        self.tab_bar_layout.addStretch()
+        main_layout.addWidget(self.tab_bar)
+        main_layout.addWidget(self.stack)
+
+        # 默认选中第一个
+        if self._tab_buttons:
+            self._tab_buttons[0].setChecked(True)
+    
+    def _add_tab(self, title: str, widget: QWidget):
+        """添加一个Tab页面"""
+        btn = QPushButton(title)
+        btn.setCheckable(True)
+        btn.setStyleSheet(self._TAB_BTN_STYLE)
+        btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn.setFixedHeight(34)
+        btn.clicked.connect(lambda checked, b=btn: self._on_tab_clicked(b))
+
+        self.tab_bar_layout.insertWidget(len(self._tab_buttons), btn)
+        self._tab_buttons.append(btn)
+        self.stack.addWidget(widget)
+    
+    def _on_tab_clicked(self, clicked_btn: QPushButton):
+        """Tab按钮点击事件"""
+        for i, btn in enumerate(self._tab_buttons):
+            if btn is clicked_btn:
+                btn.setChecked(True)
+                self.stack.setCurrentIndex(i)
+            else:
+                btn.setChecked(False)
+    
+    def _switch_to_tab(self, title: str):
+        """切换到指定标题的Tab"""
+        for i, btn in enumerate(self._tab_buttons):
+            if btn.text() == title:
+                btn.setChecked(True)
+                self.stack.setCurrentIndex(i)
+            else:
+                btn.setChecked(False)
     
     def _on_search_in_workspace(self, search_text):
         """处理来自 Autoruns Tab 的搜索请求"""
         if not hasattr(self, 'workspace_tab'):
             return
-        
-        # 切换到工作台 Tab
-        tabs = self.centralWidget()
-        if isinstance(tabs, QTabWidget):
-            for i in range(tabs.count()):
-                if tabs.tabText(i) == "工作台":
-                    tabs.setCurrentIndex(i)
-                    break
-        
-        # 执行搜索
+        self._switch_to_tab("工作台")
         self.workspace_tab.search(search_text)
-
+    
     def _on_workspace_jump_to_autorun(self, entry):
         """处理来自 Workspace 的跳转请求"""
         if not hasattr(self, 'autoruns_tab') or not self.autoruns_tab:
             return
-        
-        # 切换到持久化检测 Tab
-        tabs = self.centralWidget()
-        if isinstance(tabs, QTabWidget):
-            for i in range(tabs.count()):
-                if tabs.tabText(i) == "持久化检测":
-                    tabs.setCurrentIndex(i)
-                    break
+        self._switch_to_tab("持久化检测")
         self.autoruns_tab.jump_to_entry(entry)
     
     def closeEvent(self, event):
@@ -216,34 +307,29 @@ def main():
     logger.info(f"[Startup] App Directory: {APP_DIR}")
     logger.info("[Startup] ========================================")
 
-    # 检查管理员权限
-    is_admin_mode = is_admin()
-    logger.info(f"[Main] Admin check: is_admin_mode={is_admin_mode}")
-    
-    # 尝试申请管理员权限，但如果失败也能继续运行
-    if not is_admin_mode:
-        try:
-            logger.info("[Main] Attempting to elevate privileges...")
-            result = ctypes.windll.shell32.ShellExecuteW(
-                None, "runas", sys.executable, " ".join(sys.argv), None, 1
-            )
-            logger.info(f"[Main] ShellExecuteW result: {result}")
-            # 如果提权成功（用户点击"是"），退出当前进程，让新进程接管
-            if result > 32:
-                logger.info("[Main] Elevation requested, exiting current process")
-                sys.exit(0)
-            # 如果提权失败或被拒绝，继续以非管理员模式运行
-            logger.info("[Main] Elevation failed or denied, continuing without admin")
-        except Exception as e:
-            logger.warning(f"[Main] Elevation attempt failed: {e}, continuing without admin")
-    
+    # 检查管理员权限，非管理员则自动提权重启
+    admin_mode = is_admin()
+    if not admin_mode:
+        logger.warning("[Startup] 未以管理员权限运行，尝试提权重启...")
+        run_as_admin()
+
+    # 创建应用
     app = QApplication(sys.argv)
-    app.setStyle('Fusion')  # 使用Fusion风格
-    
-    window = MainWindow(is_admin_mode=is_admin_mode)
+    app.setStyle("Fusion")
+
+    # 加载全局样式
+    from ui.ui_style import apply_flat_style
+    apply_flat_style(app)
+
+    # 创建主窗口
+    window = MainWindow(is_admin_mode=admin_mode)
     window.show()
-    
+
+    logger.info("[Startup] 主窗口已显示")
+
+    # 运行应用
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     main()

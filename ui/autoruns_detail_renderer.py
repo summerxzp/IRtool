@@ -1,167 +1,475 @@
 import os
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QLabel, QGridLayout, QSplitter, QWidget
-
-_FONT = "'Microsoft YaHei', 'Segoe UI', Arial, sans-serif"
-_MONO = "Consolas, 'Courier New', monospace"
-
-_S_ENTRY_NAME = (
-    f"font-family: {_FONT}; font-size: 15px; "
-    "font-weight: 600; color: #1a2a44; padding: 2px 0px;"
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QGuiApplication, QMouseEvent
+from PyQt6.QtWidgets import (
+    QLabel,
+    QVBoxLayout,
+    QHBoxLayout,
+    QSplitter,
+    QWidget,
+    QPushButton,
+    QSizePolicy,
 )
-_S_META = (
-    f"font-family: {_FONT}; font-size: 11px; color: #8a9ab0;"
-)
+
+# ============================================================
+# 样式常量 - 现代 Inspector Panel 风格
+# ============================================================
+_FONT_UI = "'Segoe UI', 'Microsoft YaHei', sans-serif"
+_FONT_MONO = "Consolas, 'Courier New', monospace"
+
+# 颜色
+_C_BG = "#ffffff"
+_C_BG_CODE = "#f4f6f9"
+_C_BG_CODE_ERR = "#fff0f0"
+_C_TEXT_PRIMARY = "#1a2a44"
+_C_TEXT_SECONDARY = "#5a6270"
+_C_TEXT_MUTED = "#8a94a6"
+_C_TEXT_GREEN = "#2e7d32"
+_C_TEXT_RED = "#d32f2f"
+_C_TEXT_ORANGE = "#f57c00"
+_C_BORDER = "#e4e8ee"
+_C_BORDER_CODE = "#d0d6e0"
+
+# 标题
 _S_TITLE = (
-    f"font-family: {_FONT}; font-size: 11px; "
-    "color: #8a9ab0; padding-top: 8px;"
+    f"font-family: {_FONT_UI}; font-size: 17px; font-weight: 600; "
+    f"color: {_C_TEXT_PRIMARY}; padding: 2px 0px;"
 )
+# 元信息
+_S_META = (
+    f"font-family: {_FONT_UI}; font-size: 12px; "
+    f"color: {_C_TEXT_MUTED}; padding-bottom: 4px;"
+)
+# 字段标签
+_S_LABEL = (
+    f"font-family: {_FONT_UI}; font-size: 12px; "
+    f"color: {_C_TEXT_MUTED}; padding-top: 10px; padding-bottom: 2px;"
+)
+# 普通值
 _S_VALUE = (
-    f"font-family: {_FONT}; font-size: 12px; color: #2b2f33;"
+    f"font-family: {_FONT_UI}; font-size: 13px; "
+    f"color: {_C_TEXT_SECONDARY}; padding: 2px 0px;"
 )
-_S_MONO = (
-    f"font-family: {_MONO}; font-size: 11px; color: #333; "
-    "background: #f4f6f9; padding: 4px 6px; border-radius: 3px;"
+# 代码值（路径、命令行）
+_S_CODE = (
+    f"font-family: {_FONT_MONO}; font-size: 13px; "
+    f"color: {_C_TEXT_PRIMARY}; background: {_C_BG_CODE}; "
+    f"padding: 6px 8px; border-radius: 4px; border: 1px solid {_C_BORDER_CODE};"
 )
-_S_MONO_ERR = (
-    f"font-family: {_MONO}; font-size: 11px; color: #333; "
-    "background: #ffe0e0; padding: 4px 6px; border-radius: 3px;"
-)
-_S_SIG_VERIFIED = (
-    f"font-family: {_FONT}; font-size: 12px; color: #2e7d32; font-weight: bold;"
-)
-_S_SIG_UNSIGNED = (
-    f"font-family: {_FONT}; font-size: 12px; color: #d32f2f; font-weight: bold;"
-)
-_S_SIG_ERROR = (
-    f"font-family: {_FONT}; font-size: 12px; color: #f57c00; font-weight: bold;"
+_S_CODE_ERR = (
+    f"font-family: {_FONT_MONO}; font-size: 13px; "
+    f"color: {_C_TEXT_RED}; background: {_C_BG_CODE_ERR}; "
+    f"padding: 6px 8px; border-radius: 4px; border: 1px solid #f0c0c0;"
 )
 
+# 签名状态
+_S_SIG_VERIFIED = f"font-family: {_FONT_UI}; font-size: 12px; color: {_C_TEXT_GREEN}; font-weight: 600;"
+_S_SIG_UNSIGNED = f"font-family: {_FONT_UI}; font-size: 12px; color: {_C_TEXT_RED}; font-weight: 600;"
+_S_SIG_ERROR = f"font-family: {_FONT_UI}; font-size: 12px; color: {_C_TEXT_ORANGE}; font-weight: 600;"
 
-class AutorunsDetailRenderer:
-    """Detail Pane 渲染器：负责控件初始化与增量更新。"""
+# 文本链接（复制、展开共用样式）
+_LINK_STYLE = (
+    "color: #4a6fa5; font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; "
+    "font-size: 12px;"
+)
+_LINK_HOVER_STYLE = "color: #2a4f85; text-decoration: underline;"
 
-    def __init__(self, splitter: QSplitter, detail_layout: QGridLayout, placeholder_style: str):
-        self.splitter = splitter
-        self.detail_layout = detail_layout
-        self.placeholder_style = placeholder_style
-        self.current_entry_id = None
-        self.detail_labels = {}
-        self._path_exists_cache = {}
+# 分割线
+_S_SEPARATOR = f"background-color: {_C_BORDER};"
 
-    def _clear_layout(self):
-        while self.detail_layout.count():
-            item = self.detail_layout.takeAt(0)
-            widget = item.widget()
-            if widget:
-                widget.deleteLater()
-        self.detail_labels.clear()
 
-    def clear(self):
-        self._clear_layout()
+# ============================================================
+# 组件
+# ============================================================
 
-    def show_placeholder(self):
-        self._clear_layout()
-        detail_placeholder = QLabel("选择一条记录以查看详情")
-        detail_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        detail_placeholder.setStyleSheet(self.placeholder_style)
-        self.detail_layout.addWidget(detail_placeholder, 0, 0, 1, 2)
-        self.current_entry_id = None
+class _CopyLink(QLabel):
+    """文本链接样式的复制标签（比 QPushButton 更容易和字段名对齐）"""
 
-    def _ensure_widgets(self):
-        if self.detail_labels:
+    def __init__(self, get_text_fn, parent=None):
+        super().__init__("复制", parent)
+        self._get_text = get_text_fn
+        self.setStyleSheet(_LINK_STYLE)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setToolTip("点击复制")
+
+    def mousePressEvent(self, event: QMouseEvent):
+        if event.button() == Qt.MouseButton.LeftButton:
+            text = self._get_text()
+            if text:
+                clipboard = QGuiApplication.clipboard()
+                clipboard.setText(text)
+                original = self.text()
+                self.setText("已复制")
+                self.setStyleSheet(
+                    "color: #2e7d32; font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; font-size: 12px;"
+                )
+                QTimer.singleShot(1200, lambda: (
+                    self.setText(original),
+                    self.setStyleSheet(_LINK_STYLE),
+                ))
+        super().mousePressEvent(event)
+
+    def enterEvent(self, event):
+        self.setStyleSheet(_LINK_HOVER_STYLE)
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        self.setStyleSheet(_LINK_STYLE)
+        super().leaveEvent(event)
+
+
+class _CodeBlock(QWidget):
+    """代码块：Label行 + 代码值 + 复制按钮在Label行右侧"""
+
+    def __init__(self, label_text: str, parent=None):
+        super().__init__(parent)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(4)
+
+        # Label 行：字段名 + 复制按钮
+        label_row = QWidget()
+        label_layout = QHBoxLayout(label_row)
+        label_layout.setContentsMargins(0, 0, 0, 0)
+        label_layout.setSpacing(4)
+        label_layout.setAlignment(Qt.AlignmentFlag.AlignBottom)
+
+        self.label = QLabel(label_text)
+        self.label.setStyleSheet(_S_LABEL)
+        label_layout.addWidget(self.label)
+
+        self.copy_btn = _CopyLink(lambda: self.value_label.text())
+        label_layout.addWidget(self.copy_btn)
+        label_layout.addStretch(1)
+
+        layout.addWidget(label_row)
+
+        # 代码值
+        self.value_label = QLabel("")
+        self.value_label.setWordWrap(True)
+        self.value_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        self.value_label.setStyleSheet(_S_CODE)
+        self.value_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        layout.addWidget(self.value_label)
+
+    def set_text(self, text: str):
+        self.value_label.setText(text)
+
+    def set_error(self, error: bool):
+        self.value_label.setStyleSheet(_S_CODE_ERR if error else _S_CODE)
+
+    def set_tooltip(self, tooltip: str):
+        self.value_label.setToolTip(tooltip)
+
+
+class _ExpandableValue(QWidget):
+    """可展开/收起的单行值显示组件，展开后自动换行"""
+
+    _MAX_WIDTH_PX = 360
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._full_text = ""
+        self._expanded = False
+        self._needs_expand = False
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(2)
+
+        self.value_label = QLabel("")
+        self.value_label.setWordWrap(False)  # 收起时单行
+        self.value_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        self.value_label.setStyleSheet(_S_VALUE)
+        self.value_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        layout.addWidget(self.value_label)
+
+        self.expand_btn = QLabel("")
+        self.expand_btn.setStyleSheet(_LINK_STYLE)
+        self.expand_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.expand_btn.mousePressEvent = self._on_expand_click
+        self.expand_btn.enterEvent = self._on_expand_enter
+        self.expand_btn.leaveEvent = self._on_expand_leave
+        self.expand_btn.hide()
+        layout.addWidget(self.expand_btn)
+
+    def _on_expand_click(self, event: QMouseEvent):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._toggle_expand()
+
+    def _on_expand_enter(self, event):
+        self.expand_btn.setStyleSheet(_LINK_HOVER_STYLE)
+
+    def _on_expand_leave(self, event):
+        self.expand_btn.setStyleSheet(_LINK_STYLE)
+
+    def set_text(self, text: str):
+        self._full_text = text
+        self._expanded = False
+        self._update_display()
+
+    def _check_needs_expand(self) -> bool:
+        if not self._full_text:
+            return False
+        fm = self.value_label.fontMetrics()
+        adv = fm.horizontalAdvance(self._full_text)
+        if adv <= 0 and len(self._full_text) > 30:
+            return True
+        return adv > self._MAX_WIDTH_PX
+
+    def _truncate_to_width(self) -> str:
+        if not self._full_text:
+            return ""
+        fm = self.value_label.fontMetrics()
+        adv = fm.horizontalAdvance(self._full_text)
+        if adv <= 0:
+            if len(self._full_text) > 35:
+                return self._full_text[:35] + "..."
+            return self._full_text
+        if adv <= self._MAX_WIDTH_PX:
+            return self._full_text
+        ellipsis = "..."
+        ellipsis_w = fm.horizontalAdvance(ellipsis)
+        avail = self._MAX_WIDTH_PX - ellipsis_w
+        if avail <= 0:
+            return self._full_text[:10] + ellipsis
+        low, high = 0, len(self._full_text)
+        while low < high:
+            mid = (low + high + 1) // 2
+            if fm.horizontalAdvance(self._full_text[:mid]) <= avail:
+                low = mid
+            else:
+                high = mid - 1
+        return self._full_text[:low] + ellipsis
+
+    def _update_display(self):
+        if not self._full_text:
+            self.value_label.setText("")
+            self.expand_btn.hide()
             return
 
-        self._clear_layout()
+        self._needs_expand = self._check_needs_expand()
 
-        self.detail_layout.setVerticalSpacing(1)
-        self.detail_layout.setHorizontalSpacing(16)
-        self.detail_layout.setColumnStretch(0, 1)
-        self.detail_layout.setColumnStretch(1, 1)
+        if not self._needs_expand:
+            self.value_label.setText(self._full_text)
+            self.value_label.setWordWrap(False)
+            self.expand_btn.hide()
+            return
 
-        def add_title(text, row, col, col_span=1):
-            label = QLabel(text)
-            label.setStyleSheet(_S_TITLE)
-            self.detail_layout.addWidget(label, row, col, 1, col_span)
+        if self._expanded:
+            self.value_label.setText(self._full_text)
+            self.value_label.setWordWrap(True)  # 展开时自动换行
+            self.expand_btn.setText("收起")
+            self.expand_btn.show()
+        else:
+            truncated = self._truncate_to_width()
+            self.value_label.setText(truncated)
+            self.value_label.setWordWrap(False)
+            self.expand_btn.setText("展开")
+            self.expand_btn.show()
 
-        def add_value(key, row, col, col_span=1, selectable=True, style=_S_VALUE):
-            label = QLabel("")
-            label.setStyleSheet(style)
-            label.setWordWrap(True)
-            if selectable:
-                label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-            self.detail_layout.addWidget(label, row, col, 1, col_span)
-            self.detail_labels[key] = label
+    def _toggle_expand(self):
+        self._expanded = not self._expanded
+        self._update_display()
 
-        def add_separator(row, col_span=2):
-            sep = QWidget()
-            sep.setFixedHeight(1)
-            sep.setStyleSheet("background-color: #e4e8ee;")
-            self.detail_layout.addWidget(sep, row, 0, 1, col_span)
+    def set_tooltip(self, tooltip: str):
+        self.value_label.setToolTip(tooltip)
 
-        row = 0
-        add_value("entry", row, 0, 2, style=_S_ENTRY_NAME)
 
-        row += 1
-        add_value("meta_line", row, 0, 2, style=_S_META)
+class _Field(QWidget):
+    """普通字段：Label + Value"""
 
-        row += 1
-        add_separator(row)
+    def __init__(self, label_text: str, expandable=False, parent=None):
+        super().__init__(parent)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(2)
 
-        row += 1
-        add_title("描述", row, 0)
-        add_title("时间戳", row, 1)
-        row += 1
-        add_value("description", row, 0)
-        add_value("timestamp", row, 1)
+        self.label = QLabel(label_text)
+        self.label.setStyleSheet(_S_LABEL)
+        layout.addWidget(self.label)
 
-        row += 1
-        add_separator(row)
+        if expandable:
+            self.value_widget = _ExpandableValue()
+            layout.addWidget(self.value_widget)
+            self.value_label = self.value_widget.value_label
+        else:
+            self.value_label = QLabel("")
+            self.value_label.setWordWrap(True)
+            self.value_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+            self.value_label.setStyleSheet(_S_VALUE)
+            layout.addWidget(self.value_label)
+            self.value_widget = None
 
-        row += 1
-        add_title("发布者", row, 0)
-        add_title("版本", row, 1)
-        row += 1
-        add_value("publisher", row, 0)
-        add_value("version", row, 1)
+    def set_text(self, text: str):
+        if self.value_widget:
+            self.value_widget.set_text(text)
+        else:
+            self.value_label.setText(text)
 
-        row += 1
-        add_separator(row)
+    def set_tooltip(self, tooltip: str):
+        if self.value_widget:
+            self.value_widget.set_tooltip(tooltip)
+        else:
+            self.value_label.setToolTip(tooltip)
 
-        row += 1
-        add_title("SHA256 哈希", row, 0, 2)
-        row += 1
-        add_value("hash", row, 0, 2, style=_S_MONO)
 
-        row += 1
-        add_title("文件路径", row, 0, 2)
-        row += 1
-        add_value("image_path", row, 0, 2, style=_S_MONO)
+class _Separator(QWidget):
+    """水平分割线"""
 
-        row += 1
-        add_title("命令行", row, 0, 2)
-        row += 1
-        add_value("command_line", row, 0, 2, style=_S_MONO)
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedHeight(1)
+        self.setStyleSheet(_S_SEPARATOR)
 
-        self.detail_layout.setRowStretch(row + 1, 1)
+
+# ============================================================
+# 主渲染器
+# ============================================================
+
+class AutorunsDetailRenderer:
+    """Detail Pane 渲染器 - Inspector Panel 风格"""
+
+    def __init__(self, splitter: QSplitter, detail_container: QWidget, placeholder_style: str):
+        self.splitter = splitter
+        self.detail_container = detail_container
+        self.placeholder_style = placeholder_style
+        self.current_entry_id = None
+        self._path_exists_cache = {}
+
+        # 主布局
+        self.main_layout = QVBoxLayout(self.detail_container)
+        self.main_layout.setContentsMargins(16, 14, 16, 14)
+        self.main_layout.setSpacing(0)
+
+        # 占位符状态
+        self._placeholder_label = None
+        self._content_widget = None
+
+        # 内容区控件引用
+        self._entry_label = None
+        self._meta_label = None
+        self._fields = {}
+
+    def _clear_content(self):
+        if self._content_widget:
+            self._content_widget.deleteLater()
+            self._content_widget = None
+        if self._placeholder_label:
+            self._placeholder_label.deleteLater()
+            self._placeholder_label = None
+        self._fields.clear()
+
+    def clear(self):
+        self._clear_content()
+
+    def show_placeholder(self):
+        self._clear_content()
+        self._placeholder_label = QLabel("选择一条记录以查看详情")
+        self._placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._placeholder_label.setStyleSheet(self.placeholder_style)
+        self.main_layout.addWidget(self._placeholder_label)
+        self.main_layout.addStretch()
+        self.current_entry_id = None
+
+    def _ensure_content_widgets(self):
+        if self._content_widget is not None:
+            return
+
+        self._clear_content()
+
+        self._content_widget = QWidget()
+        layout = QVBoxLayout(self._content_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        # === 第一行：标题区 + SHA256 并排 ===
+        title_row = QWidget()
+        title_layout = QHBoxLayout(title_row)
+        title_layout.setContentsMargins(0, 0, 0, 0)
+        title_layout.setSpacing(0)
+        title_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        # 左栏：Entry名称 + 元信息
+        title_left = QWidget()
+        title_left_layout = QVBoxLayout(title_left)
+        title_left_layout.setContentsMargins(0, 0, 0, 0)
+        title_left_layout.setSpacing(0)
+
+        self._entry_label = QLabel("")
+        self._entry_label.setStyleSheet(_S_TITLE)
+        self._entry_label.setWordWrap(True)
+        title_left_layout.addWidget(self._entry_label)
+
+        self._meta_label = QLabel("")
+        self._meta_label.setStyleSheet(_S_META)
+        title_left_layout.addWidget(self._meta_label)
+
+        title_layout.addWidget(title_left, 7)
+
+        # 固定间距
+        title_layout.addSpacing(24)
+
+        # 右栏：SHA256
+        self._fields["hash"] = _Field("SHA256")
+        title_layout.addWidget(self._fields["hash"], 3)
+
+        layout.addWidget(title_row)
+        layout.addSpacing(6)
+        layout.addWidget(_Separator())
+
+        # === 第二行：描述 + 时间戳 并排 ===
+        row1 = QWidget()
+        row1_layout = QHBoxLayout(row1)
+        row1_layout.setContentsMargins(0, 0, 0, 0)
+        row1_layout.setSpacing(0)
+        row1_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        self._fields["description"] = _Field("描述", expandable=True)
+        row1_layout.addWidget(self._fields["description"], 7)
+
+        row1_layout.addSpacing(24)
+
+        self._fields["timestamp"] = _Field("时间戳")
+        row1_layout.addWidget(self._fields["timestamp"], 3)
+
+        layout.addWidget(row1)
+        layout.addWidget(_Separator())
+
+        # === 第三行：发布者 + 版本 并排 ===
+        row2 = QWidget()
+        row2_layout = QHBoxLayout(row2)
+        row2_layout.setContentsMargins(0, 0, 0, 0)
+        row2_layout.setSpacing(0)
+        row2_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        self._fields["publisher"] = _Field("发布者")
+        row2_layout.addWidget(self._fields["publisher"], 7)
+
+        row2_layout.addSpacing(24)
+
+        self._fields["version"] = _Field("版本")
+        row2_layout.addWidget(self._fields["version"], 3)
+
+        layout.addWidget(row2)
+        layout.addWidget(_Separator())
+
+        # === 全宽数据区：路径、命令行 ===
+        self._path_block = _CodeBlock("文件路径")
+        layout.addWidget(self._path_block)
+
+        self._cmd_block = _CodeBlock("命令行")
+        layout.addWidget(self._cmd_block)
+
+        layout.addStretch()
+        self.main_layout.addWidget(self._content_widget)
 
     @staticmethod
     def _set_text_if_changed(label: QLabel, text: str):
         if label.text() != text:
             label.setText(text)
-
-    @staticmethod
-    def _set_style_if_changed(label: QLabel, style: str):
-        cached = label.property("_style_cache")
-        if cached != style:
-            label.setStyleSheet(style)
-            label.setProperty("_style_cache", style)
-
-    @staticmethod
-    def _set_tooltip_if_changed(label: QLabel, tooltip: str):
-        if label.toolTip() != tooltip:
-            label.setToolTip(tooltip)
 
     def _should_probe_path_synchronously(self, image_path: str) -> bool:
         if not image_path:
@@ -180,7 +488,7 @@ class AutorunsDetailRenderer:
         return exists
 
     def render_detail(self, data: dict, format_file_size):
-        self._ensure_widgets()
+        self._ensure_content_widgets()
         self.splitter.setSizes([700, 300])
 
         detail_data = data.get("detail_data", {})
@@ -189,13 +497,10 @@ class AutorunsDetailRenderer:
         signer_status = data.get("signer_status", "")
         if "(Verified)" in signer_status:
             signature_display = "Verified"
-            signature_style = _S_SIG_VERIFIED
         elif "(Error)" in signer_status:
             signature_display = f"Error: {data.get('signature_detail', 'Unknown error')}"
-            signature_style = _S_SIG_ERROR
         else:
             signature_display = "Unsigned"
-            signature_style = _S_SIG_UNSIGNED
 
         image_path = detail_data.get("image_path", "")
         file_not_found = False
@@ -211,8 +516,12 @@ class AutorunsDetailRenderer:
         hash_display = hash_value if hash_value else "未计算"
         command_line = str(detail_data.get("command_line", "") or "")
 
-        self._set_text_if_changed(self.detail_labels["entry"], str(data.get("entry", "") or ""))
+        # 标题
+        self._set_text_if_changed(
+            self._entry_label, str(data.get("entry", "") or "")
+        )
 
+        # 元信息
         meta_parts = []
         if signature_display:
             meta_parts.append(signature_display)
@@ -222,22 +531,43 @@ class AutorunsDetailRenderer:
         file_size = format_file_size(detail_data.get("size", ""))
         if file_size:
             meta_parts.append(file_size)
-        self._set_text_if_changed(self.detail_labels["meta_line"], "  ·  ".join(meta_parts))
-
-        self._set_text_if_changed(self.detail_labels["description"], str(data.get("description", "") or ""))
-        self._set_text_if_changed(self.detail_labels["timestamp"], str(detail_data.get("timestamp", "") or ""))
-        self._set_text_if_changed(self.detail_labels["publisher"], str(detail_data.get("publisher", "") or ""))
-        self._set_text_if_changed(self.detail_labels["version"], str(detail_data.get("version", "") or ""))
-        self._set_text_if_changed(self.detail_labels["hash"], hash_display)
-        self._set_text_if_changed(self.detail_labels["image_path"], str(image_path_display or ""))
-        self._set_style_if_changed(
-            self.detail_labels["image_path"],
-            _S_MONO_ERR if file_not_found else _S_MONO,
+        self._set_text_if_changed(
+            self._meta_label, "  ·  ".join(meta_parts)
         )
-        self._set_text_if_changed(self.detail_labels["command_line"], command_line)
+        # 签名颜色
+        if signature_display == "Verified":
+            self._meta_label.setStyleSheet(_S_SIG_VERIFIED)
+        elif signature_display.startswith("Error"):
+            self._meta_label.setStyleSheet(_S_SIG_ERROR)
+        else:
+            self._meta_label.setStyleSheet(_S_SIG_UNSIGNED)
+        self._meta_label.setText("  ·  ".join(meta_parts))
 
-        self._set_tooltip_if_changed(self.detail_labels["hash"], hash_display)
-        self._set_tooltip_if_changed(self.detail_labels["image_path"], image_path_display)
-        self._set_tooltip_if_changed(self.detail_labels["command_line"], command_line)
+        # 标题行右栏：SHA256
+        self._fields["hash"].set_text(hash_display)
+
+        # 第二行：描述 + 时间戳
+        self._fields["description"].set_text(
+            str(data.get("description", "") or "")
+        )
+        self._fields["timestamp"].set_text(
+            str(detail_data.get("timestamp", "") or "")
+        )
+
+        # 第三行：发布者 + 版本
+        self._fields["publisher"].set_text(
+            str(detail_data.get("publisher", "") or "")
+        )
+        self._fields["version"].set_text(
+            str(detail_data.get("version", "") or "")
+        )
+
+        # 全宽代码块
+        self._path_block.set_text(str(image_path_display or ""))
+        self._path_block.set_error(file_not_found)
+        self._path_block.set_tooltip(image_path_display)
+
+        self._cmd_block.set_text(command_line)
+        self._cmd_block.set_tooltip(command_line)
 
         self.current_entry_id = entry_id

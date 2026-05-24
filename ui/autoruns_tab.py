@@ -261,11 +261,11 @@ class AutorunsTab(QWidget):
         # 设置交替行颜色
         self.tree_view.setAlternatingRowColors(False)
         
-        # 设置样式：显示行分隔线（不覆盖 Model 的 BackgroundRole）
+        # 设置样式：现代表格风格
         self.tree_view.setStyleSheet(
             AUTORUNS_TREE_STYLESHEET +
-            "\nQTreeView { font-size: 13px; }"
-            "\nQTreeView::item { min-height: 22px; padding-top: 1px; padding-bottom: 1px; }"
+            "\nQTreeView { font-size: 13px; border: none; }"
+            "\nQTreeView::item { min-height: 26px; padding-top: 2px; padding-bottom: 2px; }"
         )
         self.tree_view.setTextElideMode(Qt.TextElideMode.ElideMiddle)
         self.tree_view.header().setFixedHeight(AUTORUNS_HEADER_HEIGHT)
@@ -308,9 +308,10 @@ class AutorunsTab(QWidget):
         self.btn_close_detail.setFixedSize(24, 24)
         self.btn_close_detail.setToolTip("关闭详细信息")
         self.btn_close_detail.setStyleSheet(
-            "QPushButton { border: none; color: #666; font-size: 13px; border-radius: 3px; }"
-            "QPushButton:hover { background: #e0e0e0; color: #333; }"
-            "QPushButton:pressed { background: #ccc; }"
+            "QPushButton { border: 1px solid #c0c6d0; color: #555; font-size: 12px; "
+            "background: #f0f2f5; border-radius: 4px; }"
+            "QPushButton:hover { background: #e0e4ea; color: #333; border: 1px solid #a0a8b4; }"
+            "QPushButton:pressed { background: #d0d4da; }"
         )
         self.btn_close_detail.clicked.connect(self._close_detail_pane)
         self.btn_close_detail.hide()
@@ -323,20 +324,16 @@ class AutorunsTab(QWidget):
         scroll_area.setWidgetResizable(True)
         scroll_area.setFrameShape(QFrame.Shape.NoFrame)
         scroll_area.setStyleSheet(AUTORUNS_SCROLL_AREA_STYLESHEET)
-        
-        # Detail 内容容器
+
+        # Detail 内容容器（由 AutorunsDetailRenderer 自行管理布局）
         self.detail_widget = QWidget()
-        self.detail_layout = QGridLayout(self.detail_widget)
-        self.detail_layout.setContentsMargins(10, 10, 10, 10)
-        self.detail_layout.setHorizontalSpacing(8)
-        self.detail_layout.setVerticalSpacing(2)
         self._detail_renderer = AutorunsDetailRenderer(
             splitter=self.splitter,
-            detail_layout=self.detail_layout,
+            detail_container=self.detail_widget,
             placeholder_style=AUTORUNS_DETAIL_PLACEHOLDER_STYLESHEET,
         )
         self._detail_renderer.show_placeholder()
-        
+
         scroll_area.setWidget(self.detail_widget)
         detail_layout.addWidget(scroll_area)
         
@@ -382,10 +379,16 @@ class AutorunsTab(QWidget):
         
         # 添加帮助按钮
         self.btn_help = QPushButton("?")
-        self.btn_help.setFixedWidth(28)
+        self.btn_help.setFixedSize(22, 22)
         self.btn_help.setToolTip("风险等级说明")
+        self.btn_help.setStyleSheet(
+            "QPushButton { border: 1px solid #c0c6d0; color: #555; font-size: 12px; "
+            "font-weight: 600; background: #f0f2f5; border-radius: 11px; }"
+            "QPushButton:hover { background: #e0e4ea; color: #333; border: 1px solid #a0a8b4; }"
+            "QPushButton:pressed { background: #d0d4da; }"
+        )
         self.btn_help.clicked.connect(self._show_risk_help)
-        status_inner_layout.addWidget(self.btn_help)
+        status_inner_layout.addWidget(self.btn_help, alignment=Qt.AlignmentFlag.AlignVCenter)
         
         self.status_frame.setLayout(status_inner_layout)
         layout.addWidget(self.status_frame)

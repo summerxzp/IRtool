@@ -47,14 +47,8 @@ class DropdownButton(QPushButton):
         painter.end()
 
     def addItems(self, items: list[str]):
-        self._items = list(items)
-        self._item_data = [None] * len(self._items)
-        self._menu.clear()
         for text in items:
-            action = self._menu.addAction(text)
-            action.setCheckable(False)
-        if self._items:
-            self.setCurrentIndex(0)
+            self.addItem(text)
 
     def addItem(self, text: str, userData=None):
         self._items.append(text)
