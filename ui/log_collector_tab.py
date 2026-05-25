@@ -844,9 +844,15 @@ class LogCollectorTab(QWidget):
             new_rows.append(row)
             new_sort_vals.append(sort_row)
 
+        old_model_count = self._model.rowCount()
         self._model.append_rows(new_rows, sort_values=new_sort_vals)
+        new_model_count = self._model.rowCount()
 
-        # 更新代理模型的事件数据引用
+        expected_count = old_model_count + len(new_rows)
+        trim_count = expected_count - new_model_count
+        if trim_count > 0 and len(self.all_events) > new_model_count:
+            self.all_events = self.all_events[len(self.all_events) - new_model_count:]
+
         self._proxy_model.set_events_data(self.all_events)
 
         pending_count = len(self._pending_events)
@@ -1261,7 +1267,10 @@ class LogCollectorTab(QWidget):
 
             self._model.set_data_bulk(rows, sort_values=sort_vals)
 
-            # 更新代理模型的事件数据引用
+            model_count = self._model.rowCount()
+            if len(self.all_events) > model_count:
+                self.all_events = self.all_events[len(self.all_events) - model_count:]
+
             self._proxy_model.set_events_data(self.all_events)
 
             self._apply_filters()

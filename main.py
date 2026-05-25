@@ -320,7 +320,13 @@ class MainWindow(QMainWindow):
         
         event.accept()
 
+def _global_exception_hook(exc_type, exc_value, exc_tb):
+    logger.error("[UncaughtException] 未捕获的异常", exc_info=(exc_type, exc_value, exc_tb))
+
+
 def main():
+    sys.excepthook = _global_exception_hook
+
     # 单实例检测
     _mutex = _ensure_single_instance()
 

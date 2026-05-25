@@ -140,20 +140,21 @@ class SysmonSubscriber(QThread):
                         xml_str = win32evtlog.EvtRender(event_handle, win32evtlog.EvtRenderEventXml)
                         parsed, record_id = SysmonEventParser.parse_event_with_record_id(xml_str)
 
+                        if record_id and record_id > self._last_record_id:
+                            self._last_record_id = record_id
+
                         if parsed:
                             logger.debug(f"[SysmonSubscriber] Parsed event: ID={parsed.event_id}, Type={parsed.event_type}")
-                            # 如果开启了外连IP过滤，只保留外连的网络连接事件
                             if self._filter_external_only and isinstance(parsed, NetworkConnectEvent):
                                 if not parsed.is_external:
                                     continue
                             parsed_events.append(parsed)
-
-                        if record_id and record_id > self._last_record_id:
-                            self._last_record_id = record_id
                     except Exception as e:
                         logger.warning(f"[SysmonSubscriber] Failed to parse event: {e}")
         except Exception as e:
             logger.warning(f"[SysmonSubscriber] EvtNext error: {e}")
+        finally:
+            del h
 
         if parsed_events:
             logger.debug(f"[SysmonSubscriber] Poll returned {len(parsed_events)} events from {batch_count} batches")
