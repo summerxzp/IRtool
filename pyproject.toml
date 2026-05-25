@@ -1,6 +1,6 @@
 [project]
 name = "IRtool"
-version = "1.1.5"
+version = "1.1.6"
 description = "Windows 终端应急响应桌面工具"
 requires-python = ">=3.11"
 license = {text = "MIT"}
@@ -19,18 +19,20 @@ classifiers = [
 ]
 
 dependencies = [
-    "PyQt6>=6.10.0",
-    "psutil>=5.9.0",
-    "pywin32>=306",
-    "pyzipper>=0.3.6",
-    "requests>=2.31.0",
+    "PyQt6>=6.11.0",
+    "PyQt6-Qt6>=6.11.1",
+    "PyQt6_sip>=13.11.1",
+    "psutil>=7.2.0",
+    "pywin32>=311",
+    "pyzipper>=0.4.0",
+    "requests>=2.34.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=7.4.0",
     "pytest-qt>=4.2.0",
-    "pyinstaller>=6.3.0",
+    "pyinstaller>=6.20.0",
     "ruff>=0.4.0",
 ]
 

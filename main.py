@@ -12,6 +12,7 @@ from pathlib import Path
 
 # 第三方库
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPalette, QColor
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QStackedWidget, QPushButton, QMessageBox
@@ -110,14 +111,35 @@ def is_admin():
         return False
 
 
+def _ensure_single_instance():
+    """单实例互斥锁，防止重复启动"""
+    mutex_name = f"Global\\{APP_ID}"
+    _mutex = ctypes.windll.kernel32.CreateMutexW(None, False, mutex_name)
+    last_error = ctypes.windll.kernel32.GetLastError()
+    if last_error == 183:
+        logger.warning("[Startup] 检测到已有实例运行，尝试激活已有窗口后退出")
+        hwnd = ctypes.windll.user32.FindWindowW(None, f"IRtool v{APP_VERSION}")
+        if hwnd:
+            ctypes.windll.user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+            ctypes.windll.user32.SetForegroundWindow(hwnd)
+        sys.exit(0)
+    return _mutex
+
+
 def run_as_admin():
-    """以管理员权限重新启动自身"""
+    """以管理员权限重新启动自身，返回是否成功发起提权"""
     import subprocess
-    script = sys.argv[0]
-    args = sys.argv[1:]
-    cmd = [sys.executable, script] + args
-    # ShellExecuteW 的 runas verb 会触发 UAC 提权提示
-    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, subprocess.list2cmdline([script] + args), None, 1)
+    if getattr(sys, 'frozen', False):
+        params = subprocess.list2cmdline(sys.argv[1:])
+    else:
+        params = subprocess.list2cmdline([sys.argv[0]] + sys.argv[1:])
+
+    ret = ctypes.windll.shell32.ShellExecuteW(
+        None, "runas", sys.executable, params, None, 1
+    )
+    if ret <= 32:
+        logger.error(f"[Startup] 提权失败，ShellExecuteW 返回值: {ret}")
+        return False
     sys.exit(0)
 
 
@@ -299,6 +321,9 @@ class MainWindow(QMainWindow):
         event.accept()
 
 def main():
+    # 单实例检测
+    _mutex = _ensure_single_instance()
+
     # 输出启动信息
     logger.info("[Startup] ========================================")
     logger.info(f"[Startup] AppID: {APP_ID}")
@@ -311,7 +336,9 @@ def main():
     admin_mode = is_admin()
     if not admin_mode:
         logger.warning("[Startup] 未以管理员权限运行，尝试提权重启...")
-        run_as_admin()
+        if not run_as_admin():
+            logger.warning("[Startup] 提权失败，以非管理员模式继续运行")
+            admin_mode = False
 
     # 创建应用
     app = QApplication(sys.argv)
@@ -320,6 +347,13 @@ def main():
     # 加载全局样式
     from ui.ui_style import apply_flat_style
     apply_flat_style(app)
+
+    # 全局设置 Tooltip 调色板，确保所有弹窗中的 tooltip 颜色一致
+    from PyQt6.QtWidgets import QToolTip
+    tip_palette = QPalette()
+    tip_palette.setColor(QPalette.ColorRole.ToolTipBase, QColor("#ffffff"))
+    tip_palette.setColor(QPalette.ColorRole.ToolTipText, QColor("#2b2f33"))
+    QToolTip.setPalette(tip_palette)
 
     # 创建主窗口
     window = MainWindow(is_admin_mode=admin_mode)

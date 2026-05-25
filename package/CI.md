@@ -91,7 +91,7 @@ Gitee Token 获取：Gitee → 设置 → 私人令牌 → 生成新令牌（勾
 | Runner | `windows-latest` |
 | Python | 3.11 |
 | 7-Zip | 通过 Chocolatey 安装 |
-| 打包工具 | PyInstaller 6.3.0 |
+| 打包工具 | PyInstaller 6.20.0 |
 | 压缩方式 | 7z LZMA2 极限压缩 + SFX 自解压 + ZIP 外层包裹 |
 
 ## 版本号管理

@@ -14,38 +14,81 @@ _CHECK_SVG_CONTENT = (
     '</svg>'
 )
 
+_CLOSE_SVG_CONTENT = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">'
+    '<path d="M4 4L12 12M12 4L4 12" stroke="#555" stroke-width="1.8" '
+    'stroke-linecap="round" fill="none"/>'
+    '</svg>'
+)
+
+_EXPAND_SVG_CONTENT = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">'
+    '<path d="M4 10L8 6L12 10" stroke="#4c8dff" stroke-width="2" '
+    'stroke-linecap="round" stroke-linejoin="round" fill="none"/>'
+    '</svg>'
+)
+
+_QUESTION_SVG_CONTENT = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">'
+    '<path d="M6 5.5C6 4.12 7.12 3 8 3C8.88 3 10 4.12 10 5.5C10 6.5 9.2 7 8.6 7.4C8 7.8 8 8 8 8.5" '
+    'stroke="#555" stroke-width="1.5" stroke-linecap="round" fill="none"/>'
+    '<circle cx="8" cy="11.5" r="1" fill="#555"/>'
+    '</svg>'
+)
+
 _check_svg_path = None
+_close_svg_path = None
+_expand_svg_path = None
+_question_svg_path = None
 
 
-def _ensure_check_svg():
-    global _check_svg_path
-    if _check_svg_path and os.path.exists(_check_svg_path):
-        return _check_svg_path
+def _ensure_svg(content, filename, global_var_name):
+    """通用 SVG 文件生成，返回文件路径"""
+    g = globals()
+    cached = g.get(global_var_name)
+    if cached and os.path.exists(cached):
+        return cached
     try:
         base = os.path.dirname(__file__)
-        path = os.path.join(base, '_check.svg')
+        path = os.path.join(base, filename)
         if os.path.isfile(path):
-            _check_svg_path = path
+            g[global_var_name] = path
             return path
         if getattr(sys, 'frozen', False):
-            base = sys._MEIPASS
-            path = os.path.join(base, 'ui', '_check.svg')
-            if os.path.isfile(path):
-                _check_svg_path = path
-                return path
+            base2 = sys._MEIPASS
+            path2 = os.path.join(base2, 'ui', filename)
+            if os.path.isfile(path2):
+                g[global_var_name] = path2
+                return path2
         with open(path, 'w', encoding='utf-8') as f:
-            f.write(_CHECK_SVG_CONTENT)
-        _check_svg_path = path
+            f.write(content)
+        g[global_var_name] = path
         return path
     except Exception:
         try:
-            tmp = os.path.join(tempfile.gettempdir(), '_check.svg')
+            tmp = os.path.join(tempfile.gettempdir(), filename)
             with open(tmp, 'w', encoding='utf-8') as f:
-                f.write(_CHECK_SVG_CONTENT)
-            _check_svg_path = tmp
+                f.write(content)
+            g[global_var_name] = tmp
             return tmp
         except Exception:
             return None
+
+
+def ensure_check_svg():
+    return _ensure_svg(_CHECK_SVG_CONTENT, '_check.svg', '_check_svg_path')
+
+
+def ensure_close_svg():
+    return _ensure_svg(_CLOSE_SVG_CONTENT, '_close.svg', '_close_svg_path')
+
+
+def ensure_expand_svg():
+    return _ensure_svg(_EXPAND_SVG_CONTENT, '_expand.svg', '_expand_svg_path')
+
+
+def ensure_question_svg():
+    return _ensure_svg(_QUESTION_SVG_CONTENT, '_question.svg', '_question_svg_path')
 
 
 _BASE_STYLESHEET = """
@@ -449,16 +492,6 @@ QScrollArea {
 }
 """
 
-AUTORUNS_HELP_BUTTON_STYLESHEET = """
-QPushButton {
-    font-weight: 700;
-    font-size: 12px;
-    text-align: center;
-    padding: 0px;
-    margin: 0px;
-}
-"""
-
 AUTORUNS_RISK_HELP_TEXT_STYLESHEET = """
 QTextEdit {
     background-color: #f8f9fc;
@@ -508,7 +541,7 @@ def _render_check_pixmap():
 
 
 def apply_flat_style(widget: QWidget) -> None:
-    svg_path = _ensure_check_svg()
+    svg_path = ensure_check_svg()
     if svg_path:
         svg_url = svg_path.replace('\\', '/')
         extra = (

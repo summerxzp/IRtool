@@ -49,6 +49,7 @@ package/build/
 # Runtime generated
 tools/sysmon_config_backup_*.xml
 .sysmon_started_by_irtool
+ui/_*.svg
 
 # Local backups
 bak/

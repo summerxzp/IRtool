@@ -178,7 +178,6 @@ class WorkspaceTab(QWidget):
         self.btn_select_all_rules.setFixedWidth(50)
         self.btn_select_all_rules.clicked.connect(self._select_all_rule_types)
         self.btn_deselect_all_rules = QPushButton("全部取消")
-        self.btn_deselect_all_rules.setFixedWidth(70)
         self.btn_deselect_all_rules.clicked.connect(self._deselect_all_rule_types)
 
         rule_layout.addWidget(rule_label)

@@ -56,6 +56,7 @@ from ui.autoruns_scan_controller import AutorunsScanController
 from ui.dropdown_button import DropdownButton
 from ui.ui_style import (
     apply_flat_style,
+    ensure_question_svg,
     AUTORUNS_CONTROL_HEIGHT,
     AUTORUNS_HEADER_HEIGHT,
     AUTORUNS_CATEGORY_WIDTH,
@@ -378,15 +379,26 @@ class AutorunsTab(QWidget):
         status_inner_layout.addStretch()  # 添加伸缩空间，使标签靠左对齐
         
         # 添加帮助按钮
-        self.btn_help = QPushButton("?")
-        self.btn_help.setFixedSize(22, 22)
+        self.btn_help = QPushButton()
+        self.btn_help.setFixedSize(26, 26)
         self.btn_help.setToolTip("风险等级说明")
-        self.btn_help.setStyleSheet(
-            "QPushButton { border: 1px solid #c0c6d0; color: #555; font-size: 12px; "
-            "font-weight: 600; background: #f0f2f5; border-radius: 11px; }"
-            "QPushButton:hover { background: #e0e4ea; color: #333; border: 1px solid #a0a8b4; }"
-            "QPushButton:pressed { background: #d0d4da; }"
-        )
+        q_svg = ensure_question_svg()
+        if q_svg:
+            q_url = q_svg.replace('\\', '/')
+            self.btn_help.setStyleSheet(
+                "QPushButton { border: 1px solid #d0d6e0; background: #ffffff; border-radius: 4px; "
+                f"padding: 0px; image: url({q_url}); }}"
+                "QPushButton:hover { background: #f0f4ff; border-color: #b8c8e8; }"
+                "QPushButton:pressed { background: #dceaff; border-color: #4c8dff; }"
+            )
+        else:
+            self.btn_help.setText("?")
+            self.btn_help.setStyleSheet(
+                "QPushButton { border: 1px solid #d0d6e0; color: #555; font-size: 12px; "
+                "font-weight: 600; background: #ffffff; border-radius: 4px; }"
+                "QPushButton:hover { background: #f0f4ff; border-color: #b8c8e8; }"
+                "QPushButton:pressed { background: #dceaff; }"
+            )
         self.btn_help.clicked.connect(self._show_risk_help)
         status_inner_layout.addWidget(self.btn_help, alignment=Qt.AlignmentFlag.AlignVCenter)
         
@@ -1355,25 +1367,24 @@ class AutorunsTab(QWidget):
         help_content = """
 <p><b>🟢 明显可信 (SAFE)</b></p>
 <ul>
-<li>Microsoft 或其他可信发布者签名</li>
-<li>位于系统目录 (System32 / Program Files)</li>
-<li>签名验证通过</li>
+<li>签名验证通过，且位于系统目录 (System32 / SysWOW64 / Program Files)</li>
+<li>签名验证通过，且发布者为可信厂商 (Microsoft / Intel / NVIDIA / AMD 等)</li>
+<li>无明显风险特征（默认判定）</li>
 </ul>
 <p style="color: #2e7d32;">UI 表现：默认颜色，无特殊标记</p>
 
 <p><b>🟡 可疑 (SUSPICIOUS)</b></p>
 <ul>
-<li>非系统目录下的可执行文件</li>
-<li>发布者为空或未知</li>
-<li>无有效数字签名</li>
+<li>非系统目录 + 发布者未知 + 无有效签名</li>
+<li>位于系统目录但签名验证失败（可能被篡改）</li>
+<li>有签名但位于用户可写目录 (AppData / Temp 等)</li>
 </ul>
 <p style="color: #b8860b;">UI 表现：整行浅黄色强调，深金色字体，图标右下角黄色标记</p>
 
 <p><b>🔴 高风险 (HIGH_RISK)</b></p>
 <ul>
-<li>Unsigned / 未验证签名条目</li>
-<li>无签名 + 位于用户可写目录 (AppData / Temp / Downloads 等)</li>
-<li>典型的恶意软件驻留路径</li>
+<li>文件不存在（可能已被删除或路径伪造）</li>
+<li>无有效签名 + 非系统目录 + 位于用户可写目录 (AppData / Temp / Downloads / Desktop / Documents)</li>
 </ul>
 <p style="color: #8b0000;">UI 表现：整行浅红色强调，深红色字体，图标右下角红色标记</p>
 
@@ -1382,6 +1393,7 @@ class AutorunsTab(QWidget):
 <li>风险等级仅作为辅助分析参考，不是最终判定</li>
 <li>建议结合签名验证、文件哈希、命令行参数综合判断</li>
 <li>对于高风险条目，建议优先检查</li>
+<li>可信发布者列表：Microsoft、Windows、Intel、NVIDIA、AMD</li>
 </ul>
 """
         content_text.setHtml(help_content)

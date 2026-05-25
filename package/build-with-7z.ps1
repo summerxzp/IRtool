@@ -71,6 +71,11 @@ Write-Host "Installing dependencies..." -ForegroundColor Yellow
 $qt6BinPath = & $python -c "import PyQt6; import os; print(os.path.join(os.path.dirname(PyQt6.__file__), 'Qt6', 'bin'))"
 Write-Host "PyQt6 Qt6 bin path: $qt6BinPath" -ForegroundColor Cyan
 
+Write-Host "Pre-generating SVG icon files..." -ForegroundColor Yellow
+$env:PYTHONPATH = $appDir
+& $python -c "from ui.ui_style import ensure_check_svg, ensure_close_svg, ensure_expand_svg, ensure_question_svg; ensure_check_svg(); ensure_close_svg(); ensure_expand_svg(); ensure_question_svg()"
+Remove-Item Env:\PYTHONPATH
+
 Write-Host "App directory: $appDir" -ForegroundColor Cyan
 
 $outputName = "IRtool-v$appVersion"
@@ -90,8 +95,12 @@ $buildArgs = @(
     '--hidden-import','PyQt6.QtCore',
     '--hidden-import','PyQt6.QtGui',
     '--hidden-import','PyQt6.QtWidgets',
-    '--hidden-import','pyparsing',
+    '--hidden-import','PyQt6.QtSvg',
     '--hidden-import','core.sysmon',
+    '--hidden-import','core.sysmon.models',
+    '--hidden-import','core.sysmon.parser',
+    '--hidden-import','core.sysmon.subscriber',
+    '--hidden-import','core.sysmon.config_manager',
     '--hidden-import','win32service',
     '--hidden-import','win32serviceutil',
     '--hidden-import','win32evtlog',
@@ -107,6 +116,9 @@ $buildArgs = @(
     '--add-data', "$(Join-Path $appDir 'tools\Sysmon64.exe');tools",
     '--add-data', "$(Join-Path $appDir 'tools\sysmon_config.xml');tools",
     '--add-data', "$(Join-Path $appDir 'ui\_check.svg');ui",
+    '--add-data', "$(Join-Path $appDir 'ui\_close.svg');ui",
+    '--add-data', "$(Join-Path $appDir 'ui\_expand.svg');ui",
+    '--add-data', "$(Join-Path $appDir 'ui\_question.svg');ui",
     '--exclude-module','matplotlib',
     '--exclude-module','numpy',
     '--exclude-module','pandas',
@@ -159,8 +171,6 @@ $buildArgs = @(
     '--exclude-module','PyQt6.QtSpatialAudio',
     '--exclude-module','PyQt6.QtSql',
     '--exclude-module','PyQt6.QtStateMachine',
-    '--exclude-module','PyQt6.QtSvg',
-    '--exclude-module','PyQt6.QtSvgWidgets',
     '--exclude-module','PyQt6.QtTest',
     '--exclude-module','PyQt6.QtTextToSpeech',
     '--exclude-module','PyQt6.QtWebChannel',

@@ -1,6 +1,7 @@
-# 运行时依赖
-PyQt6>=6.10.0
-psutil>=5.9.0
-pywin32>=306
-pyzipper>=0.3.6
-requests>=2.31.0
+PyQt6>=6.11.0
+PyQt6-Qt6>=6.11.1
+PyQt6_sip>=13.11.1
+psutil>=7.2.0
+pywin32>=311
+pyzipper>=0.4.0
+requests>=2.34.0

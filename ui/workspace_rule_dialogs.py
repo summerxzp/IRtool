@@ -604,7 +604,7 @@ class RuleManagerDialog(QDialog):
 
 【字段转义规则】
 - JSON文件中每个 \\ 需要写成 \\\\
-- 例如：匹配路径 C:\\jnetpub\\wwwroot，JSON中应写 "C:\\\\jnetpub\\\\wwwroot"
+- 例如：匹配路径 C:\\inetpub\\wwwroot，JSON中应写 "C:\\\\inetpub\\\\wwwroot"
 - 正则中的双引号 " 需写成 \\"
 
 【可用字段】

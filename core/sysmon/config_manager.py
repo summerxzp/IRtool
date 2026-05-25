@@ -408,10 +408,35 @@ class SysmonConfigManager:
             ('FileDeleteDetected', '文件删除检测'),
         ]
 
+        _KEY_TO_XML = {
+            'network': 'NetworkConnect',
+            'dns': 'DnsQuery',
+            'remote_thread': 'CreateRemoteThread',
+            'process_create': 'ProcessCreate',
+            'process_terminate': 'ProcessTerminate',
+            'file_create': 'FileCreate',
+            'file_create_dll': 'FileCreate',
+            'registry_event': 'RegistryEvent',
+            'process_access': 'ProcessAccess',
+            'driver_load': 'DriverLoad',
+            'image_load': 'ImageLoad',
+            'raw_access_read': 'RawAccessRead',
+            'file_create_stream_hash': 'FileCreateStreamHash',
+            'pipe_event': 'PipeEvent',
+            'wmi_event': 'WmiEvent',
+            'file_delete': 'FileDelete',
+            'clipboard_change': 'ClipboardChange',
+            'process_tampering': 'ProcessTampering',
+            'file_delete_detected': 'FileDeleteDetected',
+            'file_create_time': 'FileCreateTime',
+        }
+
         enabled_tags = set()
         for key in enabled_events:
             if key in EVENT_CONFIG:
                 enabled_tags.add(EVENT_CONFIG[key]['xml_tag'])
+            elif key in _KEY_TO_XML:
+                enabled_tags.add(_KEY_TO_XML[key])
 
         from datetime import datetime
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -537,3 +562,55 @@ class SysmonConfigManager:
             if key in EVENT_CONFIG:
                 event_ids.append(EVENT_CONFIG[key]['event_id'])
         return sorted(event_ids)
+
+    SYSMON_LOG_NAME = "Microsoft-Windows-Sysmon/Operational"
+
+    def get_log_max_size(self) -> Optional[int]:
+        """读取 Sysmon 日志的最大大小（字节），使用 wevtutil（普通权限即可）"""
+        try:
+            result = subprocess.run(
+                ["wevtutil", "get-log", self.SYSMON_LOG_NAME],
+                capture_output=True, text=True, timeout=10,
+                **_SUBPROCESS_KWARGS
+            )
+            if result.returncode != 0:
+                logger.debug(f"wevtutil get-log 返回非零: {result.stderr}")
+                return None
+            for line in result.stdout.splitlines():
+                line = line.strip()
+                if line.startswith("maxSize:"):
+                    size_str = line.split(":", 1)[1].strip()
+                    return int(size_str)
+            logger.debug("wevtutil 输出中未找到 maxSize")
+            return None
+        except FileNotFoundError:
+            logger.warning("wevtutil 命令不可用")
+            return None
+        except Exception as e:
+            logger.warning(f"读取Sysmon日志大小失败: {e}")
+            return None
+
+    def set_log_max_size(self, size_bytes: int) -> Tuple[bool, str]:
+        """设置 Sysmon 日志的最大大小（字节），使用 wevtutil（需要管理员权限写入）"""
+        if size_bytes < 1048576:
+            return False, "日志大小不能小于 1 MB"
+        try:
+            result = subprocess.run(
+                ["wevtutil", "set-log", self.SYSMON_LOG_NAME, "/ms:%d" % size_bytes],
+                capture_output=True, text=True, timeout=10,
+                **_SUBPROCESS_KWARGS
+            )
+            if result.returncode == 0:
+                size_mb = size_bytes / (1024 * 1024)
+                logger.info(f"Sysmon日志大小已设置为 {size_mb:.0f} MB")
+                return True, f"日志大小已设置为 {size_mb:.0f} MB"
+            error_msg = result.stderr.strip() or f"返回码 {result.returncode}"
+            if "拒绝访问" in error_msg or "Access is denied" in error_msg or result.returncode == 5:
+                return False, "设置失败: 需要管理员权限"
+            logger.error(f"设置Sysmon日志大小失败: {error_msg}")
+            return False, f"设置失败: {error_msg}"
+        except FileNotFoundError:
+            return False, "wevtutil 命令不可用"
+        except Exception as e:
+            logger.error(f"设置Sysmon日志大小异常: {e}")
+            return False, f"设置异常: {e}"

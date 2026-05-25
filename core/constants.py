@@ -30,7 +30,7 @@ APP_NAME = "终端安全检测工具"
 APP_ID = "com.internal.IRtool"
 APP_VERSION = _read_version_from_pyproject()
 BUILD_TYPE = "release"
-BUILD_DATE = "2026-05-20"
+BUILD_DATE = "2026-05-26"
 
 # 主窗口
 WINDOW_MIN_WIDTH = 1200

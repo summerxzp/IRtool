@@ -3,14 +3,17 @@ from PyQt6.QtWidgets import (
     QPushButton, QLabel,
     QMessageBox, QHeaderView, QLineEdit, QFrame,
     QGridLayout, QMenu, QFileDialog, QApplication,
-    QSplitter, QTextEdit, QSizePolicy, QCheckBox
+    QSplitter, QTextEdit, QSizePolicy, QCheckBox,
+    QDialog, QDialogButtonBox, QScrollArea, QSpinBox,
+    QToolTip
 )
 from PyQt6.QtCore import Qt, QTimer, QSortFilterProxyModel, QThread, pyqtSignal
-from PyQt6.QtGui import QColor
+from PyQt6.QtGui import QColor, QPalette
 from datetime import datetime
+import json
 import os
 import subprocess
-import json
+import webbrowser
 
 import logging
 
@@ -20,7 +23,7 @@ from core.sysmon import (
 )
 from core.sysmon.config_manager import EVENT_CONFIG, DEFAULT_ENABLED_EVENTS
 from ui.table_model import HighPerformanceTableModel
-from ui.ui_style import apply_flat_style
+from ui.ui_style import apply_flat_style, ensure_close_svg, ensure_expand_svg
 from ui.process_tree_widget import ProcessTreeWidget
 from ui.dropdown_button import DropdownButton
 
@@ -95,15 +98,45 @@ class EventFilterProxyModel(QSortFilterProxyModel):
 
         # 事件类型筛选
         if self._event_type_filter != "全部":
-            event_type_map = {
-                "DNS查询": DnsEvent,
-                "网络连接": NetworkConnectEvent,
-                "远程线程": CreateRemoteThreadEvent,
-                "DLL创建": FileCreateEvent,
+            event_type_eid_map = {
+                "进程创建": 1,
+                "文件创建时间修改": 2,
+                "网络连接": 3,
+                "进程终止": 5,
+                "驱动加载": 6,
+                "DLL加载": 7,
+                "远程线程创建": 8,
+                "原始磁盘访问": 9,
+                "进程访问": 10,
+                "文件创建": 11,
+                "DLL文件创建": 11,
+                "注册表事件": 12,
+                "文件流哈希": 15,
+                "管道事件": 17,
+                "WMI事件": 19,
+                "DNS查询": 22,
+                "文件删除": 23,
+                "剪贴板变化": 24,
+                "进程篡改": 25,
+                "文件删除检测": 26,
             }
-            expected_type = event_type_map.get(self._event_type_filter)
-            if expected_type and not isinstance(event, expected_type):
-                return False
+            target_eid = event_type_eid_map.get(self._event_type_filter)
+            if target_eid is not None:
+                if self._event_type_filter == "DLL文件创建":
+                    if not (isinstance(event, FileCreateEvent) and
+                            getattr(event, 'target_filename', '').lower().endswith('.dll')):
+                        return False
+                elif self._event_type_filter == "注册表事件":
+                    if event.event_id not in (12, 13, 14):
+                        return False
+                elif self._event_type_filter == "管道事件":
+                    if event.event_id not in (17, 18):
+                        return False
+                elif self._event_type_filter == "WMI事件":
+                    if event.event_id not in (19, 20, 21):
+                        return False
+                elif event.event_id != target_eid:
+                    return False
 
         # 仅外连筛选（包括外连IP的网络连接和DNS查询）
         if self._external_only:
@@ -137,6 +170,207 @@ class HistoryLoadWorker(QThread):
         self.finished.emit(events)
 
 
+class SysmonActionWorker(QThread):
+    """后台线程：执行 Sysmon 安装/卸载/配置更新，避免阻塞主线程 UI"""
+    finished = pyqtSignal(bool, str)
+
+    def __init__(self, action, config_manager):
+        super().__init__()
+        self._action = action
+        self._config_manager = config_manager
+
+    def run(self):
+        try:
+            if self._action == 'install':
+                success, msg = self._config_manager.install()
+            elif self._action == 'uninstall':
+                success, msg = self._config_manager.uninstall()
+            elif self._action == 'update_config':
+                success, msg = self._config_manager.update_config()
+            else:
+                success, msg = False, f"未知操作: {self._action}"
+            self.finished.emit(success, msg)
+        except Exception as e:
+            self.finished.emit(False, str(e))
+
+
+_ALL_SYSMON_EVENTS = [
+    ('network', '网络连接', 'EventID 3 — 监控进程的网络连接活动，记录源/目标IP、端口和协议。应急响应核心数据源，用于追踪C2通信、横向移动、数据外泄'),
+    ('dns', 'DNS查询', 'EventID 22 — 记录进程发起的DNS查询域名。应急响应核心数据源，用于发现恶意域名解析、DGA域名、隧道通信'),
+    ('remote_thread', '远程线程创建', 'EventID 8 — 检测跨进程注入线程的行为。应急响应关键指标，用于发现代码注入、恶意软件持久化'),
+    ('process_create', '进程创建', 'EventID 1 — 记录新进程创建，含命令行、父进程等信息。应急响应核心数据源，用于追踪攻击链和恶意执行'),
+    ('process_terminate', '进程终止', 'EventID 5 — 记录进程退出事件。辅助分析进程生命周期和异常终止'),
+    ('file_create', '文件创建', 'EventID 11 — 记录文件创建事件。可用于监控敏感目录文件写入、恶意文件释放'),
+    ('file_create_dll', 'DLL文件创建', 'EventID 11 — 仅记录.dll文件的创建。监控DLL侧加载和恶意DLL释放，数据量比完整文件创建小'),
+    ('registry_event', '注册表事件', 'EventID 12/13/14 — 监控注册表创建、修改和删除。用于检测持久化机制（自启动项、COM劫持等）'),
+    ('process_access', '进程访问', 'EventID 10 — 记录进程间读写内存操作。检测凭据窃取（如lsass内存读取）和进程 hollowing'),
+    ('driver_load', '驱动加载', 'EventID 6 — 记录内核驱动加载事件。检测Rootkit和恶意驱动安装'),
+    ('image_load', 'DLL加载', 'EventID 7 — 记录进程加载DLL事件。数据量较大，用于检测DLL侧加载和可疑模块注入'),
+    ('raw_access_read', '原始磁盘访问', 'EventID 9 — 检测进程绕过文件系统直接读取磁盘。用于发现磁盘窃取、勒索软件行为'),
+    ('file_create_stream_hash', '文件流哈希', 'EventID 15 — 记录文件备用数据流的哈希。检测NTFS ADS隐藏恶意代码'),
+    ('pipe_event', '管道事件', 'EventID 17/18 — 监控命名管道的创建和连接。检测SMB横向移动和命名管道 impersonation'),
+    ('wmi_event', 'WMI事件', 'EventID 19/20/21 — 监控WMI事件订阅和消费者。检测WMI持久化机制（无文件攻击）'),
+    ('file_delete', '文件删除', 'EventID 23 — 记录文件删除事件。检测日志清理、勒索软件加密后删除原文件'),
+    ('clipboard_change', '剪贴板变化', 'EventID 24 — 监控剪贴板内容变化。检测剪贴板窃取（如窃取密码、加密货币地址替换）'),
+    ('process_tampering', '进程篡改', 'EventID 25 — 检测进程内存被篡改（如Process Hollowing）。高级攻击手法检测'),
+    ('file_delete_detected', '文件删除检测', 'EventID 26 — 与文件删除类似但记录方式不同，用于检测关键文件被删除'),
+    ('file_create_time', '文件创建时间修改', 'EventID 2 — 检测文件时间戳篡改（Timestomping）。攻击者常用技术隐藏恶意文件真实创建时间'),
+]
+
+_EVENT_DISPLAY_NAMES = {
+    'network': '网络连接',
+    'dns': 'DNS查询',
+    'remote_thread': '远程线程创建',
+    'process_create': '进程创建',
+    'process_terminate': '进程终止',
+    'file_create': '文件创建',
+    'file_create_dll': 'DLL文件创建',
+    'registry_event': '注册表事件',
+    'process_access': '进程访问',
+    'driver_load': '驱动加载',
+    'image_load': 'DLL加载',
+    'raw_access_read': '原始磁盘访问',
+    'file_create_stream_hash': '文件流哈希',
+    'pipe_event': '管道事件',
+    'wmi_event': 'WMI事件',
+    'file_delete': '文件删除',
+    'clipboard_change': '剪贴板变化',
+    'process_tampering': '进程篡改',
+    'file_delete_detected': '文件删除检测',
+    'file_create_time': '文件创建时间修改',
+}
+
+_XML_TAG_MAP = {
+    'network': 'NetworkConnect',
+    'dns': 'DnsQuery',
+    'remote_thread': 'CreateRemoteThread',
+    'process_create': 'ProcessCreate',
+    'process_terminate': 'ProcessTerminate',
+    'file_create': 'FileCreate',
+    'file_create_dll': 'FileCreate',
+    'registry_event': 'RegistryEvent',
+    'process_access': 'ProcessAccess',
+    'driver_load': 'DriverLoad',
+    'image_load': 'ImageLoad',
+    'raw_access_read': 'RawAccessRead',
+    'file_create_stream_hash': 'FileCreateStreamHash',
+    'pipe_event': 'PipeEvent',
+    'wmi_event': 'WmiEvent',
+    'file_delete': 'FileDelete',
+    'clipboard_change': 'ClipboardChange',
+    'process_tampering': 'ProcessTampering',
+    'file_delete_detected': 'FileDeleteDetected',
+    'file_create_time': 'FileCreateTime',
+}
+
+
+class SysmonConfigDialog(QDialog):
+    _DIALOG_STYLE = """
+    QDialog { background-color: #f5f6f8; }
+    QLabel { color: #2b2f33; background: transparent; }
+    QCheckBox { spacing: 6px; color: #3a3f47; background: transparent; }
+    QCheckBox::indicator { width: 16px; height: 16px; border-radius: 3px; border: 1.5px solid #c0c6d0; background-color: #ffffff; }
+    QCheckBox::indicator:checked { background-color: #4c8dff; border-color: #4c8dff; }
+    QCheckBox::indicator:hover { border-color: #4c8dff; }
+    QPushButton { background-color: #ffffff; border: 1px solid #d0d6e0; border-radius: 5px; padding: 5px 14px; font-weight: 500; color: #3a3f47; }
+    QPushButton:hover { background-color: #f0f4ff; border-color: #b8c8e8; color: #1a5fbf; }
+    QPushButton:pressed { background-color: #dceaff; border-color: #4c8dff; }
+    QPushButton:disabled { background-color: #f5f6f8; color: #b0b5bd; border-color: #e4e8ee; }
+    QScrollArea { background: transparent; border: none; }
+    QScrollBar:vertical { background: transparent; width: 8px; margin: 0px; }
+    QScrollBar::handle:vertical { background: #cdd3dc; min-height: 30px; border-radius: 4px; }
+    QScrollBar::handle:vertical:hover { background: #a8b0bc; }
+    QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }
+    QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: none; }
+    QToolTip { background-color: #ffffff; color: #2b2f33; border: 1px solid #dce1e8; border-radius: 4px; padding: 5px 8px; font-size: 12px; }
+    """
+
+    def __init__(self, current_enabled, parent=None):
+        super().__init__(parent)
+        self.setStyleSheet(self._DIALOG_STYLE)
+        tip_palette = QPalette()
+        tip_palette.setColor(QPalette.ColorRole.ToolTipBase, QColor("#ffffff"))
+        tip_palette.setColor(QPalette.ColorRole.ToolTipText, QColor("#2b2f33"))
+        QToolTip.setPalette(tip_palette)
+        self.setWindowTitle("调整 Sysmon 采集配置")
+        self.setMinimumWidth(520)
+        self._result = None
+        self._checkboxes = {}
+        self._init_ui(current_enabled)
+
+    def _init_ui(self, current_enabled):
+        layout = QVBoxLayout(self)
+        layout.setSpacing(10)
+
+        hint = QLabel("勾选需要启用的事件类型，应用后将更新 Sysmon 配置文件并重新加载。")
+        hint.setWordWrap(True)
+        hint.setStyleSheet("color: #6b7280; font-size: 12px; padding: 0 4px;")
+        layout.addWidget(hint)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setStyleSheet("QScrollArea { background: transparent; border: none; }")
+
+        container = QWidget()
+        container.setStyleSheet("background: transparent;")
+        grid = QGridLayout(container)
+        grid.setContentsMargins(4, 4, 4, 4)
+        grid.setSpacing(6)
+        grid.setColumnStretch(1, 1)
+
+        row = 0
+        for key, name, desc in _ALL_SYSMON_EVENTS:
+            cb = QCheckBox(name)
+            cb.setChecked(key in current_enabled)
+            cb.setToolTip(desc)
+            cb.setStyleSheet("QCheckBox { font-weight: 500; }")
+            self._checkboxes[key] = cb
+
+            desc_label = QLabel(desc.split('—')[0].strip() if '—' in desc else '')
+            desc_label.setStyleSheet("color: #8b8f96; font-size: 11px; padding-left: 2px;")
+            desc_label.setToolTip(desc)
+
+            grid.addWidget(cb, row, 0)
+            grid.addWidget(desc_label, row, 1)
+            row += 1
+
+        scroll.setWidget(container)
+        layout.addWidget(scroll, 1)
+
+        btn_box = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        btn_box.button(QDialogButtonBox.StandardButton.Ok).setText("应用配置")
+        btn_box.button(QDialogButtonBox.StandardButton.Cancel).setText("取消")
+        btn_box.accepted.connect(self._on_accept)
+        btn_box.rejected.connect(self.reject)
+
+        btn_select_all = QPushButton("全选")
+        btn_select_all.clicked.connect(self._on_select_all)
+        btn_deselect_all = QPushButton("取消全选")
+        btn_deselect_all.clicked.connect(self._on_deselect_all)
+        btn_box.addButton(btn_select_all, QDialogButtonBox.ButtonRole.ActionRole)
+        btn_box.addButton(btn_deselect_all, QDialogButtonBox.ButtonRole.ActionRole)
+
+        layout.addWidget(btn_box)
+
+    def _on_accept(self):
+        self._result = [key for key, cb in self._checkboxes.items() if cb.isChecked()]
+        self.accept()
+
+    def _on_select_all(self):
+        for cb in self._checkboxes.values():
+            cb.setChecked(True)
+
+    def _on_deselect_all(self):
+        for cb in self._checkboxes.values():
+            cb.setChecked(False)
+
+    def get_result(self):
+        return self._result
+
+
 class LogCollectorTab(QWidget):
 
     def __init__(self, data_store=None):
@@ -162,6 +396,7 @@ class LogCollectorTab(QWidget):
         self._batch_update_timer.setSingleShot(True)
         self._batch_update_timer.timeout.connect(self._flush_batch_update)
         self._history_load_worker = None
+        self._sysmon_action_worker = None
 
     def _init_ui(self):
         layout = QVBoxLayout(self)
@@ -201,6 +436,24 @@ class LogCollectorTab(QWidget):
         toolbar.addWidget(self.btn_export)
         toolbar.addStretch()
 
+        self.lbl_log_size = QLabel("日志大小: --")
+        self.lbl_log_size.setToolTip("Sysmon 事件日志最大大小（通过 wevtutil 读取）")
+        self.lbl_log_size.setStyleSheet("color: #6b7280; font-size: 12px;")
+        toolbar.addWidget(self.lbl_log_size)
+
+        self.spin_log_size = QSpinBox()
+        self.spin_log_size.setRange(1, 4096)
+        self.spin_log_size.setSuffix(" MB")
+        self.spin_log_size.setToolTip("设置 Sysmon 事件日志最大大小（需管理员权限写入）")
+        self.spin_log_size.setFixedWidth(90)
+        self.spin_log_size.setStyleSheet("QSpinBox { padding: 2px 4px; font-size: 12px; }")
+        toolbar.addWidget(self.spin_log_size)
+
+        self.btn_set_log_size = QPushButton("应用")
+        self.btn_set_log_size.setToolTip("将日志大小设置应用到系统")
+        self.btn_set_log_size.clicked.connect(self._on_set_log_size)
+        toolbar.addWidget(self.btn_set_log_size)
+
         self.chk_external_only = QCheckBox("仅外连")
         self.chk_external_only.setToolTip("只显示外连事件（外网IP的网络连接和DNS查询）")
         self.chk_external_only.stateChanged.connect(self._on_external_only_changed)
@@ -216,21 +469,12 @@ class LogCollectorTab(QWidget):
 
         config_layout.addWidget(QLabel("采集配置:"))
 
-        self.event_checkboxes = {}
-        for key, cfg in EVENT_CONFIG.items():
-            cb = QCheckBox(cfg['name'])
-            cb.setChecked(key in DEFAULT_ENABLED_EVENTS)
-            cb.setToolTip(f"EventID {cfg['event_id']}")
-            cb.stateChanged.connect(self._on_event_config_changed)
-            config_layout.addWidget(cb)
-            self.event_checkboxes[key] = cb
+        self.btn_adjust_config = QPushButton("调整配置")
+        self.btn_adjust_config.setToolTip("打开配置对话框，选择需要启用的 Sysmon 事件类型")
+        self.btn_adjust_config.clicked.connect(self._on_adjust_config)
+        config_layout.addWidget(self.btn_adjust_config)
 
-        self.btn_apply_config = QPushButton("应用配置")
-        self.btn_apply_config.setToolTip("将当前勾选的采集配置应用到Sysmon")
-        self.btn_apply_config.clicked.connect(self._apply_event_config)
-        config_layout.addWidget(self.btn_apply_config)
-
-        self.btn_open_config = QPushButton("打开配置")
+        self.btn_open_config = QPushButton("打开配置文件")
         self.btn_open_config.setToolTip("打开配置文件所在目录")
         self.btn_open_config.clicked.connect(self._open_config_location)
         config_layout.addWidget(self.btn_open_config)
@@ -264,7 +508,7 @@ class LogCollectorTab(QWidget):
 
         filter_layout.addWidget(QLabel("事件类型:"))
         self.event_type_filter = DropdownButton()
-        self.event_type_filter.addItems(["全部", "DNS查询", "网络连接", "远程线程", "DLL创建"])
+        self._update_event_type_filter()
         self.event_type_filter.currentTextChanged.connect(self._on_event_type_changed)
         filter_layout.addWidget(self.event_type_filter)
 
@@ -313,6 +557,31 @@ class LogCollectorTab(QWidget):
 
         splitter.addWidget(self.table)
 
+        detail_container = QWidget()
+        detail_layout = QVBoxLayout(detail_container)
+        detail_layout.setContentsMargins(0, 0, 0, 0)
+        detail_layout.setSpacing(0)
+
+        self._detail_close_btn = QPushButton()
+        self._detail_close_btn.setFixedSize(24, 24)
+        self._detail_close_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._detail_close_btn.setToolTip("关闭详情面板")
+        close_svg = ensure_close_svg()
+        close_style = (
+            "QPushButton { border: 1px solid #c0c6d0; background: #f0f2f5; border-radius: 4px; padding: 0px; }"
+            "QPushButton:hover { background: #e0e4ea; border: 1px solid #a0a8b4; }"
+            "QPushButton:pressed { background: #d0d4da; }"
+        )
+        if close_svg:
+            close_style += f"QPushButton {{ image: url({close_svg.replace(chr(92), '/')}); }}"
+        self._detail_close_btn.setStyleSheet(close_style)
+        self._detail_close_btn.clicked.connect(self._close_detail_panels)
+
+        detail_header = QHBoxLayout()
+        detail_header.setContentsMargins(0, 0, 4, 0)
+        detail_header.addStretch()
+        detail_header.addWidget(self._detail_close_btn)
+
         self._detail_panel = QTextEdit()
         self._detail_panel.setReadOnly(True)
         self._detail_panel.setPlaceholderText("点击事件行查看详细信息...")
@@ -323,9 +592,13 @@ class LogCollectorTab(QWidget):
         self._detail_panel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self._detail_panel.setMinimumHeight(80)
         self._detail_panel.setMaximumHeight(300)
-        self._detail_panel.hide()
 
-        splitter.addWidget(self._detail_panel)
+        detail_layout.addLayout(detail_header)
+        detail_layout.addWidget(self._detail_panel)
+        detail_container.hide()
+
+        splitter.addWidget(detail_container)
+        self._detail_container = detail_container
 
         self._process_tree_widget = ProcessTreeWidget()
         self._process_tree_widget.setMinimumHeight(80)
@@ -338,6 +611,23 @@ class LogCollectorTab(QWidget):
         splitter.setStretchFactor(2, 1)
 
         layout.addWidget(splitter)
+
+        self._btn_expand_detail = QPushButton()
+        self._btn_expand_detail.setFixedSize(24, 24)
+        self._btn_expand_detail.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._btn_expand_detail.setToolTip("展开事件详情和进程链")
+        expand_svg = ensure_expand_svg()
+        expand_style = (
+            "QPushButton { border: 1px solid #c0c6d0; background: #f0f2f5; border-radius: 4px; padding: 0px; }"
+            "QPushButton:hover { background: #e0e4ea; border: 1px solid #a0a8b4; }"
+            "QPushButton:pressed { background: #d0d4da; }"
+        )
+        if expand_svg:
+            expand_style += f"QPushButton {{ image: url({expand_svg.replace(chr(92), '/')}); }}"
+        self._btn_expand_detail.setStyleSheet(expand_style)
+        self._btn_expand_detail.clicked.connect(self._expand_detail_panels)
+        self._btn_expand_detail.hide()
+        self._btn_expand_detail.setParent(self)
 
         self.duration_timer = QTimer()
         self.duration_timer.timeout.connect(self._update_duration)
@@ -401,6 +691,13 @@ class LogCollectorTab(QWidget):
         elif info['installed'] and not info['running']:
             self.btn_start.setEnabled(True)
             self.btn_start.setText("启动采集 (需启动Sysmon)")
+
+        if info['installed']:
+            self._refresh_log_size()
+        else:
+            self.lbl_log_size.setText("日志大小: --")
+            self.spin_log_size.setEnabled(False)
+            self.btn_set_log_size.setEnabled(False)
 
     def _toggle_collection(self):
         if self._is_collecting:
@@ -725,38 +1022,72 @@ class LogCollectorTab(QWidget):
         """仅外连筛选改变"""
         self._proxy_model.set_external_only(state == Qt.CheckState.Checked.value)
 
-    def _on_event_config_changed(self):
-        """采集配置复选框状态改变"""
-        self._enabled_events = [
-            key for key, cb in self.event_checkboxes.items() if cb.isChecked()
-        ]
+    def _update_event_type_filter(self):
+        """根据已启用事件更新筛选下拉框"""
+        current = self.event_type_filter.currentText()
+        self.event_type_filter.blockSignals(True)
+        self.event_type_filter.clear()
+        self.event_type_filter.addItem("全部")
+        for key in self._enabled_events:
+            name = _EVENT_DISPLAY_NAMES.get(key)
+            if name:
+                self.event_type_filter.addItem(name)
+        try:
+            idx = self.event_type_filter._items.index(current)
+            self.event_type_filter.setCurrentIndex(idx)
+        except ValueError:
+            self.event_type_filter.setCurrentIndex(0)
+        self.event_type_filter.blockSignals(False)
 
-    def _apply_event_config(self):
-        """应用采集配置到Sysmon"""
-        enabled = [
-            key for key, cb in self.event_checkboxes.items() if cb.isChecked()
-        ]
-
-        if not enabled:
-            QMessageBox.warning(self, "提示", "至少需要启用一种事件类型")
-            return
-
+    def _on_adjust_config(self):
+        """打开配置对话框调整 Sysmon 采集配置"""
         if self._is_collecting:
             QMessageBox.warning(self, "提示", "请先停止采集再修改配置")
             return
 
-        success, msg = self.config_manager.apply_config(enabled)
+        dialog = SysmonConfigDialog(self._enabled_events, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            result = dialog.get_result()
+            if not result:
+                QMessageBox.warning(self, "提示", "至少需要启用一种事件类型")
+                return
+
+            success, msg = self.config_manager.apply_config(result)
+            if success:
+                self._enabled_events = result
+                self._update_event_type_filter()
+                QMessageBox.information(self, "成功", msg)
+            else:
+                QMessageBox.warning(self, "失败", msg)
+
+    def _on_set_log_size(self):
+        """设置 Sysmon 日志最大大小"""
+        size_mb = self.spin_log_size.value()
+        size_bytes = size_mb * 1024 * 1024
+        success, msg = self.config_manager.set_log_max_size(size_bytes)
         if success:
-            self._enabled_events = enabled
             QMessageBox.information(self, "成功", msg)
+            self._refresh_log_size()
         else:
             QMessageBox.warning(self, "失败", msg)
 
+    def _refresh_log_size(self):
+        """刷新日志大小显示"""
+        size_bytes = self.config_manager.get_log_max_size()
+        if size_bytes is not None:
+            size_mb = size_bytes // (1024 * 1024)
+            self.lbl_log_size.setText(f"日志大小: {size_mb} MB")
+            self.spin_log_size.setValue(size_mb)
+            self.spin_log_size.setEnabled(True)
+            self.btn_set_log_size.setEnabled(True)
+        else:
+            self.lbl_log_size.setText("日志大小: --")
+            self.spin_log_size.setValue(64)
+            self.spin_log_size.setEnabled(False)
+            self.btn_set_log_size.setEnabled(False)
+
     def _open_config_location(self):
         """打开配置文件所在目录"""
-        import subprocess
-        import os
-
         config_path = self.config_manager.config_path
 
         if not config_path.exists():
@@ -772,6 +1103,10 @@ class LogCollectorTab(QWidget):
     def _deploy_sysmon(self):
         info = self.config_manager.get_status_info()
 
+        if self._sysmon_action_worker and self._sysmon_action_worker.isRunning():
+            QMessageBox.warning(self, "提示", "Sysmon 操作正在进行中，请稍候")
+            return
+
         if info['installed']:
             reply = QMessageBox.question(
                 self,
@@ -782,18 +1117,25 @@ class LogCollectorTab(QWidget):
             if reply != QMessageBox.StandardButton.Yes:
                 return
 
-            success, msg = self.config_manager.update_config()
-            if success:
-                QMessageBox.information(self, "成功", msg)
-            else:
-                QMessageBox.warning(self, "失败", msg)
+            self.btn_deploy.setEnabled(False)
+            self.btn_deploy.setText("更新中...")
+            self._sysmon_action_worker = SysmonActionWorker('update_config', self.config_manager)
+            self._sysmon_action_worker.finished.connect(self._on_deploy_finished)
+            self._sysmon_action_worker.start()
         else:
-            success, msg = self.config_manager.install()
-            if success:
-                QMessageBox.information(self, "成功", msg)
-            else:
-                QMessageBox.warning(self, "失败", msg)
+            self.btn_deploy.setEnabled(False)
+            self.btn_deploy.setText("安装中...")
+            self._sysmon_action_worker = SysmonActionWorker('install', self.config_manager)
+            self._sysmon_action_worker.finished.connect(self._on_deploy_finished)
+            self._sysmon_action_worker.start()
 
+    def _on_deploy_finished(self, success, msg):
+        self.btn_deploy.setEnabled(True)
+        self.btn_deploy.setText("部署 Sysmon")
+        if success:
+            QMessageBox.information(self, "成功", msg)
+        else:
+            QMessageBox.warning(self, "失败", msg)
         self._update_status_display()
 
     def _uninstall_sysmon(self):
@@ -801,6 +1143,10 @@ class LogCollectorTab(QWidget):
 
         if not info['installed']:
             QMessageBox.information(self, "提示", "Sysmon 未安装，无需卸载")
+            return
+
+        if self._sysmon_action_worker and self._sysmon_action_worker.isRunning():
+            QMessageBox.warning(self, "提示", "Sysmon 操作正在进行中，请稍候")
             return
 
         started_by_us = info.get('started_by_irtool', False)
@@ -838,13 +1184,20 @@ class LogCollectorTab(QWidget):
         if self._is_collecting:
             self._stop_collection()
 
-        success, msg = self.config_manager.uninstall()
+        self.btn_uninstall.setEnabled(False)
+        self.btn_uninstall.setText("卸载中...")
+        self._sysmon_action_worker = SysmonActionWorker('uninstall', self.config_manager)
+        self._sysmon_action_worker.finished.connect(self._on_uninstall_finished)
+        self._sysmon_action_worker.start()
+
+    def _on_uninstall_finished(self, success, msg):
+        self.btn_uninstall.setEnabled(True)
+        self.btn_uninstall.setText("卸载 Sysmon")
         if success:
             self._sysmon_was_started_by_us = False
             QMessageBox.information(self, "卸载成功", msg)
         else:
             QMessageBox.warning(self, "卸载失败", msg)
-
         self._update_status_display()
 
     def _load_history_events(self):
@@ -1029,7 +1382,6 @@ class LogCollectorTab(QWidget):
                 clipboard.setText(event.query_name)
                 return
             if action == action_search_vt:
-                import webbrowser
                 webbrowser.open(f"https://www.virustotal.com/gui/domain/{event.query_name}")
                 return
         elif isinstance(event, NetworkConnectEvent):
@@ -1040,7 +1392,6 @@ class LogCollectorTab(QWidget):
                 clipboard.setText(f"{event.destination_ip}:{event.destination_port}")
                 return
             if action == action_search_vt_ip:
-                import webbrowser
                 webbrowser.open(f"https://www.virustotal.com/gui/ip-address/{event.destination_ip}")
                 return
         elif isinstance(event, CreateRemoteThreadEvent):
@@ -1083,7 +1434,7 @@ class LogCollectorTab(QWidget):
         event, _ = self._get_selected_event()
         if event:
             self._detail_panel.setHtml(self._format_event_detail(event))
-            self._detail_panel.show()
+            self._detail_container.show()
             pid = self._get_event_pid(event)
             if pid and pid > 0:
                 self._process_tree_widget.show()
@@ -1091,10 +1442,42 @@ class LogCollectorTab(QWidget):
             else:
                 self._process_tree_widget.hide()
                 self._process_tree_widget.clear()
+            self._btn_expand_detail.hide()
         else:
-            self._detail_panel.hide()
+            self._detail_container.hide()
             self._process_tree_widget.hide()
             self._process_tree_widget.clear()
+
+    def _close_detail_panels(self):
+        self._detail_container.hide()
+        self._process_tree_widget.hide()
+        self._process_tree_widget.clear()
+        self._position_expand_button()
+        self._btn_expand_detail.show()
+
+    def _expand_detail_panels(self):
+        event, _ = self._get_selected_event()
+        if not event:
+            self._btn_expand_detail.hide()
+            return
+        self._detail_panel.setHtml(self._format_event_detail(event))
+        self._detail_container.show()
+        pid = self._get_event_pid(event)
+        if pid and pid > 0:
+            self._process_tree_widget.show()
+            self._process_tree_widget.load_pid(pid)
+        self._btn_expand_detail.hide()
+
+    def _position_expand_button(self):
+        self._btn_expand_detail.move(
+            self.width() - 40,
+            self.height() - 40
+        )
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if self._btn_expand_detail.isVisible():
+            self._position_expand_button()
 
     @staticmethod
     def _get_event_pid(event) -> int:
