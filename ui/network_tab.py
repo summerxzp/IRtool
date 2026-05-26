@@ -285,6 +285,7 @@ class NetworkTab(QWidget):
             current_keys.add(key)
             if key in self._connection_cache:
                 cached = self._connection_cache[key]
+                cached['last_seen_epoch'] = conn['last_seen_epoch']
                 cached['timestamp'] = conn['timestamp']
                 cached['timestamp_epoch'] = conn['timestamp_epoch']
                 cached['status'] = conn['status']
@@ -311,9 +312,18 @@ class NetworkTab(QWidget):
             keys_to_remove = []
             for key, cached in self._connection_cache.items():
                 if not cached.get('is_current', True):
-                    conn_time = self._parse_connection_time(cached)
-                    if conn_time and conn_time < retention_threshold:
-                        keys_to_remove.append(key)
+                    last_seen = cached.get('last_seen_epoch')
+                    if last_seen:
+                        try:
+                            last_seen_dt = datetime.fromtimestamp(last_seen)
+                            if last_seen_dt < retention_threshold:
+                                keys_to_remove.append(key)
+                        except (OverflowError, OSError, ValueError):
+                            pass
+                    else:
+                        conn_time = self._parse_connection_time(cached)
+                        if conn_time and conn_time < retention_threshold:
+                            keys_to_remove.append(key)
             for key in keys_to_remove:
                 del self._connection_cache[key]
                 cache_changed = True
@@ -398,8 +408,17 @@ class NetworkTab(QWidget):
 
             remote_port_sort = int(conn['remote_port']) if conn['remote_port'] and conn['remote_port'] != "" else -1
 
+            first_seen = conn.get('first_seen_epoch')
+            if first_seen and first_seen > 0:
+                try:
+                    display_time = datetime.fromtimestamp(first_seen).strftime("%Y/%m/%d %H:%M:%S")
+                except (OverflowError, OSError, ValueError):
+                    display_time = conn['timestamp']
+            else:
+                display_time = conn['timestamp']
+
             row = [
-                conn['timestamp'],
+                display_time,
                 str(conn['pid']),
                 conn['process_name'],
                 formatted_local_addr,

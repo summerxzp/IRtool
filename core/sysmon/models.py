@@ -9,6 +9,7 @@ class SysmonEvent:
     event_id: int = 0
     timestamp: str = ""
     timestamp_epoch: float = 0.0
+    timestamp_valid: bool = True
     raw_data: Dict[str, Any] = field(default_factory=dict)
 
     @property

@@ -16,6 +16,7 @@ class DataStore(QObject):
         self._network_connections_current = []
         self._network_connections_history = []
         self._sysmon_events = []
+        self._sysmon_event_keys = set()
 
     def set_autoruns_entries(self, entries: list):
         self._autoruns_entries = entries or []
@@ -37,7 +38,19 @@ class DataStore(QObject):
             return self._network_connections_history
         return self._network_connections_current
 
+    @staticmethod
+    def _make_event_key(event) -> tuple:
+        return (
+            getattr(event, 'timestamp_epoch', 0),
+            getattr(event, 'event_id', 0),
+            getattr(event, 'process_id', getattr(event, 'source_process_id', 0)),
+        )
+
     def add_sysmon_event(self, event):
+        key = self._make_event_key(event)
+        if key in self._sysmon_event_keys:
+            return
+        self._sysmon_event_keys.add(key)
         self._sysmon_events.append(event)
         self.sysmon_event_added.emit(event)
 
@@ -46,10 +59,12 @@ class DataStore(QObject):
 
     def set_sysmon_events(self, events: list):
         self._sysmon_events = events or []
-        self.sysmon_events_cleared.emit()  # 通知接收方数据已全量替换
+        self._sysmon_event_keys = {self._make_event_key(e) for e in self._sysmon_events}
+        self.sysmon_events_cleared.emit()
 
     def clear_sysmon_events(self):
         self._sysmon_events = []
+        self._sysmon_event_keys = set()
         self.sysmon_events_cleared.emit()
 
     def get_sysmon_events_count(self) -> int:

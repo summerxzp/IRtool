@@ -936,9 +936,10 @@ class LogCollectorTab(QWidget):
                 event._sort_source_process_path,
             ]
         elif isinstance(event, FileCreateEvent):
+            event_type_display = "DLL创建" if event.target_filename.lower().endswith('.dll') else "文件创建"
             display = [
                 event.timestamp,
-                "DLL创建",
+                event_type_display,
                 str(event.event_id),
                 event.process_name,
                 str(event.process_id),
@@ -1237,11 +1238,20 @@ class LogCollectorTab(QWidget):
         self.btn_load_history.setText("加载历史")
 
         def _make_event_key(ev):
-            return (
+            base_key = (
                 getattr(ev, 'timestamp_epoch', 0),
                 getattr(ev, 'event_id', 0),
                 getattr(ev, 'process_id', getattr(ev, 'source_process_id', 0)),
             )
+            if isinstance(ev, DnsEvent):
+                return base_key + (ev.query_name,)
+            elif isinstance(ev, NetworkConnectEvent):
+                return base_key + (ev.destination_ip, ev.destination_port)
+            elif isinstance(ev, CreateRemoteThreadEvent):
+                return base_key + (ev.target_process_id, ev.start_address)
+            elif isinstance(ev, FileCreateEvent):
+                return base_key + (ev.target_filename,)
+            return base_key
 
         existing_keys = set()
         for ev in self.all_events:

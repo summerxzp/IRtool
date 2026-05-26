@@ -1127,6 +1127,9 @@ class AutorunsTab(QWidget):
                     file_size=entry_data.get('file_size', ''),
                     file_version=entry_data.get('file_version', ''),
                     service_name=entry_data.get('service_name', ''),
+                    md5=entry_data.get('md5', ''),
+                    sha256=entry_data.get('sha256', ''),
+                    file_exists=entry_data.get('file_exists', True),
                 )
 
                 success, message = self.parser.delete_entry(entry)

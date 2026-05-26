@@ -15,6 +15,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Windows API for hiding console window
 import ctypes
+import re
 from subprocess import CREATE_NO_WINDOW, SW_HIDE
 
 # Logger配置
@@ -166,7 +167,7 @@ class AutorunsParser:
 
         # === 关键修复：UTF-16LE 解码 ===
         try:
-            csv_text = stdout_bytes.decode('utf-16le', errors='ignore')
+            csv_text = stdout_bytes.decode('utf-16le', errors='replace')
         except Exception as e:
             raise RuntimeError(f"Autoruns 输出解码失败: {e}")
 
@@ -267,6 +268,7 @@ class AutorunsParser:
 
         # 第一遍：收集所有原始数据和需要检查的文件路径
         image_paths_to_check = set()
+        skipped_count = 0
         for row in reader:
             try:
                 image_path = row.get('Image Path', '').strip() if row.get('Image Path') else ''
@@ -282,13 +284,19 @@ class AutorunsParser:
                     'category': category,
                     'entry_name': entry_name
                 })
-            except Exception:
+            except Exception as e:
+                skipped_count += 1
+                logger.warning(f"跳过异常行(第一遍): {e}")
                 continue
+
+        if skipped_count > 0:
+            logger.warning(f"第一遍解析共跳过 {skipped_count} 个异常条目")
 
         # 第二遍：批量并行检查文件存在性和大小
         file_info_cache = self._batch_check_files(list(image_paths_to_check))
 
         # 第三遍：构建 AutorunEntry 对象
+        build_skipped = 0
         for data in raw_rows:
             try:
                 row = data['row']
@@ -298,13 +306,14 @@ class AutorunsParser:
                 
                 file_version = row.get('Version', '').strip() if row.get('Version') else ''
                 
-                # 从缓存获取文件信息
                 file_exists, file_size = file_info_cache.get(image_path, (False, ''))
                 
-                # 解析服务名称（仅用于 Services 类型）
                 service_name = ''
                 if category == 'Services':
-                    service_name = entry_name
+                    service_name = self._extract_service_name(row, entry_name)
+                
+                raw_signer = row.get('Signer', '').strip() if row.get('Signer') else ''
+                signer, signer_status = self._parse_signer(raw_signer)
                 
                 entries.append(AutorunEntry(
                     location=row.get('Entry Location', '').strip() if row.get('Entry Location') else '',
@@ -319,18 +328,56 @@ class AutorunsParser:
                     timestamp=row.get('Time', '').strip() if row.get('Time') else '',
                     md5=row.get('MD5', '') if row.get('MD5') else '',
                     sha256=row.get('SHA-256', '') if row.get('SHA-256') else '',
-                    signer=row.get('Signer', '') if row.get('Signer') else '',
-                    signer_status=row.get('Signer', '').strip() if row.get('Signer') else '',
+                    signer=signer,
+                    signer_status=signer_status,
                     signature_detail='',
                     file_size=file_size,
                     file_version=file_version,
                     service_name=service_name,
                     file_exists=file_exists
                 ))
-            except Exception:
+            except Exception as e:
+                build_skipped += 1
+                logger.warning(f"跳过异常条目(第三遍): {e}")
                 continue
 
+        if build_skipped > 0:
+            logger.warning(f"第三遍构建共跳过 {build_skipped} 个异常条目")
+
         return entries
+
+    @staticmethod
+    def _extract_service_name(row: dict, entry_name: str) -> str:
+        launch_string = row.get('Launch String', '').strip() if row.get('Launch String') else ''
+        location = row.get('Entry Location', '').strip() if row.get('Entry Location') else ''
+
+        if launch_string:
+            match = re.search(r'\\([^\\]+)\s*$', launch_string)
+            if match:
+                candidate = match.group(1)
+                if candidate and candidate.lower().endswith(('.sys', '.dll', '.exe')):
+                    candidate = candidate.rsplit('.', 1)[0]
+                if candidate:
+                    return candidate
+
+        if location:
+            match = re.search(r'Services\\\\([^\\\\]+)', location, re.IGNORECASE)
+            if match:
+                return match.group(1)
+
+        return entry_name
+
+    @staticmethod
+    def _parse_signer(raw_signer: str) -> tuple:
+        if not raw_signer:
+            return '', ''
+        if '(Verified)' in raw_signer:
+            signer = raw_signer.replace('(Verified)', '').strip()
+            return signer, '(Verified)'
+        if '(Error)' in raw_signer:
+            signer = raw_signer.replace('(Error)', '').strip()
+            return signer, '(Error)'
+        return raw_signer, ''
 
     
     def delete_entry(self, entry: AutorunEntry) -> tuple:

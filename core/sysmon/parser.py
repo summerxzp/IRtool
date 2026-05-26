@@ -1,7 +1,10 @@
+import logging
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, Tuple
 from .models import SysmonEvent, DnsEvent, NetworkConnectEvent, CreateRemoteThreadEvent, FileCreateEvent
+
+logger = logging.getLogger('SysmonEventParser')
 
 
 class SysmonEventParser:
@@ -29,22 +32,27 @@ class SysmonEventParser:
                 event_id=event_id,
                 timestamp=timestamp.strftime("%Y/%m/%d %H:%M:%S"),
                 timestamp_epoch=timestamp.timestamp(),
+                timestamp_valid=timestamp.year != 1970,
                 raw_data=event_data
             )
-        except Exception:
-            return None
+        except Exception as e:
+            logger.warning(f"解析事件失败: {e}")
+            return SysmonEvent(
+                event_id=0,
+                timestamp="",
+                timestamp_epoch=0,
+                timestamp_valid=False,
+                raw_data={"_parse_error": str(e), "_raw_xml": event_xml}
+            )
 
     @classmethod
     def parse_event_with_record_id(cls, event_xml: str) -> Tuple[Optional[SysmonEvent], Optional[int]]:
-        """一次性解析事件和record_id，避免重复XML解析"""
         try:
             root = ET.fromstring(event_xml)
-            
-            # 提取record_id
+
             record_id_elem = root.find(f'.//{cls.NS}EventRecordID')
             record_id = int(record_id_elem.text) if record_id_elem is not None and record_id_elem.text else None
-            
-            # 解析事件
+
             event_id, timestamp = cls._parse_system_data(root)
             event_data = cls._parse_event_data(root)
 
@@ -56,19 +64,27 @@ class SysmonEventParser:
                     event_id=event_id,
                     timestamp=timestamp.strftime("%Y/%m/%d %H:%M:%S"),
                     timestamp_epoch=timestamp.timestamp(),
+                    timestamp_valid=timestamp.year != 1970,
                     raw_data=event_data
                 )
-            
+
             return event, record_id
-        except Exception:
-            return None, None
+        except Exception as e:
+            logger.warning(f"解析事件(含record_id)失败: {e}")
+            return SysmonEvent(
+                event_id=0,
+                timestamp="",
+                timestamp_epoch=0,
+                timestamp_valid=False,
+                raw_data={"_parse_error": str(e), "_raw_xml": event_xml}
+            ), None
 
     @classmethod
     def _parse_system_data(cls, root: ET.Element) -> Tuple[int, datetime]:
         system = root.find(f'.//{cls.NS}System')
 
         event_id = 0
-        timestamp = datetime.now()
+        timestamp = datetime(1970, 1, 1)
 
         if system is not None:
             event_id_elem = system.find(f'{cls.NS}EventID')
@@ -91,7 +107,7 @@ class SysmonEventParser:
         try:
             dt = datetime.fromisoformat(time_str.replace('Z', '+00:00'))
             if dt.tzinfo is not None:
-                dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+                dt = dt.astimezone().replace(tzinfo=None)
             return dt
         except (ValueError, AttributeError):
             pass
@@ -102,7 +118,7 @@ class SysmonEventParser:
             except ValueError:
                 continue
 
-        return datetime.now()
+        return datetime(1970, 1, 1)
 
     @classmethod
     def _parse_event_data(cls, root: ET.Element) -> Dict[str, Any]:
