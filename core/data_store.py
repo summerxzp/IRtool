@@ -1,4 +1,5 @@
 from PyQt6.QtCore import QObject, pyqtSignal
+from core.sysmon.models import DnsEvent, NetworkConnectEvent, CreateRemoteThreadEvent, FileCreateEvent
 
 
 class DataStore(QObject):
@@ -40,11 +41,20 @@ class DataStore(QObject):
 
     @staticmethod
     def _make_event_key(event) -> tuple:
-        return (
+        base_key = (
             getattr(event, 'timestamp_epoch', 0),
             getattr(event, 'event_id', 0),
             getattr(event, 'process_id', getattr(event, 'source_process_id', 0)),
         )
+        if isinstance(event, DnsEvent):
+            return base_key + (event.query_name,)
+        elif isinstance(event, NetworkConnectEvent):
+            return base_key + (event.destination_ip, event.destination_port)
+        elif isinstance(event, CreateRemoteThreadEvent):
+            return base_key + (event.target_process_id, event.start_address)
+        elif isinstance(event, FileCreateEvent):
+            return base_key + (event.target_filename,)
+        return base_key
 
     def add_sysmon_event(self, event):
         key = self._make_event_key(event)

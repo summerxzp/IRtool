@@ -114,7 +114,8 @@ class SysmonEventParser:
 
         for fmt in ('%Y-%m-%dT%H:%M:%S.%fZ', '%Y-%m-%dT%H:%M:%SZ'):
             try:
-                return datetime.strptime(time_str, fmt)
+                dt = datetime.strptime(time_str, fmt).replace(tzinfo=timezone.utc)
+                return dt.astimezone().replace(tzinfo=None)
             except ValueError:
                 continue
 

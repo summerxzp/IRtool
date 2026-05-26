@@ -19,6 +19,10 @@ class SysmonEvent:
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)
         d['event_type'] = self.event_type
+        if hasattr(self, 'is_external'):
+            d['is_external'] = self.is_external
+        if hasattr(self, 'is_suspicious'):
+            d['is_suspicious'] = self.is_suspicious
         return d
 
 

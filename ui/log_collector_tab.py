@@ -807,9 +807,6 @@ class LogCollectorTab(QWidget):
         self._update_status_label("disconnected")
         self._update_status_display()
 
-    _BROWSER_PROCESSES = {'msedge.exe', 'msedgewebview2.exe', 'chrome.exe', 'firefox.exe', 'brave.exe', 'vivaldi.exe', 'opera.exe'}
-    _dns_bypass_warned = False
-
     def _on_events_batch_received(self, events: list):
         for event in events:
             self.all_events.append(event)
@@ -817,30 +814,10 @@ class LogCollectorTab(QWidget):
                 self.data_store.add_sysmon_event(event)
             self._pending_events.append(event)
 
-            if not self._dns_bypass_warned and isinstance(event, NetworkConnectEvent):
-                proc_lower = getattr(event, 'process_name', '').lower()
-                if proc_lower in self._BROWSER_PROCESSES:
-                    if event.protocol == 'udp' and event.destination_port == 53:
-                        self._dns_bypass_warned = True
-                        QTimer.singleShot(500, self._warn_browser_dns_bypass)
-
         if self._pending_events and not self._batch_update_timer.isActive():
             self._batch_update_timer.start(200)
 
         self.lbl_events_count.setText(f"事件数: {len(self.all_events)}")
-
-    def _warn_browser_dns_bypass(self):
-        QMessageBox.warning(
-            self,
-            "浏览器 DNS 绕过检测",
-            "检测到浏览器直接发送 DNS 查询（目标端口 53/UDP），\n"
-            "Sysmon 的 DNS 查询事件（Event ID 22）无法捕获此类请求。\n\n"
-            "如需 Sysmon 捕获浏览器 DNS 事件，请：\n"
-            "1. 在浏览器地址栏访问 edge://flags/#use-built-in-dns-resolver\n"
-            "2. 将「Built-in DNS resolver」设为 Disabled\n"
-            "3. 完全关闭浏览器（包括后台进程）后重新打开\n\n"
-            "同时建议关闭安全 DNS（DoH）和 QUIC 协议以获得完整监控。"
-        )
 
     def _on_event_received(self, event):
         """兼容单个事件信号（保留用于向后兼容）"""
