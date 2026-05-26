@@ -650,13 +650,17 @@ class LogCollectorTab(QWidget):
         header = self.table.horizontalHeader()
         header.setStretchLastSection(True)
 
+    def _is_sysmon_installed(self) -> bool:
+        if self._force_uninstalled:
+            return False
+        return self.config_manager.is_installed()
+
     def _update_status_display(self):
         info = self.config_manager.get_status_info()
 
         if self._force_uninstalled:
             info['installed'] = False
             info['running'] = False
-            self._force_uninstalled = False
 
         if info['installed']:
             if info['running']:
@@ -716,7 +720,7 @@ class LogCollectorTab(QWidget):
     def _start_collection(self):
         logger.info("[LogCollector] 开始启动采集...")
         # 检查是否已安装
-        if not self.config_manager.is_installed():
+        if not self._is_sysmon_installed():
             reply = QMessageBox.question(
                 self,
                 "需要安装 Sysmon",
@@ -732,6 +736,7 @@ class LogCollectorTab(QWidget):
                     QMessageBox.warning(self, "安装失败", msg)
                     return
                 self._sysmon_was_started_by_us = True
+                self._force_uninstalled = False
                 self._update_status_display()
             else:
                 logger.info("[LogCollector] 用户取消安装Sysmon，采集未启动")
@@ -1108,13 +1113,11 @@ class LogCollectorTab(QWidget):
             subprocess.run(["explorer", str(config_path.parent)], check=False)
 
     def _deploy_sysmon(self):
-        info = self.config_manager.get_status_info()
-
         if self._sysmon_action_worker and self._sysmon_action_worker.isRunning():
             QMessageBox.warning(self, "提示", "Sysmon 操作正在进行中，请稍候")
             return
 
-        if info['installed']:
+        if self._is_sysmon_installed():
             self.btn_deploy.setEnabled(False)
             self.btn_deploy.setText("更新中...")
             self._sysmon_action_worker = SysmonActionWorker('update_config', self.config_manager)
@@ -1138,9 +1141,7 @@ class LogCollectorTab(QWidget):
         self._update_status_display()
 
     def _uninstall_sysmon(self):
-        info = self.config_manager.get_status_info()
-
-        if not info['installed']:
+        if not self._is_sysmon_installed():
             QMessageBox.information(self, "提示", "Sysmon 未安装，无需卸载")
             return
 
@@ -1148,6 +1149,7 @@ class LogCollectorTab(QWidget):
             QMessageBox.warning(self, "提示", "Sysmon 操作正在进行中，请稍候")
             return
 
+        info = self.config_manager.get_status_info()
         started_by_us = info.get('started_by_irtool', False)
 
         if started_by_us:
@@ -1201,7 +1203,7 @@ class LogCollectorTab(QWidget):
         self._update_status_display()
 
     def _load_history_events(self):
-        if not self.config_manager.is_installed():
+        if not self._is_sysmon_installed():
             QMessageBox.warning(self, "提示", "Sysmon 未安装，无法加载历史事件")
             return
 
