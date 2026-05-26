@@ -790,14 +790,6 @@ class LogCollectorTab(QWidget):
             self.subscriber.stop()
             self.subscriber = None
 
-        # 停止 Sysmon 服务（真正暂停采集）
-        if self.config_manager.is_running():
-            success, msg = self.config_manager.stop_service()
-            if not success:
-                logger.warning(f"[LogCollector] 停止Sysmon服务失败: {msg}")
-            else:
-                logger.info("[LogCollector] Sysmon服务已停止")
-
         self._is_collecting = False
         self._start_time = None
         self.duration_timer.stop()
@@ -1622,12 +1614,8 @@ class LogCollectorTab(QWidget):
             QMessageBox.warning(self, "提示", f"路径不存在: {file_path}")
 
     def stop_sysmon_if_started_by_us(self):
-        if self._sysmon_was_started_by_us and self.config_manager.is_running():
-            success, msg = self.config_manager.stop_service()
-            if success:
-                self.config_manager.clear_started_marker()
-            else:
-                logger.warning(f"停止Sysmon服务失败，保留标记文件以便下次重试: {msg}")
+        if self._sysmon_was_started_by_us:
+            self.config_manager.clear_started_marker()
             self._sysmon_was_started_by_us = False
 
     def _check_crash_recovery(self):
