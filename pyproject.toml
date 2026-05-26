@@ -1,6 +1,6 @@
 [project]
 name = "IRtool"
-version = "1.1.6"
+version = "1.1.7"
 description = "Windows 终端应急响应桌面工具"
 requires-python = ">=3.11"
 license = {text = "MIT"}
