@@ -387,6 +387,7 @@ class LogCollectorTab(QWidget):
         self._sysmon_was_started_by_us = False
         self._enabled_events = list(DEFAULT_ENABLED_EVENTS)
         self._has_auto_resized = False
+        self._force_uninstalled = False
 
         self._init_ui()
         self._check_crash_recovery()
@@ -652,6 +653,11 @@ class LogCollectorTab(QWidget):
     def _update_status_display(self):
         info = self.config_manager.get_status_info()
 
+        if self._force_uninstalled:
+            info['installed'] = False
+            info['running'] = False
+            self._force_uninstalled = False
+
         if info['installed']:
             if info['running']:
                 label = f"Sysmon: 运行中 ({info['service_name']})"
@@ -688,12 +694,11 @@ class LogCollectorTab(QWidget):
             self.btn_uninstall.setEnabled(False)
             self.btn_uninstall.setToolTip("Sysmon 未安装")
 
-        if info['installed'] and info['running']:
-            self.btn_start.setEnabled(True)
-            self.btn_start.setText("启动采集")
-        elif info['installed'] and not info['running']:
-            self.btn_start.setEnabled(True)
-            self.btn_start.setText("启动采集 (需启动Sysmon)")
+        if not self._is_collecting:
+            self.btn_start.setText("▶ 启动采集")
+            self.btn_start.setProperty("class", "primary")
+            self.btn_start.style().unpolish(self.btn_start)
+            self.btn_start.style().polish(self.btn_start)
 
         if info['installed']:
             self._refresh_log_size()
@@ -1110,15 +1115,6 @@ class LogCollectorTab(QWidget):
             return
 
         if info['installed']:
-            reply = QMessageBox.question(
-                self,
-                "Sysmon 已安装",
-                "Sysmon 已安装，是否重新安装/更新配置？",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-            )
-            if reply != QMessageBox.StandardButton.Yes:
-                return
-
             self.btn_deploy.setEnabled(False)
             self.btn_deploy.setText("更新中...")
             self._sysmon_action_worker = SysmonActionWorker('update_config', self.config_manager)
@@ -1134,6 +1130,7 @@ class LogCollectorTab(QWidget):
     def _on_deploy_finished(self, success, msg):
         self.btn_deploy.setEnabled(True)
         self.btn_deploy.setText("部署 Sysmon")
+        self._force_uninstalled = False
         if success:
             QMessageBox.information(self, "成功", msg)
         else:
@@ -1193,12 +1190,13 @@ class LogCollectorTab(QWidget):
         self._sysmon_action_worker.start()
 
     def _on_uninstall_finished(self, success, msg):
-        self.btn_uninstall.setEnabled(True)
         self.btn_uninstall.setText("卸载 Sysmon")
         if success:
             self._sysmon_was_started_by_us = False
+            self._force_uninstalled = True
             QMessageBox.information(self, "卸载成功", msg)
         else:
+            self.btn_uninstall.setEnabled(True)
             QMessageBox.warning(self, "卸载失败", msg)
         self._update_status_display()
 
