@@ -65,6 +65,7 @@ class ProcessTreeWidget(QWidget):
         if self._worker and self._worker.isRunning():
             self._worker.finished.disconnect()
             self._worker.quit()
+            self._worker.wait(1000)
 
         self._text.setHtml('<span style="color:#aaa;">查询中…</span>')
         self._worker = _ProcessTreeWorker(pid)
@@ -76,13 +77,13 @@ class ProcessTreeWidget(QWidget):
         if self._worker and self._worker.isRunning():
             self._worker.finished.disconnect()
             self._worker.quit()
+            self._worker.wait(1000)
         self._worker = None
         self._show_placeholder()
 
     def _on_result(self, queried_pid: int, chain: List[ProcessNode]):
         if queried_pid != self._current_pid:
             return
-        self._worker = None
         if not chain:
             self._text.setHtml(
                 f'<span style="color:#aaa;">PID {queried_pid} 进程已退出</span>'

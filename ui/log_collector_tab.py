@@ -1673,4 +1673,8 @@ class LogCollectorTab(QWidget):
         self._batch_update_timer.stop()
         self._resize_timer.stop()
         self._stop_collection()
+        if self._sysmon_action_worker and self._sysmon_action_worker.isRunning():
+            self._sysmon_action_worker.wait(5000)
+        if self._history_load_worker and self._history_load_worker.isRunning():
+            self._history_load_worker.wait(5000)
         self.stop_sysmon_if_started_by_us()

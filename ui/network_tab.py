@@ -339,7 +339,6 @@ class NetworkTab(QWidget):
 
         self._apply_filters_and_update()
 
-        self.current_worker = None
         if self._refresh_pending:
             self._refresh_pending = False
             QTimer.singleShot(0, self.refresh_data)
