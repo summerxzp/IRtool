@@ -115,17 +115,6 @@ class SysmonConfigManager:
                     return True
             except Exception:
                 continue
-        try:
-            result = subprocess.run(
-                [str(self.sysmon_exe_path), '-c'],
-                capture_output=True, text=True, timeout=10,
-                **_SUBPROCESS_KWARGS
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                logger.debug("Sysmon已安装（通过 -c 命令确认）")
-                return True
-        except Exception:
-            pass
         return False
 
     def is_running(self) -> bool:

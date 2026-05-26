@@ -3,6 +3,7 @@
 
 # 标准库
 import ctypes
+import faulthandler
 import logging
 import logging.handlers
 import os
@@ -324,10 +325,29 @@ class MainWindow(QMainWindow):
 
 def _global_exception_hook(exc_type, exc_value, exc_tb):
     logger.error("[UncaughtException] 未捕获的异常", exc_info=(exc_type, exc_value, exc_tb))
+    for handler in logger.handlers:
+        handler.flush()
+
+
+def _qt_message_handler(msg_type, context, msg):
+    level_map = {
+        0: logging.DEBUG,
+        1: logging.WARNING,
+        2: logging.CRITICAL,
+        4: logging.INFO,
+    }
+    level = level_map.get(msg_type, logging.WARNING)
+    logger.log(level, f"[Qt] {msg}")
 
 
 def main():
     sys.excepthook = _global_exception_hook
+
+    crash_log = logs_dir / "crash.log"
+    faulthandler.enable(file=open(crash_log, 'w', encoding='utf-8'), all_threads=True)
+
+    from PyQt6.QtCore import qInstallMessageHandler
+    qInstallMessageHandler(_qt_message_handler)
 
     # 单实例检测
     _mutex = _ensure_single_instance()

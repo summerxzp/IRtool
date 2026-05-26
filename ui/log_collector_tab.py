@@ -719,8 +719,11 @@ class LogCollectorTab(QWidget):
 
     def _start_collection(self):
         logger.info("[LogCollector] 开始启动采集...")
-        # 检查是否已安装
-        if not self._is_sysmon_installed():
+
+        installed = self._is_sysmon_installed()
+        service_name = self.config_manager.get_service_name() if installed else None
+
+        if not installed or not service_name:
             reply = QMessageBox.question(
                 self,
                 "需要安装 Sysmon",
@@ -730,7 +733,11 @@ class LogCollectorTab(QWidget):
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
             if reply == QMessageBox.StandardButton.Yes:
+                self.btn_start.setEnabled(False)
+                self.btn_start.setText("安装中...")
                 success, msg = self.config_manager.install()
+                self.btn_start.setEnabled(True)
+                self.btn_start.setText("▶ 启动采集")
                 if not success:
                     logger.error(f"[LogCollector] Sysmon安装失败: {msg}")
                     QMessageBox.warning(self, "安装失败", msg)
@@ -741,17 +748,14 @@ class LogCollectorTab(QWidget):
             else:
                 logger.info("[LogCollector] 用户取消安装Sysmon，采集未启动")
                 return
-        # 已安装但未运行
         elif not self.config_manager.is_running():
             reply = QMessageBox.question(
                 self,
                 "Sysmon 未运行",
-                "Sysmon 服务未运行，是否立即启动？\n\n"
-                "注意：退出软件时会自动停止 Sysmon 服务。",
+                "Sysmon 服务未运行，是否立即启动？",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
             if reply == QMessageBox.StandardButton.Yes:
-                # 已安装的情况下，尝试启动服务
                 success, msg = self.config_manager.start_service()
                 if not success:
                     logger.error(f"[LogCollector] Sysmon服务启动失败: {msg}")
@@ -1118,12 +1122,30 @@ class LogCollectorTab(QWidget):
             return
 
         if self._is_sysmon_installed():
+            reply = QMessageBox.question(
+                self,
+                "确认更新配置",
+                "Sysmon 已安装，是否更新采集配置？",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            if reply != QMessageBox.StandardButton.Yes:
+                return
             self.btn_deploy.setEnabled(False)
             self.btn_deploy.setText("更新中...")
             self._sysmon_action_worker = SysmonActionWorker('update_config', self.config_manager)
             self._sysmon_action_worker.finished.connect(self._on_deploy_finished)
             self._sysmon_action_worker.start()
         else:
+            reply = QMessageBox.question(
+                self,
+                "确认安装 Sysmon",
+                "是否安装 Sysmon 到本机？\n\n"
+                "Sysmon 是微软系统监控工具，安装后将在后台采集安全事件。\n"
+                "注意：退出软件时不会自动卸载 Sysmon。",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            if reply != QMessageBox.StandardButton.Yes:
+                return
             self.btn_deploy.setEnabled(False)
             self.btn_deploy.setText("安装中...")
             self._sysmon_action_worker = SysmonActionWorker('install', self.config_manager)
