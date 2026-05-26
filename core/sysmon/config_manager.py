@@ -110,22 +110,31 @@ class SysmonConfigManager:
         for service_name in [self.SYSMON_SERVICE_NAME, self.SYSMON_SERVICE_NAME_ALT]:
             try:
                 status = win32serviceutil.QueryServiceStatus(service_name)
-                installed = status[1] != 0
-                if installed:
+                if status[1] != 0:
                     logger.debug(f"Sysmon服务已安装: {service_name}")
-                return installed
+                    return True
             except Exception:
                 continue
+        try:
+            result = subprocess.run(
+                [str(self.sysmon_exe_path), '-c'],
+                capture_output=True, text=True, timeout=10,
+                **_SUBPROCESS_KWARGS
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                logger.debug("Sysmon已安装（通过 -c 命令确认）")
+                return True
+        except Exception:
+            pass
         return False
 
     def is_running(self) -> bool:
         for service_name in [self.SYSMON_SERVICE_NAME, self.SYSMON_SERVICE_NAME_ALT]:
             try:
                 status = win32serviceutil.QueryServiceStatus(service_name)
-                running = status[1] == win32service.SERVICE_RUNNING
-                if running:
+                if status[1] == win32service.SERVICE_RUNNING:
                     logger.debug(f"Sysmon服务运行中: {service_name}")
-                return running
+                    return True
             except Exception:
                 continue
         return False
@@ -143,8 +152,8 @@ class SysmonConfigManager:
         logger.info("开始安装Sysmon...")
 
         if self.is_installed():
-            logger.info("Sysmon已安装，跳过安装")
-            return True, "Sysmon 已安装"
+            logger.info("Sysmon已安装，尝试更新配置...")
+            return self.update_config()
 
         if not self.sysmon_exe_path.exists():
             error_msg = f"找不到 Sysmon: {self.sysmon_exe_path}"
@@ -187,6 +196,9 @@ class SysmonConfigManager:
                 logger.info("Sysmon安装成功")
                 return True, "Sysmon 安装成功"
             else:
+                if 'Usage' in (result.stdout or '') or 'Usage' in (result.stderr or ''):
+                    logger.info("Sysmon已安装（-i返回Usage），改用 -c 更新配置")
+                    return self.update_config()
                 error_msg = result.stderr.strip() or result.stdout.strip()
                 logger.error(f"Sysmon安装失败: {error_msg}")
                 return False, f"安装失败: {error_msg}"
@@ -367,8 +379,8 @@ class SysmonConfigManager:
             return True, "Sysmon 服务已停止"
         except win32service.error as e:
             if e.winerror == 5:
-                logger.error(f"停止Sysmon服务被拒绝访问: {e}")
-                return False, "停止服务失败: 拒绝访问"
+                logger.warning(f"停止Sysmon服务被拒绝访问，尝试通过 sysmon -u force 停止...")
+                return self._stop_via_uninstall()
             elif e.winerror == 1052:
                 logger.info("Sysmon服务已被标记为删除")
                 return True, "服务已停止"
@@ -381,6 +393,29 @@ class SysmonConfigManager:
         except Exception as e:
             logger.exception("停止Sysmon服务失败")
             return False, f"停止服务失败: {e}"
+
+    def _stop_via_uninstall(self) -> Tuple[bool, str]:
+        if not self.sysmon_exe_path.exists():
+            return False, "停止服务失败: 拒绝访问且找不到 sysmon64.exe"
+
+        cmd = [str(self.sysmon_exe_path), '-u', 'force']
+        logger.info(f"执行命令: {' '.join(cmd)}")
+        try:
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=30,
+                **_SUBPROCESS_KWARGS
+            )
+            if result.returncode == 0:
+                self.clear_started_marker()
+                logger.info("通过 sysmon -u force 成功停止服务")
+                return True, "Sysmon 服务已停止"
+            else:
+                error_msg = result.stderr.strip() or result.stdout.strip()
+                logger.error(f"sysmon -u force 失败: {error_msg}")
+                return False, f"停止服务失败: 拒绝访问"
+        except Exception as e:
+            logger.error(f"sysmon -u force 异常: {e}")
+            return False, f"停止服务失败: 拒绝访问"
 
     @staticmethod
     def generate_config(enabled_events: List[str]) -> str:
