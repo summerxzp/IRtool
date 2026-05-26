@@ -187,6 +187,8 @@ class SysmonActionWorker(QThread):
                 success, msg = self._config_manager.uninstall()
             elif self._action == 'update_config':
                 success, msg = self._config_manager.update_config()
+            elif self._action == 'start_service':
+                success, msg = self._config_manager.start_service()
             else:
                 success, msg = False, f"未知操作: {self._action}"
             self.finished.emit(success, msg)
@@ -735,19 +737,14 @@ class LogCollectorTab(QWidget):
             if reply == QMessageBox.StandardButton.Yes:
                 self.btn_start.setEnabled(False)
                 self.btn_start.setText("安装中...")
-                success, msg = self.config_manager.install()
-                self.btn_start.setEnabled(True)
-                self.btn_start.setText("▶ 启动采集")
-                if not success:
-                    logger.error(f"[LogCollector] Sysmon安装失败: {msg}")
-                    QMessageBox.warning(self, "安装失败", msg)
-                    return
-                self._sysmon_was_started_by_us = True
-                self._force_uninstalled = False
-                self._update_status_display()
+                if self._sysmon_action_worker and self._sysmon_action_worker.isRunning():
+                    self._sysmon_action_worker.wait(3000)
+                self._sysmon_action_worker = SysmonActionWorker('install', self.config_manager)
+                self._sysmon_action_worker.finished.connect(self._on_install_for_start_finished)
+                self._sysmon_action_worker.start()
             else:
                 logger.info("[LogCollector] 用户取消安装Sysmon，采集未启动")
-                return
+            return
         elif not self.config_manager.is_running():
             reply = QMessageBox.question(
                 self,
@@ -756,20 +753,45 @@ class LogCollectorTab(QWidget):
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
             if reply == QMessageBox.StandardButton.Yes:
-                success, msg = self.config_manager.start_service()
-                if not success:
-                    logger.error(f"[LogCollector] Sysmon服务启动失败: {msg}")
-                    QMessageBox.warning(self, "启动失败", msg)
-                    return
-                self._sysmon_was_started_by_us = True
-                self._update_status_display()
+                self.btn_start.setEnabled(False)
+                self.btn_start.setText("启动中...")
+                if self._sysmon_action_worker and self._sysmon_action_worker.isRunning():
+                    self._sysmon_action_worker.wait(3000)
+                self._sysmon_action_worker = SysmonActionWorker('start_service', self.config_manager)
+                self._sysmon_action_worker.finished.connect(self._on_start_service_for_start_finished)
+                self._sysmon_action_worker.start()
             else:
                 logger.info("[LogCollector] 用户取消启动Sysmon服务，采集未启动")
-                return
-        else:
-            self._sysmon_was_started_by_us = True
-            self.config_manager.mark_started_by_irtool()
+            return
 
+        self._begin_subscribing()
+
+    def _on_install_for_start_finished(self, success, msg):
+        self.btn_start.setEnabled(True)
+        self.btn_start.setText("▶ 启动采集")
+        if success:
+            self._sysmon_was_started_by_us = True
+            self._force_uninstalled = False
+            self._update_status_display()
+            self._begin_subscribing()
+        else:
+            logger.error(f"[LogCollector] Sysmon安装失败: {msg}")
+            QMessageBox.warning(self, "安装失败", msg)
+            self._update_status_display()
+
+    def _on_start_service_for_start_finished(self, success, msg):
+        self.btn_start.setEnabled(True)
+        self.btn_start.setText("▶ 启动采集")
+        if success:
+            self._sysmon_was_started_by_us = True
+            self._update_status_display()
+            self._begin_subscribing()
+        else:
+            logger.error(f"[LogCollector] Sysmon服务启动失败: {msg}")
+            QMessageBox.warning(self, "启动失败", msg)
+            self._update_status_display()
+
+    def _begin_subscribing(self):
         filter_external = self.chk_external_only.isChecked()
         self.subscriber = SysmonSubscriber(filter_external_only=filter_external, enabled_events=self._enabled_events)
 

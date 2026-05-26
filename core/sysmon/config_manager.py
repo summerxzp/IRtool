@@ -137,6 +137,25 @@ class SysmonConfigManager:
                 continue
         return None
 
+    def _cleanup_stale_log_channel(self):
+        """清理残留的 Sysmon 事件日志通道，解决 wevtutil 安装失败问题"""
+        try:
+            result = subprocess.run(
+                ["wevtutil", "get-log", self.SYSMON_LOG_NAME],
+                capture_output=True, text=True, timeout=10,
+                **_SUBPROCESS_KWARGS
+            )
+            if result.returncode == 0:
+                logger.info(f"检测到残留日志通道 {self.SYSMON_LOG_NAME}，尝试清理...")
+                subprocess.run(
+                    ["wevtutil", "remove-log", self.SYSMON_LOG_NAME],
+                    capture_output=True, text=True, timeout=10,
+                    **_SUBPROCESS_KWARGS
+                )
+                logger.info("残留日志通道已清理")
+        except Exception as e:
+            logger.debug(f"清理残留日志通道时出错（可忽略）: {e}")
+
     def install(self, accept_eula: bool = True) -> Tuple[bool, str]:
         logger.info("开始安装Sysmon...")
 
@@ -153,6 +172,8 @@ class SysmonConfigManager:
             error_msg = f"找不到配置文件: {self.config_path}"
             logger.error(error_msg)
             return False, error_msg
+
+        self._cleanup_stale_log_channel()
 
         logger.info(f"Sysmon路径: {self.sysmon_exe_path}")
         logger.info(f"配置文件: {self.config_path}")
@@ -188,6 +209,29 @@ class SysmonConfigManager:
                 if 'Usage' in (result.stdout or '') or 'Usage' in (result.stderr or ''):
                     logger.info("Sysmon已安装（-i返回Usage），改用 -c 更新配置")
                     return self.update_config()
+
+                if 'wevtutil' in (result.stdout or '') or 'manifest' in (result.stdout or '').lower():
+                    logger.warning("安装遇到 wevtutil/manifest 错误，重试一次...")
+                    import time
+                    time.sleep(2)
+                    result2 = subprocess.run(
+                        cmd,
+                        capture_output=True,
+                        text=True,
+                        timeout=60,
+                        **_SUBPROCESS_KWARGS
+                    )
+                    if result2.returncode == 0:
+                        self.mark_started_by_irtool()
+                        logger.info("Sysmon重试安装成功")
+                        return True, "Sysmon 安装成功"
+                    if 'Usage' in (result2.stdout or '') or 'Usage' in (result2.stderr or ''):
+                        logger.info("Sysmon已安装（重试时-i返回Usage），改用 -c 更新配置")
+                        return self.update_config()
+                    error_msg = result2.stderr.strip() or result2.stdout.strip()
+                    logger.error(f"Sysmon重试安装仍失败: {error_msg}")
+                    return False, f"安装失败: {error_msg}"
+
                 error_msg = result.stderr.strip() or result.stdout.strip()
                 logger.error(f"Sysmon安装失败: {error_msg}")
                 return False, f"安装失败: {error_msg}"
