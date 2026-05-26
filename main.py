@@ -132,10 +132,12 @@ def run_as_admin():
     if getattr(sys, 'frozen', False):
         params = subprocess.list2cmdline(sys.argv[1:])
     else:
-        params = subprocess.list2cmdline([sys.argv[0]] + sys.argv[1:])
+        script_path = os.path.abspath(sys.argv[0])
+        params = subprocess.list2cmdline([script_path] + sys.argv[1:])
 
+    work_dir = os.getcwd()
     ret = ctypes.windll.shell32.ShellExecuteW(
-        None, "runas", sys.executable, params, None, 1
+        None, "runas", sys.executable, params, work_dir, 1
     )
     if ret <= 32:
         logger.error(f"[Startup] 提权失败，ShellExecuteW 返回值: {ret}")

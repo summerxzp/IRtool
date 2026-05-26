@@ -489,7 +489,9 @@ class AutorunsDetailRenderer:
 
     def render_detail(self, data: dict, format_file_size):
         self._ensure_content_widgets()
-        self.splitter.setSizes([700, 300])
+
+        if self.splitter.sizes()[1] == 0:
+            self.splitter.setSizes([600, 400])
 
         detail_data = data.get("detail_data", {})
         entry_id = data.get("id")

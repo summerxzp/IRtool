@@ -659,11 +659,9 @@ class AutorunsTab(QWidget):
 
     def _on_model_reset(self):
         """模型重置后调整列宽（按分析优先级）"""
-        # Category：固定宽度
         self.tree_view.setColumnWidth(0, AUTORUNS_CATEGORY_WIDTH)
 
         if not self._column_widths_initialized:
-            # 首轮扫描完成后做一次性列宽采样，后续避免重复重计算
             self.tree_view.resizeColumnToContents(1)
             if self.tree_view.columnWidth(1) > AUTORUNS_ENTRY_MAX_WIDTH:
                 self.tree_view.setColumnWidth(1, AUTORUNS_ENTRY_MAX_WIDTH)
@@ -680,10 +678,9 @@ class AutorunsTab(QWidget):
             self.tree_view.setColumnWidth(1, AUTORUNS_ENTRY_MAX_WIDTH)
             self.tree_view.setColumnWidth(2, AUTORUNS_DESC_MAX_WIDTH)
             self.tree_view.setColumnWidth(3, AUTORUNS_PUBLISHER_MAX_WIDTH)
-        
-        # Image Path：完整显示内容，可横向滚动
-        self.tree_view.header().setStretchLastSection(False)
+
         self.tree_view.header().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+        self.tree_view.header().setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)
     
     def _populate_tree(self, data):
         """填充树形视图"""

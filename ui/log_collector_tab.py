@@ -386,6 +386,7 @@ class LogCollectorTab(QWidget):
         self._start_time = None
         self._sysmon_was_started_by_us = False
         self._enabled_events = list(DEFAULT_ENABLED_EVENTS)
+        self._has_auto_resized = False
 
         self._init_ui()
         self._check_crash_recovery()
@@ -645,6 +646,8 @@ class LogCollectorTab(QWidget):
 
     def _do_auto_resize(self):
         self.table.resizeColumnsToContents()
+        header = self.table.horizontalHeader()
+        header.setStretchLastSection(True)
 
     def _update_status_display(self):
         info = self.config_manager.get_status_info()
@@ -859,8 +862,9 @@ class LogCollectorTab(QWidget):
 
         self._apply_filters()
 
-        if not self._resize_timer.isActive() and self._model.rowCount() <= pending_count + 50:
-            self._resize_timer.start(500)
+        if not self._has_auto_resized:
+            self._resize_timer.start(100)
+            self._has_auto_resized = True
 
     def _event_to_row(self, event) -> tuple:
         if isinstance(event, DnsEvent):

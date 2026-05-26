@@ -224,6 +224,7 @@ class AutorunsTreeModel(QAbstractItemModel):
             entry_data.get('description', ''),
             self._compose_publisher_display(entry_data),
             entry_data.get('image_path', ''),
+            entry_data.get('command_line', '') or entry_data.get('launch_string', ''),
         )
         search_fields = [
             entry_data.get('entry', ''),
@@ -311,7 +312,7 @@ class AutorunsTreeModel(QAbstractItemModel):
             return len(self.root_nodes)
 
     def columnCount(self, parent=QModelIndex()) -> int:
-        return 5  # Category, Entry, Description, Publisher, Image Path
+        return 6
 
     def data(self, index, role=Qt.ItemDataRole.DisplayRole):
         if not index.isValid():
@@ -342,6 +343,8 @@ class AutorunsTreeModel(QAbstractItemModel):
                 return self._compose_publisher_display(node.data)
             if col == 4:
                 return node.data.get('image_path', '')
+            if col == 5:
+                return node.data.get('command_line', '') or node.data.get('launch_string', '')
             return None
         elif role == Qt.ItemDataRole.DecorationRole:
             # 图标显示：只在 Entry 列（第1列）显示
@@ -392,7 +395,7 @@ class AutorunsTreeModel(QAbstractItemModel):
 
     def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
         if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Horizontal:
-            headers = ['Category', 'Entry', 'Description', 'Publisher', 'Image Path']
+            headers = ['Category', 'Entry', 'Description', 'Publisher', 'Image Path', 'Command Line']
             if section < len(headers):
                 return headers[section]
         return None
