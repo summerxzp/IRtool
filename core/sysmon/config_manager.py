@@ -379,8 +379,8 @@ class SysmonConfigManager:
             return True, "Sysmon 服务已停止"
         except win32service.error as e:
             if e.winerror == 5:
-                logger.warning(f"停止Sysmon服务被拒绝访问，尝试通过 sysmon -u force 停止...")
-                return self._stop_via_uninstall()
+                logger.warning(f"停止Sysmon服务被拒绝访问，尝试通过 net stop 停止...")
+                return self._stop_via_sc()
             elif e.winerror == 1052:
                 logger.info("Sysmon服务已被标记为删除")
                 return True, "服务已停止"
@@ -394,28 +394,31 @@ class SysmonConfigManager:
             logger.exception("停止Sysmon服务失败")
             return False, f"停止服务失败: {e}"
 
-    def _stop_via_uninstall(self) -> Tuple[bool, str]:
-        if not self.sysmon_exe_path.exists():
-            return False, "停止服务失败: 拒绝访问且找不到 sysmon64.exe"
-
-        cmd = [str(self.sysmon_exe_path), '-u', 'force']
+    def _stop_via_sc(self) -> Tuple[bool, str]:
+        service_name = self.get_service_name() or 'Sysmon64'
+        cmd = ['net', 'stop', service_name]
         logger.info(f"执行命令: {' '.join(cmd)}")
         try:
             result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=30,
+                cmd, capture_output=True, text=True, timeout=15,
                 **_SUBPROCESS_KWARGS
             )
             if result.returncode == 0:
                 self.clear_started_marker()
-                logger.info("通过 sysmon -u force 成功停止服务")
+                logger.info(f"通过 net stop 成功停止 {service_name}")
                 return True, "Sysmon 服务已停止"
             else:
                 error_msg = result.stderr.strip() or result.stdout.strip()
-                logger.error(f"sysmon -u force 失败: {error_msg}")
-                return False, f"停止服务失败: 拒绝访问"
+                if '没有启动' in error_msg or 'not been started' in error_msg.lower():
+                    return True, "服务未在运行"
+                logger.warning(f"net stop 失败: {error_msg}")
+                return False, f"停止服务失败: {error_msg}"
+        except subprocess.TimeoutExpired:
+            logger.error("net stop 超时")
+            return False, "停止服务失败: 命令超时"
         except Exception as e:
-            logger.error(f"sysmon -u force 异常: {e}")
-            return False, f"停止服务失败: 拒绝访问"
+            logger.error(f"net stop 异常: {e}")
+            return False, f"停止服务失败: {e}"
 
     @staticmethod
     def generate_config(enabled_events: List[str]) -> str:
